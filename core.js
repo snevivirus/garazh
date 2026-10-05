@@ -40,7 +40,7 @@ const CONFIG = {
   // Диспетчерская: деталь из Мастерской и Ателье на уровень выше — 10%
   toolUp: 0.1,
   // Ателье выдаёт детали по зарядам: до 2 нажатий, +1 заряд каждые 3 часа; копить начинает с открытия (детали отделки — редкость)
-  atelier: { charges: 2, regenMs: 3 * 3600e3, coins: [40, 1.5] },   // заряд за монеты: 40, каждый следующий за день ×1,5 (ночью сброс)
+  atelier: { charges: 2, regenMs: 3600e3, coins: [40, 1.5] },        // заряд — 1 час (задание 10, было 3 ч)   // заряд за монеты: 40, каждый следующий за день ×1,5 (ночью сброс)
   bubbleChance: 0.05,                 // после слияния рядом всплывает копия в пузыре на 60 с
   bubbleMs: 60000,
   bubbleCoinsPerUnit: 2,              // цена: 2 монеты за каждую машину 1-го уровня в нём (свет мойки −30%)
@@ -75,7 +75,9 @@ const CONFIG = {
   // Заказы растут с уровнем игрока — ступени: до 4-го, с 4-го, с 7-го, с 11-го (задание 7: на поздних уровнях —
   // машины старших уровней и редкости, чтобы был смысл их растить). С 4-го по 6-й заказ на одну машину — не больше одного.
   orderGrowth: [4, 7, 11],
-  orderLvl: [3, 2],                   // уровень предмета: от «лучшая − 3» до «лучшая − 2» в линейке
+  // уровень предмета по ступеням: от «лучшая − a» до «лучшая − b» в линейке. С 4-го уровня игрока — не ниже «лучшая − 2»:
+  // заказ растёт вместе с игроком, а не просит «двойки», когда уже есть пятые (правка владельца, задание 10)
+  orderLvl: [[3, 2], [2, 2], [2, 2], [2, 2]],
   orderLead: [3, 1, 1, 6],            // с 4-й ступени крупный заказ (с этой долей) просит машину на 1 ниже лучшего уровня линейки, не выше 6-го
   orderMin: [2, 2, 3, 3],             // самый низкий уровень машины в заказе по ступеням: с 7-го уровня «двойки» уже не просят
   orderSize: {
@@ -84,7 +86,8 @@ const CONFIG = {
     big:    [[1, 2], [2, 3], [3, 5], [3, 5]],
   },
   orderDistinct: 3,                   // разных машин в заказе не больше трёх: одинаковые — одной карточкой «×N»
-  orderRarity: { big: [.15, .15, .15, .25], normal: [0, 0, 0, 0] },   // заказ просит редкость («зелёная 4-го»)
+  orderRarity: { big: [.05, .05, .05, .1], normal: [0, 0, 0, 0] },    // заказ просит редкость («зелёная 4-го»); задание 10: было .15/.25
+  orderPickRarity: 1,                 // машина, которую заказ взял с поля, просит свою редкость (задание 10: иначе редкую нечем сдать)
   orderRarityW: [{ 1: 3, 2: 1 }, { 1: 3, 2: 1 }, { 1: 3, 2: 1 }, { 1: 3, 2: 2 }],   // какую: зелёную, синюю, фиолетовую — по ступеням
   showcaseChance: 0.15,               // после подиума — заказ «на витрину»
   refreshMs: [1800000, 900000],       // бесплатная замена заказа раз в 30 минут (с креслами — раз в 15)
@@ -765,18 +768,18 @@ function makeOrder(s, slot, now) {
     // обычный и крупный заказ наполовину берут то, что уже стоит на поле, — так он достижим и разгружает поле.
     // Крупный забирает и то, что дальше не сливается: машины 8-го уровня и лишние сертификаты.
     const top = c => c.lvl === maxLvl(c.line) && (c.line < PARTS || s.cells.filter(isCert).length > 1);
-    const onField = s.cells.filter(c => isCar(c) && c.lvl >= (c.line < PARTS ? C.orderMin[stage] : 2) && (kind === 'big' && top(c) ||
+    const [da, db] = C.orderLvl[stage];
+    const onField = s.cells.filter(c => isCar(c) && c.lvl >= (c.line < PARTS ? Math.max(C.orderMin[stage], s.top[c.line] - da) : 2) && (kind === 'big' && top(c) ||
       c.line < PARTS && c.lvl < s.top[c.line] - 1 && lines.includes(c.line)));   // «лучшая − 1» не трогаем: из неё растёт новый уровень
     while (count > 0) {
       if (items.length >= C.orderDistinct) { (items.find(x => x.r < 0 && x.line !== PARTS) || items[0]).n++; count--; continue; }
       const pick = kind !== 'quick' && onField.length && rand(s) < 0.5 ? onField[Math.floor(rand(s) * onField.length)] : null;
       const l = pick ? pick.line : line(), M = s.top[l], n = Math.min(count, rand(s) < 0.35 ? 2 : 1);   // n ≤ count — лимит машин держится
       const low = kind === 'quick' && stage >= 2 ? 1 : 0;   // быстрый с 7-го уровня — две машины невысокого уровня
-      const [da, db] = C.orderLvl;
       const lo = l < PARTS ? C.orderMin[stage] : 2;
       const lvl = pick ? pick.lvl : randInt(s, Math.max(lo, M - da - low), Math.max(lo, M - db - low));
       const rr = C.orderRarity[kind]?.[stage] || 0;   // у деталей редкости нет; поздние заказы просят и синюю, и фиолетовую
-      const r = l < PARTS && rarOn(s) && rand(s) < rr ? pickW(s, C.orderRarityW[stage]) : -1;
+      const r = pick && pick.r > 0 && rand(s) < C.orderPickRarity ? pick.r : l < PARTS && rarOn(s) && rand(s) < rr ? pickW(s, C.orderRarityW[stage]) : -1;
       add(l, lvl, r >= 0 ? 1 : n, r);
       count -= r >= 0 ? 1 : n;
     }
@@ -793,32 +796,35 @@ const bonusPct = s => (fxHas(s, 'coins') ? C.washBonus : 0) + s.prestige * C.pre
 const orderMult = (s, o) => o.kind === 'event' ? 0 : C.kinds[o.kind].mult * (1 + bonusPct(s));
 const orderValue = (s, o) => Math.round(o.items.reduce((a, it) => a + itemCoins(s, it, Math.max(0, it.r)) * it.n, 0) * orderMult(s, o));
 const orderTokens = o => o.kind !== 'event' ? 0 : Math.round(o.items.reduce((a, it) => a + units(it.line, it.lvl) * it.n, 0) * C.event.tokensPerUnit);
+// Подходит руками (перетащил на карточку): редкость не ниже нужной. Более редкую игра отдаёт только после подтверждения
 const fits = (c, it) => isCar(c) && c.line === it.line && c.lvl === it.lvl && (c.r || 0) >= Math.max(0, it.r);
+// Подходит сама (нажатие на заказ, «готов», подсветка, палец, бот): ровно та редкость, что просит заказ; без редкости — белая
+const exact = (c, it) => fits(c, it) && (c.r || 0) === Math.max(0, it.r);
 
-// Какие машины с поля закрывают остаток заказа: для каждого предмета — список клеток (сначала простые редкости)
+// Какие машины с поля закрывают остаток заказа: для каждого предмета — список клеток ровно нужной редкости
 function match(s, o) {
   const used = new Set();
   const cells = o.items.map(it => {
     const need = it.n - it.got;
-    const cand = s.cells.map((c, i) => fits(c, it) && !used.has(i) ? i : -1).filter(i => i >= 0)
-      .sort((a, b) => s.cells[a].r - s.cells[b].r).slice(0, need);
+    const cand = s.cells.map((c, i) => exact(c, it) && !used.has(i) ? i : -1).filter(i => i >= 0).slice(0, need);
     cand.forEach(i => used.add(i));
     return cand;
   });
   return { cells, ready: o.items.every((it, k) => cells[k].length >= it.n - it.got), any: cells.some(c => c.length) };
 }
 
-// Отдать одну машину в заказ (перетащил на карточку)
-function giveOne(s, oi, cell, now) {
+// Отдать одну машину в заказ (перетащил на карточку). Машина редче, чем просит заказ, — только с ok (игрок подтвердил)
+function giveOne(s, oi, cell, now, ok) {
   const o = s.orders[oi], c = s.cells[cell];
   if (!o || oi >= s.slots || !isCar(c)) return [{ t: 'reject', at: cell }];
   const cand = o.items.filter(it => it.got < it.n && fits(c, it)).sort((a, b) => b.r - a.r);
   if (!cand.length) return [{ t: 'reject', at: cell }];
-  const it = cand[0];
+  const it = cand[0], need = Math.max(0, it.r);
+  if ((c.r || 0) > need && !ok) return [{ t: 'rare', order: oi, at: cell, r: c.r, need }];
   it.got++;
   o.acc += itemCoins(s, it, c.r || 0);
   s.cells[cell] = null;
-  const ev = [{ t: 'give', order: oi, from: cell, line: c.line, lvl: c.lvl, r: c.r || 0 }];
+  const ev = [{ t: 'give', order: oi, from: cell, line: c.line, lvl: c.lvl, r: c.r || 0, need }];
   if (o.items.every(x => x.got >= x.n)) ev.push(...completeOrder(s, oi, now));
   return ev;
 }
@@ -1142,7 +1148,7 @@ const Core = {
   closed, openCount, portFuel, tapCost, freeTap, portOpen, carLines, zoneIdx, fuelMax, regenMs, lineDone, fxHas, fxSum, fxOf,
   newGame, migrate, tick, charges, chargeWaitMs, chargePrice, buyCharge, fuelWaitMs, setSpeed, buyFuel, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
   dailyGift, claimDaily, dailyDone, goalDone, claimTask, taskReady,
-  move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, orderValue, orderTokens, bonusPct,
+  move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, exact, orderValue, orderTokens, bonusPct,
   giveOne, deliver, refreshOrder, refreshPrice, buySlot, nextBuy,
   store, unstore, buyStore, arrive, shipPrice, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, stuck,
