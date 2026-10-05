@@ -63,8 +63,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 #app {
   height: 100%; max-width: 460px; margin: 0 auto; box-sizing: border-box;
   display: flex; flex-direction: column; gap: 8px;
-  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px calc(94px + env(safe-area-inset-bottom, 0px));
+  /* --app-top / --app-bottom — отступы Telegram, поделённые на масштаб: после уменьшения игры они остаются настоящими */
+  padding: calc(8px + var(--app-top, env(safe-area-inset-top, 0px))) 12px calc(94px + var(--app-bottom, env(safe-area-inset-bottom, 0px)));
+  transform: scale(var(--k, 1)); transform-origin: 50% 0;     /* совсем низкое окно — игра целиком меньше, а не обрезана */
 }
+/* Telegram: страница не прокручивается, не «резинится» и не сворачивается свайпом; старый Telegram (до 7.7) — запас 1 px */
+html.tg, html.tg body { position: fixed; inset: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+html.tg-old body { position: static; overflow-y: scroll; scrollbar-width: none; }
+html.tg-old body::after { content: ""; display: block; height: 1px; }
 
 /* Шапка в два ряда — крупно, читается с вытянутой руки.
    1-й ряд: уровень с полосой опыта, задания дня, событие, склад. 2-й: звёзды, топливо, монеты. Любой счётчик — кнопка с карточкой. */
@@ -479,8 +485,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .fly-card { filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); }
 
 /* Экран модели: машина во всю ширину на цвете редкости, редкости листаются свайпом и кружками */
-.mscreen { position: fixed; inset: 0; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: calc(16px + env(safe-area-inset-top, 0px)) 0 calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--bg); touch-action: none; overflow: hidden; }
-.mscreen .xbtn { top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; }
+.mscreen { position: fixed; inset: 0; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: calc(16px + var(--tg-top, env(safe-area-inset-top, 0px))) 0 calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--bg); touch-action: none; overflow: hidden; }
+.mscreen .xbtn { top: calc(14px + var(--tg-top, env(safe-area-inset-top, 0px))); right: 14px; }
 .ms-head { display: flex; flex-direction: column; padding: 0 64px 0 18px; }
 .ms-head b { font-size: 30px; font-weight: 800; line-height: 1.1; }
 .ms-meta { --bs: 26px; display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -534,7 +540,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
 /* Нижнее меню — капсула 76 px, крупные значки и подпись одним словом; активная вкладка — белая */
 .dock {
-  position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 5;
+  position: fixed; left: 50%; bottom: calc(10px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)) + var(--vgap, 0px)); z-index: 5;
+  transform: translateX(-50%) scale(var(--k, 1)); transform-origin: 50% 100%;
   width: min(calc(100vw - 20px), 440px); box-sizing: border-box; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
   padding: 6px; border-radius: 32px; background: var(--dock); box-shadow: 0 6px 18px rgba(0,0,0,.16);
 }
@@ -837,9 +844,10 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="core.js"></script>
-<script src="art.js"></script>
-<script src="salon.js"></script>
+<script src="tg.js?v=7"></script>
+<script src="core.js?v=7"></script>
+<script src="art.js?v=7"></script>
+<script src="salon.js?v=7"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -919,7 +927,7 @@ function load() {
     return v && v.v >= 3 && Array.isArray(v.cells) && v.cells.length === Core.N ? Core.migrate(v) : null;   // чехлы → обычные машины
   } catch { return null; }
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch {} }
+function save() { s.at = Date.now(); const j = JSON.stringify(s); try { localStorage.setItem(SAVE_KEY, j); } catch {} TG.cloudSave(j, s.v); }
 function freshGame() {
   const g = Core.newGame(Date.now(), (Math.random() * 2 ** 31) | 0);
   g.giftDay = todayKey();              // в первый день подарок не мешает обучению
@@ -936,7 +944,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 6 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 7 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -959,11 +967,11 @@ const LNAME = ['легковая', 'внедорожник', 'купе', 'дет
 const what = c => !c ? 'пусто' : c.k === 'key' ? 'ключ' : c.k !== 'car' ? c.k :
   `${LNAME[c.line]} ${c.lvl} ур.${c.r ? ' ' + RNAME[c.r].toLowerCase() : ''}${c.broken ? ' сломанная' : ''}`;
 L(`запуск: ${BUILD}; экран ${screen.width}×${screen.height}, окно ${innerWidth}×${innerHeight}; ` +
-  `${matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'с экрана «Домой»' : 'в браузере'}; ` +
+  `${TG.on ? `в Telegram${TG.mock ? ' (имитация ?tg=1)' : ''}` : matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'с экрана «Домой»' : 'в браузере'}; ` +
   `${saved ? `продолжение, уровень ${s.level}` : 'новая игра'}; ${navigator.userAgent}`);
 addEventListener('error', e => { LOG.sum.err++; L(`ОШИБКА: ${e.message} (${String(e.filename).split('/').pop()}:${e.lineno})`); });
 addEventListener('unhandledrejection', e => { LOG.sum.err++; L(`ОШИБКА: ${e.reason?.message || e.reason}`); });
-addEventListener('pagehide', logSaveNow);
+addEventListener('pagehide', () => { logSaveNow(); TG.cloudFlush(); });
 
 // Что на экране: вкладка и открытое окно
 const scr = () => VIEWNAME[view] + (popupOpen ? `, окно «${popupOpen.logName}»` : '');
@@ -1038,7 +1046,7 @@ document.addEventListener('visibilitychange', () => {
     if (gap > 10) logIdle(gap, ', потом ушёл со страницы');
     L('ушёл со страницы');
     shownPage = false; hiddenAt = Date.now();
-    logSaveNow();
+    logSaveNow(); TG.cloudFlush();
   } else {
     shownPage = true; clockAt = lastTouch = Date.now();
     L(`вернулся через ${Math.round((Date.now() - hiddenAt) / 1000)} с`);
@@ -1099,6 +1107,10 @@ function logText() {
     `Сам открыл карточки: ${['счётчик', 'гараж', 'заказ', 'задания дня', 'подсказка', 'экран модели', 'предмет салона'].map(k => `${k} — ${yes(k)}`).join(', ')}.`,
     `Палец-подсказка: показан ${S.hint[0]}, игрок сделал ${S.hint[1]}, не сделал ${S.hint[2]}, убран игрой ${S.hint[3]}.`,
     `Ошибок: ${S.err}.`,
+    `Среда: ${TG.on ? `Telegram${TG.mock ? ' (имитация)' : ''}, ${TG.platform() || '?'} ${TG.version() || '?'}` : 'браузер'}. ` +
+      `Окно: ${innerWidth}×${fitH}${fitK < 1 ? `, игра уменьшена до ${Math.round(fitK * 100)}%` : ''}` +
+      (TG.on ? (i => `, отступы сверху ${i.top}, снизу ${i.bottom}${i.fallback ? ' (запас)' : ''}${i.full ? ', полноэкранный режим' : ''}`)(TG.insets()) : '') + '.',
+    ...(TG.on ? [`Облако Telegram: записано ${TG.cloud.ok}, ошибок ${TG.cloud.fail}${TG.cloud.restored ? ', сохранение восстановлено из облака' : ''}.`] : []),
     `Сейчас: уровень ${s.level}, в коллекции ${Object.keys(s.seen).length} из 24 машин.`,
     '',
     `СОБЫТИЯ (секунды от запуска страницы)` + (LOG.cut ? `, первые ${LOG.cut} вытеснены` : ''),
@@ -1130,6 +1142,7 @@ async function sendLog() {
 let AC = null;
 const NOTES = { spawn: [520], merge: [660, 990], coin: [1320, 1760], level: [523, 659, 784, 1046], no: [196], unlock: [440, 660], card: [784, 1175], build: [392, 587, 784], pop: [880], lucky: [784, 988, 1319, 1568] };
 function sound(kind) {
+  if (kind === 'no') TG.haptic('error');
   if (!s.sound) return;
   try { AC ||= new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
   const t0 = AC.currentTime;
@@ -1143,7 +1156,7 @@ function sound(kind) {
     o.start(t); o.stop(t + .2);
   });
 }
-const buzz = ms => { try { navigator.vibrate?.(ms); } catch {} };
+const buzz = ms => { if (TG.haptic(Array.isArray(ms) ? 'success' : ms >= 15 ? 'medium' : 'light')) return; try { navigator.vibrate?.(ms); } catch {} };
 
 // ── Рисование ──────────────────────────────────────────────────────────────
 const cellEl = i => $('board').children[i];
@@ -1580,12 +1593,42 @@ function renderAll() {
   if (view === 'settings') renderSettings();
 }
 
-// Раскладка: поле по ширине экрана, заказы — всё, что осталось сверху (сетка 2 × 2 или лента)
+// Раскладка: поле по ширине экрана, заказы — всё, что осталось сверху (сетка 2 × 2 или ряд).
+// Высота — видимая высота окна; в Telegram — из Telegram: окно «шторкой» меняется уже после запуска, поэтому fit()
+// зовётся и по его событиям. Окно ниже, чем нужно полю с клеткой 30 px и ряду заказов 64 px, — вся игра целиком
+// уменьшается (масштаб), чтобы ничего не обрезалось: поле важнее заказов
+let fitH = 0, fitK = 1, fitIns = '';
 function fit() {
-  const app = $('app'), cs = getComputedStyle(app);
-  if (view !== 'field' || !app.clientWidth) return;
+  const app = $('app'), root = document.documentElement.style;
+  if (!app.clientWidth) return;
+  const vh = TG.on ? TG.height() : innerHeight, hud = app.querySelector('.hud').offsetHeight;
+  // масштаб: поле с клеткой 30 px, ряд заказов 64 px, шапка, меню; отступы Telegram (вырез, кнопки) не уменьшаются
+  const ins = TG.on ? TG.insets() : null, need = 8 + hud + 16 + 64 + 30 * 9 + 32 + 94;
+  let k = 1;
+  if (ins) {
+    k = Math.min(1, (vh - ins.top - ins.bottom) / need);
+    const key = JSON.stringify(ins);
+    root.setProperty('--app-top', ins.top / k + 'px');
+    root.setProperty('--app-bottom', ins.bottom / k + 'px');
+    root.setProperty('--tg-top', ins.top + 'px');
+    root.setProperty('--tg-bottom', ins.bottom + 'px');
+    root.setProperty('--vgap', Math.max(0, innerHeight - vh) + 'px');      // окно Telegram ниже страницы — меню над краем окна
+    if (key !== fitIns) L(`Telegram: ${ins.full ? 'полноэкранный' : 'обычный'} режим, отступы сверху ${ins.sa[0]}+${ins.ca[0]}, снизу ${ins.sa[1]}+${ins.ca[1]}` +
+      `${ins.fallback ? ` (не пришли — запас ${ins.top})` : ''}; ${TG.platform() || '?'} ${TG.version() || '(скрипт Telegram ещё не загружен)'}`);
+    fitIns = key;
+  }
+  const cs = getComputedStyle(app), padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom);
+  if (!ins) k = Math.min(1, vh / (padT + padB + hud + 16 + 64 + 30 * 9 + 32));
+  root.setProperty('--k', k);
+  app.style.height = TG.on || k < 1 ? vh / k + 'px' : '';
+  if (vh !== fitH || k !== fitK) {
+    L(`окно: высота ${vh} (innerHeight ${innerHeight}, visualViewport ${Math.round(window.visualViewport?.height || 0)}, Telegram ${TG.on ? Math.round(window.Telegram?.WebApp?.viewportStableHeight || 0) : '—'})`);
+    if (k < 1) L(`мало места: высота ${vh}, вся игра уменьшена до ${Math.round(k * 100)}%`);
+  }
+  fitH = vh; fitK = k;
+  if (view !== 'field') return;
   const W = app.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const H = app.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - $('app').querySelector('.hud').offsetHeight - 16;   // без шапки и двух зазоров
+  const H = app.clientHeight - padT - padB - hud - 16;   // без шапки и двух зазоров
   // клетки — по ширине экрана; не влезает по высоте — сначала заказы переходят в компактный ряд, клетки — в последнюю очередь.
   // Карточка заказа — не ниже 64 px: сетке 2 × 2 нужно 136 px, компактному ряду — 64
   let cell = Math.min(64, Math.floor((W - 24) / 7));
@@ -1596,6 +1639,12 @@ function fit() {
   $('orders').className = 'orders ' + (room >= 136 ? 'grid' : room >= 110 ? 'compact tall' : 'compact');
 }
 addEventListener('resize', fit);
+TG.onChange(fit);
+// Telegram: страница не тянется пальцем — touchmove гасится везде, кроме окон с прокруткой (листы, Подсказки, Настройки).
+// В старом Telegram (до 7.7) не гасится: там свайп вниз ловит запас прокрутки в 1 px
+if (TG.on) document.addEventListener('touchmove', e => {
+  if (!document.documentElement.classList.contains('tg-old') && !e.target.closest?.('.view, .sheet, .logta')) e.preventDefault();
+}, { passive: false });
 
 // ── Анимации ───────────────────────────────────────────────────────────────
 const anim = (el, frames, opt) => (!RM.matches && el?.animate) ? el.animate(frames, opt) : null;
@@ -2748,6 +2797,32 @@ window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}
 Art.loadRasters(renderAll);
 renderAll();
 fit();
-// без интернета игра открывается из памяти телефона
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// Telegram: сохранение на телефоне пустое или старше облачной копии — берём облачную
+if (TG.on) TG.cloudLoad((str, at) => {
+  let v = null;
+  try { v = str && JSON.parse(str); } catch {}
+  const ok = v && v.v >= 3 && Array.isArray(v.cells) && v.cells.length === Core.N;
+  const newer = ok && (!saved || (saved.at || 0) < at);
+  L(`облако Telegram: ${!ok ? 'копии нет' : newer ? 'копия новее, чем на телефоне' : 'копия не новее, чем на телефоне'}`);
+  if (newer) { TG.cloud.restored = true; G.set(v); L('сохранение восстановлено из облака Telegram'); }
+});
+
+// Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
+// и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
+const BUILD_N = 7;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
+  L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
+  if (!(v.build > BUILD_N)) return;
+  let again = true;
+  try { again = sessionStorage.getItem('garazh.reload') === String(v.build); if (!again) sessionStorage.setItem('garazh.reload', v.build); } catch {}
+  if (again) return L(`перезагрузка на сборку ${v.build} уже была — остаётся ${BUILD_N}`);
+  L(`перезагрузка на сборку ${v.build}`);
+  logSaveNow();
+  const u = new URL(location.href);
+  u.searchParams.set('v', v.build);
+  location.replace(u.href);
+}).catch(() => L('проверка версии: нет ответа'));
+// без интернета игра открывается из памяти телефона; нет поддержки (встроенный браузер Telegram) — игра работает и так
+try { if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch {}
 </script>
