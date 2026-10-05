@@ -495,6 +495,14 @@ function buyCharge(s, now, day) {
   s.atelier.buy = { day, n: s.atelier.buy?.day === day ? s.atelier.buy.n + 1 : 1 };
   return [{ t: 'chargeBuy', price, at: portOf(TRIM).cell }];
 }
+// Награда за ролик или покупку (задание 12; в игре — только с ?monet=1): одна функция на все места.
+// fuel — полный бак, когда бак пуст; charge — +1 заряд Ателье, когда зарядов 0. Условие не выполнено — ничего не даёт
+function reward(s, place, now) {
+  if (place === 'fuel' && s.fuel < 1) s.fuel = fuelMax(s);
+  else if (place === 'charge' && rarOn(s) && charges(s, now) === 0) s.atelier.n++;
+  else return [{ t: 'reject' }];
+  return [{ t: 'reward', place, at: place === 'charge' ? portOf(TRIM).cell : -1 }];
+}
 const chargeWaitMs = (s, now) => charges(s, now) >= C.atelier.charges ? 0 : Math.max(0, atRegen(s) - (now - s.atelier.at));
 function tapPort(s, i, now) {
   const c = s.cells[i];
@@ -1146,7 +1154,7 @@ const Core = {
   CONFIG, CARS, EVENT_CARS, PARTS, EV, TRIM, PART_NAMES, TRIM_NAMES, N, key, maxLvl, units, xpNeed, rand, around, isPart, rarOn,
   toolFor, trimFor, needItem, itemFits, itemHint,
   closed, openCount, portFuel, tapCost, freeTap, portOpen, carLines, zoneIdx, fuelMax, regenMs, lineDone, fxHas, fxSum, fxOf,
-  newGame, migrate, tick, charges, chargeWaitMs, chargePrice, buyCharge, fuelWaitMs, setSpeed, buyFuel, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
+  newGame, migrate, tick, charges, chargeWaitMs, chargePrice, buyCharge, reward, fuelWaitMs, setSpeed, buyFuel, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
   dailyGift, claimDaily, dailyDone, goalDone, claimTask, taskReady,
   move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, exact, orderValue, orderTokens, bonusPct,
   giveOne, deliver, refreshOrder, refreshPrice, buySlot, nextBuy,
