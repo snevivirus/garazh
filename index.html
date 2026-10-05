@@ -1,0 +1,2655 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Гараж</title>
+<meta name="theme-color" content="#F2F2F0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Гараж">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* Шрифт Onest — свои файлы (лицензия OFL, assets/fonts/OFL.txt): кириллица и латиница, все начертания 400–800 */
+@font-face { font-family: "Onest"; font-weight: 400 800; font-display: swap;
+  src: url(assets/fonts/onest-cyrillic.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Onest"; font-weight: 400 800; font-display: swap;
+  src: url(assets/fonts/onest-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Тёплый светлый бокс: белые плитки на тёплом сером, графитовая капсула меню.
+   Цвет — у машин и у редкости (кружок с номером, рамка клетки). Одна светлая тема — так в задании. */
+:root {
+  color-scheme: light;
+  --bg: #F2F2F0;
+  --tile: #FFFFFF;
+  --well: #E6E6E2;
+  --ink: #1D1F22;
+  --ink-2: #6B6D70;
+  --ink-3: #A9AAA6;
+  --dock: #1E2023;
+  --ok: #3E7A57;
+  --ok-bg: #F1F7F3;
+  --gold: #B88A2E;
+  /* редкость: цвет значка и рамки, цифра на значке, градиент клетки в стиле B */
+  --r0: #D5D7DA; --ri0: #1D1F22; --ra0: #F7F8FA; --rb0: #D3D8DE;   /* обычная */
+  --r1: #4E9A63; --ri1: #FFFFFF; --ra1: #E2F3E6; --rb1: #8CCB9C;   /* необычная */
+  --r2: #2E6BD1; --ri2: #FFFFFF; --ra2: #DDE8FB; --rb2: #86A9EA;   /* редкая */
+  --r3: #7A4BC2; --ri3: #FFFFFF; --ra3: #ECE0F8; --rb3: #B08BDF;   /* эпическая */
+  --r4: #E07A22; --ri4: #FFFFFF; --ra4: #FDE8CF; --rb4: #F2A85E;   /* легендарная */
+  /* заливка клетки цветом редкости в стиле A — светлее, чем в B, но видна сразу */
+  --fa0: #FFFFFF; --fb0: #F3F4F5; --fa1: #E3F5E7; --fb1: #A4DBB2; --fa2: #E1EBFC; --fb2: #9EBEF3;
+  --fa3: #EFE4FA; --fb3: #C3A5EC; --fa4: #FFECD4; --fb4: #F4B474;
+  --font: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cell: 46px;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+  overflow: hidden; overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+}
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--r2); outline-offset: 2px; }
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.car-img.mono, svg.mono { filter: brightness(0) invert(.82); opacity: .9; }
+/* Машины владельца по редкостям: холст 1,6 : 1, машина — 92% ширины, колёса на одной линии */
+.cell .car.v2 { left: 0; width: 100%; bottom: 2%; }
+.bub .car.v2 { left: 8%; width: 84%; bottom: 22%; }
+
+#app {
+  height: 100%; max-width: 460px; margin: 0 auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px calc(94px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Шапка в два ряда — крупно, читается с вытянутой руки.
+   1-й ряд: уровень с полосой опыта, задания дня, событие, склад. 2-й: звёзды, топливо, монеты. Любой счётчик — кнопка с карточкой. */
+.hud { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.hrow { display: flex; align-items: center; gap: 6px; height: 48px; }
+.pill, .hbtn {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; height: 48px; padding: 0 12px 0 9px;
+  box-sizing: border-box; border-radius: 16px; background: var(--tile); font-weight: 800; font-size: 23px; line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hud .ic { width: 27px; height: 27px; stroke-width: 1.8; }
+.pill { flex: 1 1 0; min-width: 0; }
+#starPill .ic { color: var(--gold); fill: #F3E3BD; }
+#coinPill > .ic { color: var(--gold); }
+#coinPill .goalbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; border-radius: 2px; background: #ECEBE6; overflow: hidden; }
+#coinPill .goalbar i { display: block; height: 100%; background: var(--gold); }
+#fuelPill.empty { color: var(--ink-3); }
+.lvlbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; height: 48px; padding: 0 14px 0 2px; box-sizing: border-box; border-radius: 24px; background: var(--tile); }
+.lvl-n { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.xp { position: relative; flex: 1; min-width: 0; height: 12px; border-radius: 6px; background: #E6E5E0; overflow: hidden; }
+.xp i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #E4BE6A, var(--gold)); transition: width .4s ease; }
+.hbtn.sq { width: 48px; padding: 0; flex: none; }
+.hbtn .ic { color: var(--ink); }
+#cal { padding: 0 11px 0 8px; flex: none; }
+#cal.ready { background: var(--ok); color: #fff; animation: breathe 1.6s ease-in-out infinite; }
+#cal.ready .ic { color: #fff; }
+@keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(62,122,87,.18); } }
+.hbadge {
+  position: absolute; right: -4px; top: -5px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px;
+  background: var(--ink); color: #fff; font-size: 11px; font-weight: 800; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--bg);
+}
+.hbadge.gold { background: var(--gold); }
+#evBtn { background: #FBF3E0; }
+#evBtn .ic { color: #9A6A1E; }
+#depotBtn.over { box-shadow: inset 0 0 0 2.5px var(--ok); background: var(--ok-bg); }
+
+/* Значок уровня: крупная цифра в кружке цвета редкости. В стиле B — шестиугольник */
+.lv {
+  position: absolute; z-index: 1; top: 1px; left: 1px; min-width: var(--bs, 20px); height: var(--bs, 20px); padding: 0 3px; box-sizing: border-box;
+  border-radius: 999px; background: var(--rc); color: var(--ri); display: grid; place-items: center;
+  font-size: calc(var(--bs, 20px) * .74); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0,0,0,.28);
+}
+
+/* Заказы: 4 слота. Высокий экран — сетка 2 × 2, низкий — лента, листается вбок */
+.orders-wrap { position: relative; flex: 1 1 auto; min-height: 84px; display: flex; flex-direction: column; }
+.orders { flex: 1; display: grid; gap: 8px; min-height: 0; }
+.orders.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }
+.orders.row { grid-auto-flow: column; grid-auto-columns: calc(50% - 4px); overflow-x: auto; scroll-snap-type: x mandatory; touch-action: pan-x; scrollbar-width: none; }
+.orders.row::-webkit-scrollbar { display: none; }
+.order {
+  position: relative; display: flex; flex-direction: column; gap: 4px; padding: 7px 8px 6px 11px; min-width: 0; min-height: 0;
+  box-sizing: border-box; background: var(--tile); border-radius: 14px; scroll-snap-align: start; cursor: pointer; overflow: hidden;
+}
+.order::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--kc); }
+.order.k-quick { --kc: #A3ACB6; }
+.order.k-normal { --kc: #5C7D9B; }
+.order.k-big { --kc: var(--gold); background: #FBF7EE; }
+.order.k-big::before { width: 6px; }
+.order.k-showcase { --kc: var(--ink); background: #F6F4EF; }
+.order.k-event { --kc: #E9B949; background: #FBF3E0; }
+.rdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
+.needtool { position: absolute; z-index: 1; top: 1px; right: 1px; width: calc(var(--cell) * .4); height: calc(var(--cell) * .4); border-radius: 50%;
+  background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px var(--ink), 0 1px 3px rgba(0,0,0,.25); }
+.needtool svg { width: 86%; height: auto; }
+.chg { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%); display: flex; gap: 2px; }
+.chg b { width: calc(var(--cell) * .1); height: calc(var(--cell) * .1); border-radius: 50%; background: rgba(255,255,255,.3); }
+.chg b.on { background: #F1C76B; }
+.order.k-event::before { width: 6px; }
+.ava.evava { background: #E9B949; color: #fff; }
+.ava.evava .ic { width: 15px; height: 15px; }
+.k-event .oval .ic { color: #9A6A1E; fill: #F3D58C; }
+.order.ready { box-shadow: inset 0 0 0 1.5px var(--ok); background: var(--ok-bg); animation: bob 1.6s ease-in-out infinite; }
+.order.over { box-shadow: inset 0 0 0 2px var(--ok); }
+@keyframes bob { 50% { transform: translateY(-2px); } }
+.order.locked { align-items: center; justify-content: center; gap: 6px; background: #E9E9E5; color: var(--ink-3); padding: 8px; }
+.order.locked::before { display: none; }
+.order.locked > .ic { width: 22px; height: 22px; }
+.order.locked.can { background: #FFF; box-shadow: inset 0 0 0 1.5px var(--gold); color: var(--ink); }
+.oprice { display: flex; align-items: center; gap: 2px; font-weight: 700; font-size: 15px; color: var(--ink); }
+.oprice .ic { width: 15px; height: 15px; color: var(--gold); }
+.ohead { display: flex; align-items: center; gap: 6px; flex: none; }
+.ava { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; flex: none; }
+.ava svg { display: block; width: 100%; height: 100%; }
+.ava.vitrine { background: var(--ink); color: #F1D9A8; }
+.ava.vitrine .ic { width: 15px; height: 15px; }
+.oval { display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.oval .ic { width: 13px; height: 13px; color: var(--gold); }
+.ref { margin-left: auto; display: flex; align-items: center; gap: 1px; height: 22px; padding: 0 4px; border-radius: 11px; color: var(--ink-3); font-size: 11px; font-weight: 700; }
+.ref .ic { width: 15px; height: 15px; }
+.ref b { color: var(--ink-2); }
+.wants { flex: 1; min-height: 0; display: flex; gap: 3px; align-items: center; justify-content: flex-start; }
+.orders.grid .want { max-width: 60px; }   /* картинка 1,6 : 1 — выше рисунка, иначе «×N» уходит за край карточки */
+.orders.row .want { max-width: 64px; }
+/* Одна машина в заказе — крупно, на всю карточку */
+.order.single .wants { justify-content: center; align-items: stretch; }
+.order.single .want { --bs: 24px; flex: 1; max-width: none; height: 100%; padding: 4px 0 2px; justify-content: center; box-sizing: border-box; }
+.order.single .want { align-items: center; }
+.order.single .want .car { width: 70%; min-width: 44px; max-width: 150px; height: auto; margin: auto 0; }
+.order.single .want .car.part { height: 82%; }
+.order.single .want .lv { top: 0; left: 4px; }
+.order.single .tick { width: 20px; height: 20px; top: 0; right: 4px; }
+.want {
+  --bs: 15px; position: relative; flex: 1 1 0; min-width: 44px; max-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 1px 2px; border-radius: 8px;
+}
+.want .car { width: 100%; height: auto; display: block; }
+.want .car.part { width: 74%; }
+.want.req { background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: inset 0 0 0 1px var(--rc); }
+.want.done { opacity: .45; }
+.want .lv { top: -1px; left: -1px; }
+.cnt2 { position: absolute; right: -2px; bottom: 1px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: var(--ink); border-radius: 8px; padding: 1px 4px; line-height: 1.1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px #fff; }
+.obig { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.obig .rtile { --bs: 20px; max-width: none; width: 100%; aspect-ratio: 1.15; }
+.obig .rtile.done { opacity: .45; }
+.obig .rtile .car { left: 6%; width: 88%; bottom: 24%; }
+.obig .rtile .tick { width: 22px; height: 22px; top: 4px; right: 4px; }
+.obig .rtile .cnt2 { right: 4px; bottom: 4px; font-size: 14px; }
+.obig .rtile .miss { position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; border-radius: 50%; background: #E3E3DE; }
+.ohead2 { display: flex; align-items: center; gap: 10px; }
+.ohead2 .ava { width: 40px; height: 40px; }
+.ohead2 .sh-title { flex: 1; padding-right: 40px; font-size: 20px; }
+.obtns { display: flex; gap: 8px; justify-content: center; }
+.tick { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #fff; }
+.tick .ic { width: 70%; height: 70%; stroke-width: 2.6; }
+#streak {
+  position: absolute; z-index: 3; top: -8px; right: 6px; display: flex; align-items: center; gap: 1px; height: 20px; padding: 0 6px 0 3px;
+  border-radius: 10px; background: #fff; color: var(--ink-3); font-size: 12px; font-weight: 800; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+#streak .ic { width: 15px; height: 15px; }
+#streak.hot { background: #E07A22; color: #fff; }
+
+/* Поле */
+.board-wrap { flex: none; display: grid; place-items: start center; }
+.board {
+  --bs: calc(var(--cell) * .42);
+  display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); gap: 4px;
+  touch-action: none;
+}
+.cell { position: relative; border-radius: 10px; background: var(--tile); }
+.cell .car { position: absolute; left: 3%; width: 94%; bottom: 20%; height: auto; pointer-events: none; }
+.cell .car.part { left: 14%; width: 72%; bottom: 16%; }
+.cell .thing { position: absolute; left: 12%; width: 76%; bottom: 10%; height: auto; pointer-events: none; }
+.plate { position: absolute; left: 13%; right: 13%; bottom: 13%; height: 15%; border-radius: 50%; background: var(--rc); opacity: .45; }
+.plate.legend, .stripe.legend {
+  opacity: .9; background: linear-gradient(100deg, var(--r4) 35%, #F7CFA0 50%, var(--r4) 65%);
+  background-size: 300% 100%; animation: shimmer 2.6s linear infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.cell.car { background: linear-gradient(160deg, var(--fa), var(--fb)); }
+.cell.car:not(.r0) { box-shadow: inset 0 0 0 1px var(--rc); }
+.cell.r4 { animation: glowL 1.6s ease-in-out infinite alternate; }
+@keyframes glowL { to { box-shadow: inset 0 0 0 1.5px var(--r4), 0 0 12px rgba(224,122,34,.55); } }
+.cell.wanted { box-shadow: inset 0 0 0 2px var(--ok); animation: glow 1.4s ease-in-out infinite alternate; }
+@keyframes glow { to { box-shadow: inset 0 0 0 2px rgba(62,122,87,.45), 0 0 10px rgba(62,122,87,.3); } }
+.cell.lifted .car, .cell.lifted .thing { opacity: .25; }
+.cell.over { box-shadow: inset 0 0 0 2px var(--ink-3); }
+.cell.over.match { box-shadow: inset 0 0 0 2px var(--ok); background: var(--ok-bg); }
+.cell.broken .car { filter: grayscale(1) brightness(.9) contrast(.9); opacity: .8; }
+.cell.broken { background: #EFEFEC; cursor: pointer; }
+.needcert {
+  position: absolute; z-index: 1; top: 1px; right: 1px; width: calc(var(--cell) * .38); height: calc(var(--cell) * .38);
+  border-radius: 50%; background: #F1F1EE; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #C4C4BF;
+}
+.needcert svg { width: 82%; height: 82%; filter: grayscale(1); opacity: .55; }
+.needcert.on { background: #fff; box-shadow: 0 0 0 2px var(--ok), 0 1px 3px rgba(0,0,0,.25); animation: certOn 1.4s ease-in-out infinite; }
+.needcert.on svg { filter: none; opacity: 1; }
+@keyframes certOn { 50% { transform: scale(1.15); box-shadow: 0 0 0 2px var(--ok), 0 0 10px rgba(62,122,87,.6); } }
+.goalmark { position: absolute; z-index: 1; top: 2px; right: 2px; width: calc(var(--cell) * .32); height: calc(var(--cell) * .32); border-radius: 50%;
+  background: radial-gradient(circle, var(--ok) 0 22%, #fff 23% 45%, var(--ok) 46% 62%, #fff 63%); box-shadow: 0 0 0 1px var(--ok); animation: beckon 1.4s ease-in-out infinite; }
+.updot { position: absolute; z-index: 2; top: 3px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #E9B949; box-shadow: 0 0 0 2px var(--ink); pointer-events: none; }
+.chain { display: flex; align-items: center; justify-content: center; gap: 2px; flex-wrap: nowrap; }
+.chain svg.car { width: 46px; height: auto; }
+.chain > .ic { width: 12px; height: 12px; color: var(--ink-3); flex: none; }
+.chain .car.last { width: 54px; }
+
+.cell.far { background: #E9E9E5; }
+.cell.lock, .cell.box { background: var(--well); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; }
+.cell.lock .ic { width: 34%; height: 34%; stroke-width: 2; opacity: .55; }
+.cell.lock.can .ic { margin-top: -18%; opacity: 1; width: 40%; height: 40%; }
+.cell.box { background: #E9E4DA; }
+.cell.box .thing { left: 8%; width: 84%; bottom: 8%; }
+.cprice {
+  position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); display: flex; align-items: center; gap: 1px;
+  padding: 1px 5px 1px 3px; border-radius: 8px; background: #fff; font-size: 11px; font-weight: 800; color: var(--ink); white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+}
+.cprice .ic { width: 11px !important; height: 11px !important; margin: 0 !important; color: var(--gold); }
+.cell.lock.can .cprice { background: var(--gold); color: #fff; }
+.cell.lock.can .cprice .ic { color: #fff; }
+.cell.peek, .cell.keyable { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.cell.peek { animation: blink .5s ease-in-out 3 alternate; }
+@keyframes blink { to { box-shadow: inset 0 0 0 2.5px var(--gold), 0 0 10px rgba(184,138,46,.5); } }
+.cell.key { cursor: grab; }
+
+.cell.port { background: var(--ink); color: #E9E9E5; cursor: pointer; }
+.cell.port.off { background: #BDBDB8; }
+.garage { position: absolute; inset: 6% 10% auto; width: 80%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.port-car { position: absolute; left: 14%; right: 14%; bottom: 15%; }
+.port-car .car { position: static; width: 100%; }
+.port-car .ic { display: block; margin: 0 auto; width: 46%; height: auto; }
+.timer {
+  position: absolute; left: 50%; bottom: 15%; transform: translateX(-50%);
+  padding: 1px 5px; border-radius: 7px; background: var(--ink); color: #fff;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.cost2 {
+  position: absolute; right: 1px; top: 1px; display: flex; align-items: center; padding: 0 3px 0 1px; border-radius: 7px;
+  background: #fff; color: var(--ink); font-size: 10px; font-weight: 700;
+}
+.cost2 .ic { width: 10px; height: 10px; }
+.cell.slot { background: transparent; box-shadow: inset 0 0 0 1.5px #DCDCD7; color: #D4D4CF; }
+.cell.port.ev { background: linear-gradient(160deg, #E9B949, #B9832A); color: #FFF6DF; }
+.cell.port.ev.off { background: #CDBF9E; }
+.cell.chest { cursor: pointer; }
+.cnt {
+  position: absolute; top: 2px; right: 3px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--ink);
+  color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center;
+}
+.cell.bubble { cursor: pointer; background: transparent; }
+.bub {
+  position: absolute; inset: 4%; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.98), rgba(226,239,246,.75) 55%, rgba(186,214,232,.55));
+  box-shadow: inset 0 0 0 1.5px rgba(110,150,185,.45);
+}
+.bub .car { left: 12%; width: 76%; bottom: 30%; }
+.cell.bubble::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none;
+  background: conic-gradient(var(--r2) calc(var(--p, 1) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+}
+.bprice {
+  position: absolute; z-index: 1; left: 50%; bottom: 3%; transform: translateX(-50%); display: flex; align-items: center; gap: 1px;
+  padding: 0 5px 0 3px; border-radius: 8px; background: #fff; font-size: 11px; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.18); white-space: nowrap;
+}
+.bprice .ic { width: 11px; height: 11px; color: var(--gold); }
+.flash {
+  position: absolute; inset: -16%; z-index: 3; border-radius: 50%; pointer-events: none;
+  border: 3px solid var(--fc, #E2A93B); background: radial-gradient(closest-side, rgba(242,196,110,.5), transparent);
+}
+.flash.lucky { border-width: 4px; background: radial-gradient(closest-side, var(--fc), transparent); }
+/* Всё, что игрок получает, — крупно: «+N★» после слияния, «+N◎» за заказ, монеты и топливо из сундуков */
+.floater {
+  position: fixed; z-index: 31; left: 0; top: 0; pointer-events: none; display: flex; align-items: center; gap: 3px;
+  padding: 3px 11px 3px 10px; border-radius: 17px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.24), inset 0 0 0 1.5px #E9D8AE;
+  font-size: 24px; font-weight: 800; line-height: 1.15; color: #8E6A1E; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.floater .ic { width: 22px; height: 22px; color: var(--gold); fill: #F3E3BD; stroke-width: 1.6; }
+.floater.fl-big { font-size: 32px; padding: 4px 14px 4px 12px; border-radius: 22px; }
+.floater.fl-big .ic { width: 30px; height: 30px; }
+/* правильное слияние одной редкости — плашка цвета редкости: галочка, звёзды, множитель */
+.floater.fl-rar { background: var(--fc); color: #fff; font-size: 30px; padding: 4px 14px 4px 9px; border-radius: 22px; box-shadow: 0 6px 16px rgba(0,0,0,.28), inset 0 0 0 2px rgba(255,255,255,.6); }
+.floater.fl-rar .ic { color: #fff; fill: rgba(255,255,255,.3); width: 28px; height: 28px; }
+.floater .ok { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fff; color: var(--fc); }
+.floater .ok .ic { color: var(--fc); fill: none; stroke-width: 3; width: 20px; height: 20px; }
+.floater .mul { margin-left: 4px; padding: 1px 8px; border-radius: 11px; background: rgba(255,255,255,.28); font-size: 18px; }
+.floater.fl-gold .mul { background: #FBEFD3; }
+.floater .mul .ic { width: 16px; height: 16px; }
+.bubble-pop {
+  position: fixed; z-index: 12; left: 0; top: 0; display: flex; align-items: center; gap: 4px; padding: 7px 11px 7px 9px;
+  border-radius: 20px; background: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 6px 18px rgba(0,0,0,.18), inset 0 0 0 1.5px var(--gold);
+}
+.bubble-pop::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; background: #fff; transform: translateX(-50%) rotate(45deg); box-shadow: 1.5px 1.5px 0 0 var(--gold); }
+.bubble-pop .ic { width: 18px; height: 18px; }
+.bubble-pop .coin { color: var(--gold); width: 16px; height: 16px; }
+.bubble-pop .dots { display: flex; gap: 2px; margin: 0 3px; }
+.bubble-pop .dots b { width: 7px; height: 7px; border-radius: 50%; background: #E3E3DE; }
+.bubble-pop .dots b.on { background: var(--gold); }
+.bubble-pop .dots b.next { background: #F1D9A8; box-shadow: 0 0 0 1.5px var(--gold); }
+
+/* Автосалон */
+.zones { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; flex: none; }
+.ztab { position: relative; height: 46px; border-radius: 14px; background: var(--tile); color: var(--ink-2); display: grid; place-items: center; }
+.ztab .ic { width: 24px; height: 24px; }
+.ztab.on { background: var(--ink); color: #fff; }
+.ztab.locked { color: #C4C4BF; }
+.zstar { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--bg); }
+.zstar .ic { width: 12px; height: 12px; fill: #fff; stroke-width: 1.2; }
+.scene { display: flex; flex-direction: column; gap: 10px; flex: none; }
+.stage { position: relative; border-radius: 18px; overflow: hidden; background: var(--tile); touch-action: pan-y; }
+.stage > svg { display: block; width: 100%; height: auto; }
+.stage.dim > svg { filter: grayscale(1) brightness(.92) opacity(.75); }
+.plus { position: absolute; z-index: 2; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.plus > .ic { width: 38px; height: 38px; padding: 9px; box-sizing: border-box; border-radius: 50%; background: #fff; color: var(--ink); stroke-width: 2.4; box-shadow: 0 3px 10px rgba(0,0,0,.2); }
+.plus.can > .ic { box-shadow: 0 0 0 2.5px var(--gold), 0 3px 10px rgba(0,0,0,.2); animation: beckon 1.4s ease-in-out infinite; }
+@keyframes beckon { 50% { transform: scale(1.08); } }
+.cost { display: flex; align-items: center; gap: 2px; padding: 1px 6px 1px 4px; border-radius: 9px; background: rgba(255,255,255,.96); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 1px 3px rgba(0,0,0,.15); white-space: nowrap; }
+.cost .ic { width: 12px; height: 12px; color: var(--gold); fill: #F3E3BD; }
+.cost .fx { display: flex; align-items: center; gap: 1px; margin-left: 4px; padding-left: 5px; border-left: 1px solid #E3E1DA; color: var(--ok); }
+.cost .fx .ic { color: var(--ok); fill: none; }
+.cost .fx .car { width: 20px; height: auto; }
+.plus:not(.can) .cost > b { color: var(--ink-2); }
+.zlock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.zlock .ic { width: 26px; height: 26px; }
+.zdone { position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.zdone .ic { width: 17px; height: 17px; fill: #fff; stroke-width: 1.2; }
+.zprog { display: flex; justify-content: center; gap: 6px; }
+.zprog i { width: 22px; height: 6px; border-radius: 3px; background: #DCDCD7; }
+.zprog i.on { background: var(--gold); }
+.zfx { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.zfx span { display: flex; align-items: center; gap: 2px; height: 30px; padding: 0 9px; border-radius: 15px; background: var(--tile); font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.zfx span.on { color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
+.zfx .ic { width: 16px; height: 16px; }
+.zfx .car { width: 24px; height: auto; }
+.poster {
+  position: absolute; z-index: 4; inset: 14% 18%; border-radius: 20px; background: rgba(255,255,255,.96);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.poster > .ic { width: 46px; height: 46px; color: var(--gold); fill: #F3E3BD; stroke-width: 1.3; }
+.poster b { font-size: 26px; font-weight: 800; }
+
+/* Коллекция и настройки */
+.view { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; display: flex; flex-direction: column; gap: 10px; }
+.view-head { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.view-head .ic { width: 22px; height: 22px; }
+.line-head { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.line-head .car { width: 44px; height: auto; }
+.bonus { margin-left: auto; display: flex; align-items: center; gap: 2px; height: 26px; padding: 0 8px; border-radius: 13px; background: #E6E6E2; color: var(--ink-3); font-size: 12px; font-weight: 700; }
+.bonus .ic { width: 15px; height: 15px; }
+.bonus.on { background: var(--gold); color: #fff; }
+/* Коллекция: две карточки в ряд, машина во всю ширину карточки; сзади — тонкие края стопки */
+.col-line { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stack { position: relative; padding: 0 4px 4px 0; background: none; text-align: left; }
+.stack .edge { position: absolute; inset: 0 4px 4px 0; border-radius: 16px; transform: translate(calc(var(--q) * 2px), calc(var(--q) * 2px)); z-index: calc(5 - var(--q)); background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: 0 0 0 1px rgba(0,0,0,.1); }
+.stack .edge.no { background: #DDDDD8; }
+.stack .scard { --bs: 24px; position: relative; z-index: 6; display: flex; flex-direction: column; gap: 4px; min-height: 100%; box-sizing: border-box; padding: 26px 8px 10px; border-radius: 16px; overflow: hidden; background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 5px rgba(0,0,0,.08); }
+.stack.unknown .scard { background: #E9E9E5; box-shadow: none; }
+.stack .scard .lv { top: 6px; left: 6px; }
+.sc-car { display: block; margin: 0 -4px; }
+.sc-car .car { display: block; width: 100%; height: auto; }
+.sc-car svg.car { margin: 6px 0; }
+.sc-name { display: flex; flex-direction: column; font-size: 15px; font-weight: 800; line-height: 1.15; min-width: 0; }
+.sc-name small, .rc-name small, .ms-head small { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.sc-q { font-size: 26px; font-weight: 800; line-height: 1; color: #B9B9B4; text-align: center; padding: 4px 0 2px; }
+.stack.unknown .car, .ms-slide.no .car { filter: brightness(0); opacity: .28; }
+.rdots5 { display: flex; gap: 5px; }
+.rdots5 i { width: 10px; height: 10px; border-radius: 50%; background: #D3D3CE; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.rdots5 i.on { background: var(--c); box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.rdots5 i.r0.on { background: #fff; box-shadow: inset 0 0 0 2px #8E9196; }
+.rdots5 i.r0.on.now { box-shadow: inset 0 0 0 2px #8E9196, 0 0 0 3px #fff, 0 0 0 5px #8E9196; }
+.stack.fresh::after { content: ""; position: absolute; z-index: 7; top: 8px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--r4); }
+.stack .scard.land { animation: land .6s cubic-bezier(.2,.8,.2,1) .2s backwards; }
+@keyframes land { from { transform: translate(14px, -26px) rotate(-6deg); opacity: 0; } }
+.stack:disabled { cursor: default; }
+
+/* Новая редкость — на весь экран: затемнение, карточка цвета редкости с сиянием от центра;
+   у эпической и легендарной по краю бежит перелив и мерцают блёстки */
+.overlay.dim { background: rgba(18,20,24,.74); }
+.rcard { position: relative; isolation: isolate; width: min(calc(100vw - 24px), 440px); box-sizing: border-box; padding: 4px; border-radius: 30px; overflow: hidden; background: var(--rc); box-shadow: 0 0 70px var(--rb), 0 20px 50px rgba(0,0,0,.35); }
+.rcard.r0 { background: #E3E5E8; box-shadow: 0 0 60px rgba(255,255,255,.35), 0 20px 50px rgba(0,0,0,.35); }
+.rcard.r3::before, .rcard.r4::before {
+  content: ""; position: absolute; inset: -80%; z-index: -1;
+  background: conic-gradient(var(--rc), #fff 7%, var(--rc) 16%, var(--rb) 38%, #fff 50%, var(--rc) 60%, var(--rb) 84%, var(--rc));
+  animation: spin 3.2s linear infinite;
+}
+@keyframes spin { to { transform: rotate(1turn); } }
+.rc-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 14px 20px; border-radius: 26px; overflow: hidden; background: radial-gradient(120% 80% at 50% 42%, #fff 0%, var(--fa) 42%, var(--fb) 100%); }
+.rcard.r3 .rc-in::after, .rcard.r4 .rc-in::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 7% 10%, #fff 0 2.5px, transparent 4px), radial-gradient(circle at 93% 16%, #fff 0 3px, transparent 4.5px),
+    radial-gradient(circle at 88% 90%, #fff 0 2.5px, transparent 4px), radial-gradient(circle at 10% 84%, #fff 0 2px, transparent 3.5px),
+    radial-gradient(circle at 50% 4%, #fff 0 2px, transparent 3.5px), radial-gradient(circle at 4% 48%, #fff 0 2px, transparent 3.5px),
+    radial-gradient(circle at 96% 54%, #fff 0 2.5px, transparent 4px), radial-gradient(circle at 60% 97%, #fff 0 2px, transparent 3.5px);
+  animation: twinkle 1.1s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity: .25; } to { opacity: 1; } }
+.rc-head { display: flex; align-items: center; gap: 10px; font-size: 28px; font-weight: 800; line-height: 1.1; }
+.rc-dot { width: 18px; height: 18px; border-radius: 50%; background: var(--rc); box-shadow: 0 0 0 3px #fff; }
+.rcard.r0 .rc-dot { background: #C9CDD2; }
+.rc-car { position: relative; align-self: stretch; margin: 4px -8px 0; }
+.rc-car .art { display: block; }
+.rc-car .car { display: block; width: 100%; height: auto; }
+.rc-flash { position: absolute; left: 15%; top: 0; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, #fff, rgba(255,255,255,0)); opacity: 0; pointer-events: none; }
+.rc-name { display: flex; flex-direction: column; align-items: center; font-size: 26px; font-weight: 800; line-height: 1.1; text-align: center; }
+.rc-lvl { padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,.75); font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.rc-diff { margin-top: 2px; font-size: 15px; font-weight: 600; color: var(--ink); text-align: center; text-wrap: balance; }
+.rc-in .rdots5 { margin-top: 8px; gap: 9px; }
+.rc-in .rdots5 i { width: 15px; height: 15px; }
+.rdots5 i.now { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--c); animation: dotPulse .8s ease-in-out infinite alternate; }
+@keyframes dotPulse { to { transform: scale(1.3); } }
+.fly-card { filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); }
+
+/* Экран модели: машина во всю ширину на цвете редкости, редкости листаются свайпом и кружками */
+.mscreen { position: fixed; inset: 0; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: calc(16px + env(safe-area-inset-top, 0px)) 0 calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--bg); touch-action: none; overflow: hidden; }
+.mscreen .xbtn { top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; }
+.ms-head { display: flex; flex-direction: column; padding: 0 64px 0 18px; }
+.ms-head b { font-size: 30px; font-weight: 800; line-height: 1.1; }
+.ms-meta { --bs: 26px; display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ms-meta .lv { position: static; }
+.ms-view { overflow: hidden; margin-top: auto; }
+.ms-track { display: flex; transform: translateX(calc(var(--i) * -100%)); transition: transform .32s cubic-bezier(.2,.8,.2,1); }
+.ms-slide { flex: none; width: 100%; box-sizing: border-box; padding: 26px 6px 18px; background: radial-gradient(110% 85% at 50% 45%, #fff 0%, var(--fa) 45%, var(--fb) 100%); }
+.ms-slide.no { background: #E6E6E2; }
+.ms-slide .car { display: block; width: 100%; height: auto; }
+.ms-view { position: relative; }
+.ms-arr { position: absolute; top: 50%; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%; background: rgba(255,255,255,.85); color: var(--ink); display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.ms-arr .ic { width: 18px; height: 18px; }
+.ms-arr.l { left: 8px; } .ms-arr.l .ic { transform: scaleX(-1); }
+.ms-arr.r { right: 8px; }
+.ms-thumbs { display: flex; justify-content: center; gap: 6px; padding: 0 12px; }
+.ms-thumbs button { flex: 1 1 0; max-width: 72px; min-width: 0; aspect-ratio: 1.15; border-radius: 12px; padding: 0 3px; background: #E6E6E2; display: flex; align-items: center; }
+.ms-thumbs button.on { background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: inset 0 0 0 1.5px var(--rc); }
+.ms-thumbs button.cur { box-shadow: inset 0 0 0 1.5px var(--rc), 0 0 0 3px var(--bg), 0 0 0 5px var(--rc); }
+.ms-thumbs button.on.cur[style*="--r0"] { box-shadow: inset 0 0 0 1.5px #8E9196, 0 0 0 3px var(--bg), 0 0 0 5px #8E9196; }
+.ms-thumbs .art { display: block; width: 100%; }
+.ms-thumbs .car { display: block; width: 100%; height: auto; }
+.ms-thumbs button:not(.on) .car { filter: brightness(0); opacity: .25; }
+.ms-info { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px; margin-bottom: auto; min-height: 96px; text-align: center; }
+.ms-rn { font-size: 24px; font-weight: 800; color: var(--rc); }
+.ms-rn.r0 { color: var(--ink); }
+.ms-rn.no { color: var(--ink-3); }
+.ms-info span { font-size: 16px; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.ms-info i { font-style: normal; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) {
+  .rcard::before, .rc-in::after, .rdots5 i.now { animation: none !important; }
+  .ms-track { transition: none; }
+}
+
+.set-list { display: flex; flex-direction: column; gap: 8px; }
+.set-head { margin: 14px 4px 0; font-size: 14px; font-weight: 700; color: var(--ink-2); }
+.set-note { margin: 0 4px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.logta { width: 100%; height: 50vh; box-sizing: border-box; font: 12px/1.35 ui-monospace, monospace; -webkit-user-select: text; user-select: text; }
+.set {
+  display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 14px;
+  background: var(--tile); font-size: 16px; font-weight: 500; text-align: left;
+}
+.set span { flex: 1; }
+.sw { width: 40px; height: 24px; border-radius: 12px; background: #D9D9D5; position: relative; transition: background .2s; flex: none; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.set[aria-checked="true"] .sw { background: var(--ink); }
+.set[aria-checked="true"] .sw::after { transform: translateX(16px); }
+.set.confirm { background: #B4433A; color: #fff; }
+.seg { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: #ECECE8; }
+.seg i { font-style: normal; width: 34px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--ink-2); }
+.seg i.on { background: var(--ink); color: #fff; }
+
+/* Нижнее меню — капсула 76 px, крупные значки и подпись одним словом; активная вкладка — белая */
+.dock {
+  position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 5;
+  width: min(calc(100vw - 20px), 440px); box-sizing: border-box; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+  padding: 6px; border-radius: 32px; background: var(--dock); box-shadow: 0 6px 18px rgba(0,0,0,.16);
+}
+.dock button { position: relative; height: 64px; border-radius: 26px; color: #9A9DA2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; }
+.dock button[aria-current="true"] { background: #fff; color: var(--ink); }
+.dock .ic { width: 31px; height: 31px; }
+.dock span { font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: -.01em; }
+.dot { position: absolute; top: 5px; left: calc(50% + 11px); width: 10px; height: 10px; border-radius: 50%; background: var(--r4); box-shadow: 0 0 0 2px var(--dock); }
+.dock button[aria-current="true"] .dot { box-shadow: 0 0 0 2px #fff; }
+.dot.gold { background: #E2A93B; }
+
+/* Всплывающая карточка и задания дня */
+.overlay {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
+  background: rgba(242,242,240,.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.big {
+  --bs: 32px; position: relative; width: min(300px, calc(100vw - 48px)); box-sizing: border-box; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px 22px 26px;
+  border-radius: 22px; background: var(--tile); box-shadow: 0 14px 40px rgba(0,0,0,.12);
+}
+.big .new { position: absolute; top: 14px; left: 16px; padding: 4px 10px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; }
+.big-car { position: relative; width: 100%; margin-top: 18px; }
+.big-car .car { position: relative; display: block; width: 100%; height: auto; }
+.big-car .plate { bottom: -4%; height: 16%; left: 6%; right: 6%; }
+.big-brand { margin-top: 10px; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.big-model { font-size: 28px; font-weight: 700; line-height: 1.1; text-align: center; text-wrap: balance; }
+.big .lv { top: 12px; left: auto; right: 14px; }
+.big .stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--rc); }
+.lvl-big { width: 96px; height: 96px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 44px; font-weight: 700; }
+.reward { display: flex; align-items: center; justify-content: center; gap: 6px; height: 64px; margin-top: 8px; color: var(--ink); font-size: 22px; font-weight: 700; }
+.reward .ic { width: 44px; height: 44px; stroke-width: 1.4; }
+.reward .car { width: 120px; height: auto; }
+.reward .thing { width: 64px; height: auto; }
+/* Новая механика — редкость: одна машина в пяти цветах, сколько монет даёт каждая, и удачное слияние */
+.rar { --bs: 16px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 14px 18px; border-radius: 22px; background: var(--tile); box-shadow: 0 14px 40px rgba(0,0,0,.12); }
+.rar-row { display: flex; align-items: flex-end; justify-content: center; gap: 5px; width: 100%; }
+.rcol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.rtile { position: relative; width: 100%; aspect-ratio: 1; max-width: 58px; border-radius: 10px; background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: inset 0 0 0 1px var(--rc); }
+.rtile .car { position: absolute; left: 4%; width: 92%; bottom: 20%; height: auto; }
+.rtile .lv { top: 1px; left: 1px; }
+.rmul { display: flex; align-items: center; gap: 1px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rmul .ic { width: 12px; height: 12px; color: var(--gold); }
+.rar-luck { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: #F4F4F1; font-weight: 800; font-size: 15px; }
+.rar-luck .rtile { width: 46px; }
+.rar-luck > .ic { width: 18px; height: 18px; color: var(--ink-3); }
+.rar-luck .upx { width: 22px; height: 22px; border-radius: 50%; background: var(--r2); color: #fff; display: grid; place-items: center; }
+.rar-luck .upx .ic { width: 70%; height: 70%; stroke-width: 2.4; }
+.okbtn { width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.okbtn .ic { width: 28px; height: 28px; stroke-width: 2.6; }
+.xbtn { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; background: #F1F1EE; color: var(--ink-2); display: grid; place-items: center; }
+.xbtn .ic { width: 18px; height: 18px; stroke-width: 2.4; }
+/* Листы: задания, событие, склад, карточки счётчиков, подсказок и салона. Текст — 1–3 короткие строки */
+.sheet {
+  --bs: 18px; position: relative; width: min(360px, calc(100vw - 24px)); max-height: calc(100vh - 40px); overflow-y: auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 10px; padding: 18px 16px 18px; border-radius: 24px; background: var(--tile);
+  box-shadow: 0 14px 40px rgba(0,0,0,.14); overscroll-behavior: contain;
+}
+.sheet.narrow { width: min(320px, calc(100vw - 32px)); align-items: center; text-align: center; }
+.sh-title { font-size: 22px; font-weight: 800; line-height: 1.15; padding-right: 40px; }
+.sheet.narrow .sh-title { padding: 0 30px; }
+.sh-sub { display: flex; align-items: center; gap: 5px; margin-top: -6px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.sh-sub .ic { width: 16px; height: 16px; }
+.sh-txt { font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--ink); }
+.sh-txt b { font-weight: 800; }
+.sh-foot { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.sh-pic { width: 100%; min-height: 70px; display: grid; place-items: center; border-radius: 16px; background: #F4F4F1; padding: 10px 0; box-sizing: border-box; overflow: hidden; }
+.sh-pic .car { width: 96px; height: auto; display: block; }
+.sh-pic svg.thing { width: 64px; height: auto; }
+.bigic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: #F4F4F1; color: var(--gold); }
+.bigic .ic { width: 36px; height: 36px; fill: #F3E3BD; }
+.bignum { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.xpbig { width: 100%; height: 16px; border-radius: 8px; background: #E6E5E0; overflow: hidden; }
+.xpbig i { display: block; height: 100%; background: linear-gradient(90deg, #E4BE6A, var(--gold)); }
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px; height: 52px; padding: 0 22px; border-radius: 26px;
+  background: var(--ink); color: #fff; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.btn .ic { width: 22px; height: 22px; }
+.btn.gold .ic { color: #F3D58C; fill: rgba(243,213,140,.35); }
+.btn.off { background: #E3E3DE; color: var(--ink-3); }
+.btn.light { background: #F1F1EE; color: var(--ink); }
+.btn.ok { background: var(--ok); }
+.chip { display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 9px 0 6px; border-radius: 14px; background: #F4F4F1; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip .ic { width: 18px; height: 18px; }
+.chip.fuel .ic { color: var(--ink); }
+.chip.coin .ic, .chip.star .ic { color: var(--gold); }
+.chip.star .ic { fill: #F3E3BD; }
+.works { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 14px 0 10px; border-radius: 17px; background: var(--ok-bg); color: var(--ok); font-weight: 800; font-size: 16px; box-shadow: inset 0 0 0 1.5px var(--ok); }
+.works .ic { width: 18px; height: 18px; stroke-width: 2.6; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.tbl td { padding: 4px 4px; border-top: 1px solid #EFEFEB; vertical-align: middle; text-align: left; }
+.tbl td:last-child { text-align: right; font-weight: 800; white-space: nowrap; }
+.tbl tr:first-child td { border-top: 0; }
+.tbl .rtile { width: 40px; display: block; }
+
+/* Задания дня */
+.task { --bs: 18px; position: relative; display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 10px; box-sizing: border-box; border-radius: 16px; background: #F4F4F1; }
+.task > .tic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 12px; background: #fff; color: var(--ink); }
+.task > .tic .ic { width: 26px; height: 26px; }
+.task > .tic .car { width: 38px; height: auto; }
+.tmid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.tmid b { font-size: 16px; font-weight: 800; line-height: 1.15; }
+.tbar { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tbar span { flex: 1; height: 8px; border-radius: 4px; background: #E3E3DE; overflow: hidden; }
+.tbar span i { display: block; height: 100%; background: var(--r1); }
+.task .take { height: 44px; padding: 0 12px; border-radius: 22px; background: var(--ok); color: #fff; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 3px; animation: beckon 1.4s ease-in-out infinite; flex: none; }
+.task .take .ic { width: 18px; height: 18px; }
+.task.got { opacity: .55; }
+.task .rw { flex: none; }
+.task .tick { position: static; width: 26px; height: 26px; flex: none; }
+.daychest { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: #EEF2F6; }
+.daychest .thing { width: 72px; height: auto; flex: none; }
+.daychest .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
+.daychest.can { background: var(--ok-bg); box-shadow: inset 0 0 0 1.5px var(--ok); }
+.daychest .btn { height: 46px; padding: 0 16px; font-size: 16px; animation: beckon 1.4s ease-in-out infinite; }
+
+/* Событие недели */
+.scheme { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; padding: 10px 6px; border-radius: 16px; background: #FBF3E0; }
+.scheme > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; text-align: center; line-height: 1.15; }
+.scheme .sic { width: 46px; height: 46px; border-radius: 14px; background: #fff; display: grid; place-items: center; color: #9A6A1E; }
+.scheme .sic .ic { width: 28px; height: 28px; }
+.scheme .sic .car { width: 42px; height: auto; }
+.scheme > .ic { flex: none; width: 18px; height: 18px; margin-top: 14px; color: #C9A25A; }
+.tokens { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tokens .ic { width: 26px; height: 26px; color: #9A6A1E; fill: #F3D58C; }
+.tokens .xpbig { flex: 1; height: 12px; }
+.track { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 6px; }
+.step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px 5px; border-radius: 14px; background: #F4F4F1; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.step .n { position: absolute; top: 3px; left: 6px; font-size: 10px; color: var(--ink-3); }
+.step .sr { height: 30px; display: grid; place-items: center; }
+.step .sr .ic { width: 24px; height: 24px; }
+.step .sr .thing { width: 34px; height: auto; }
+.step .sr .car { width: 44px; height: auto; }
+.step.done { background: #FBF3E0; box-shadow: inset 0 0 0 1.5px var(--gold); }
+.step.done::after { content: ""; position: absolute; top: -4px; right: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
+.step.next { box-shadow: inset 0 0 0 2px #9A6A1E; }
+.step.last { grid-column: span 1; background: #2C2F33; color: #F3D58C; }
+.step.last .n { color: #8D9095; }
+
+/* Склад и причал */
+.slots4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.sslot { --bs: 16px; position: relative; aspect-ratio: 1; border-radius: 12px; background: #F4F4F1; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px #E3E3DE; }
+.sslot.car { background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: none; cursor: pointer; }
+.sslot .car { position: absolute; left: 4%; width: 92%; bottom: 20%; height: auto; }
+.sslot .lv { top: 2px; left: 2px; }
+.sslot.lock { background: #E9E9E5; box-shadow: none; flex-direction: column; color: var(--ink-3); }
+.sslot.lock .ic { width: 22px; height: 22px; }
+.sslot.lock .cprice { bottom: 6px; }
+.shipbox { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: #EEF2F6; }
+.shipbox > .ic { width: 40px; height: 40px; color: #3D5A79; flex: none; }
+.shipbox .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
+.shipbox .btn { height: 46px; padding: 0 14px; font-size: 16px; flex: none; }
+
+/* Подсказки: список карточек механик */
+.hints { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.hcard { --bs: 14px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 104px; padding: 10px 8px; border-radius: 16px; background: var(--tile); text-align: center; }
+.hcard .hpic { height: 44px; display: grid; place-items: center; }
+.hcard .hpic .ic { width: 32px; height: 32px; color: var(--ink); }
+.hcard .hpic .car { width: 56px; height: auto; }
+.hcard .hpic .thing { width: 44px; height: auto; }
+.hcard b { font-size: 15px; font-weight: 800; line-height: 1.15; }
+.hcard.locked { background: #E9E9E5; color: var(--ink-3); }
+.hcard.locked .hpic .ic { color: var(--ink-3); width: 26px; height: 26px; }
+.hcard.locked span { font-size: 12px; font-weight: 700; }
+.hcard .dot { top: 8px; left: auto; right: 8px; box-shadow: 0 0 0 2px #fff; }
+/* картинка-анимация слияния: две клетки съезжаются в одну (до 2 с) */
+.mpic { position: relative; width: 150px; height: 56px; }
+.mpic .rtile { position: absolute; top: 0; width: 56px; max-width: none; }
+.mpic .a { left: 0; animation: mA 2s ease-in-out infinite; }
+.mpic .b { right: 0; animation: mB 2s ease-in-out infinite; }
+.mpic .c { left: 47px; opacity: 0; animation: mC 2s ease-in-out infinite; }
+@keyframes mA { 0%, 15% { transform: none; opacity: 1; } 45% { transform: translateX(47px); opacity: 1; } 50%, 100% { transform: translateX(47px); opacity: 0; } }
+@keyframes mB { 0%, 45% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes mC { 0%, 45% { opacity: 0; transform: scale(.6); } 58% { opacity: 1; transform: scale(1.12); } 70%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.rule { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 14px; font-weight: 700; }
+.rule .rtile { width: 34px; }
+.rule .ic { width: 16px; height: 16px; color: var(--ink-3); }
+
+/* Салон: плашка бонусов, карточка предмета, престиж */
+.bonuses { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 18px; background: var(--tile); }
+.bonuses > b { font-size: 16px; font-weight: 800; }
+.bonuses ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; }
+.bonuses li { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); min-width: 0; text-align: left; }
+.bonuses li .ic { width: 16px; height: 16px; flex: none; color: var(--ok); }
+.bonuses .none { font-size: 14px; font-weight: 600; color: var(--ink-3); }
+.bgroup { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; padding: 4px 0; border-top: 1px solid #EFEFEB; }
+.bgline { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-2); min-width: 0; }
+.bgline > .ic:first-child { width: 18px; height: 18px; color: var(--gold); flex: none; }
+.bgline b { color: var(--ink); font-weight: 800; flex: none; }
+.bgline span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bgline > .ic:last-child { width: 14px; height: 14px; color: var(--ink-3); transition: transform .2s; flex: none; }
+.bgroup.open .bgline > .ic:last-child { transform: rotate(90deg); }
+.bgroup.open .bgline span { white-space: normal; }
+.bgroup ul { grid-template-columns: 1fr; padding-left: 24px; }
+.ipic { width: 100%; border-radius: 16px; overflow: hidden; background: #F4F4F1; }
+.ipic svg { display: block; width: 100%; height: auto; }
+.prow { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-top: 1px solid #EFEFEB; }
+.prow > .car { width: 44px; height: auto; flex: none; }
+.prow > span:not(.works) { flex: 1; display: flex; flex-direction: column; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.prow > span b { font-size: 15px; color: var(--ink); }
+.prow .btn { height: 40px; padding: 0 14px; font-size: 15px; }
+.prest { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 18px; background: #2C2F33; color: #fff; }
+.prest .pt { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; font-weight: 600; color: #C9CBCF; }
+.prest .pt b { font-size: 17px; font-weight: 800; color: #fff; }
+.prest .btn { height: 44px; padding: 0 14px; font-size: 16px; background: var(--gold); flex: none; }
+.prest .btn .ic { color: #fff; fill: rgba(255,255,255,.3); }
+.prest .btn.off { background: #4A4D52; color: #9A9DA2; }
+.floater.fl-salon { font-size: 18px; padding: 2px 9px 2px 6px; border-radius: 13px; background: #2C2F33; color: #F3D58C; box-shadow: 0 3px 8px rgba(0,0,0,.25); }
+.floater.fl-salon .ic { width: 18px; height: 18px; color: #F3D58C; fill: none; }
+.trophies { display: flex; gap: 8px; flex-wrap: wrap; }
+.trophy { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 8px; border-radius: 20px; background: #2C2F33; color: #F3D58C; font-size: 14px; font-weight: 800; }
+.trophy .ic { width: 24px; height: 24px; }
+
+/* Эффекты и палец */
+.fly { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; }
+.fly .car, .fly .thing { width: 100%; height: auto; display: block; }
+.fly .ic { width: 100%; height: 100%; }
+.fly.coin { color: var(--gold); width: 20px; height: 20px; }
+.fly.star { color: var(--gold); width: 18px; height: 18px; }
+.fly.star .ic { fill: #F3E3BD; }
+.ghost { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; filter: drop-shadow(0 8px 8px rgba(0,0,0,.18)); }
+.ghost .car, .ghost .thing { width: 100%; height: auto; display: block; }
+#finger { position: fixed; left: 0; top: 0; width: 44px; height: 44px; z-index: 15; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
+#finger svg { display: block; width: 100%; height: 100%; }
+#ring { position: fixed; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; z-index: 14; pointer-events: none; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); opacity: 0; }
+#hintCar { position: fixed; left: 0; top: 0; z-index: 14; pointer-events: none; opacity: 0; }
+#hintCar .car, #hintCar .thing { width: 100%; height: auto; display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div id="app">
+  <header class="hud">
+    <div class="hrow">
+      <button class="lvlbox" id="lvlBox" aria-label="Уровень"><b class="lvl-n" id="lvlN">1</b><span class="xp"><i id="xpBar"></i></span></button>
+      <button class="hbtn" id="cal" aria-label="Задания дня" hidden></button>
+      <button class="hbtn sq" id="evBtn" aria-label="Событие недели" hidden></button>
+      <button class="hbtn sq" id="depotBtn" aria-label="Склад и причал" hidden></button>
+    </div>
+    <div class="hrow">
+      <button class="pill" id="starPill" aria-label="Звёзды"></button>
+      <button class="pill" id="fuelPill" aria-label="Топливо"></button>
+      <button class="pill" id="coinPill" aria-label="Монеты"></button>
+    </div>
+  </header>
+
+  <section id="field" style="display:contents">
+    <div class="orders-wrap"><div class="orders grid" id="orders"></div><span id="streak" hidden></span></div>
+    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+  </section>
+
+  <section class="view" id="salon" hidden>
+    <div class="bonuses" id="bonuses"></div>
+    <div id="prest" hidden></div>
+    <div class="zones" id="zoneTabs"></div>
+    <div class="scene" id="scene"></div>
+    <div class="bonuses" id="ports"></div>
+  </section>
+
+  <section class="view" id="cars" hidden></section>
+
+  <section class="view" id="help" hidden></section>
+
+  <section class="view" id="settings" hidden>
+    <div class="set-list">
+      <button class="set" id="sSound" role="switch" aria-checked="false"></button>
+      <button class="set" id="sFill"></button>
+      <button class="set" id="sSpeed" role="switch" aria-checked="false"></button>
+      <button class="set" id="sReset"></button>
+      <div class="set-head">Журнал для проверки</div>
+      <button class="set" id="sLogSend"></button>
+      <button class="set" id="sLogClear"></button>
+      <div class="set-note" id="sLogInfo"></div>
+    </div>
+  </section>
+</div>
+
+<nav class="dock" id="dock">
+  <button data-view="salon"></button>
+  <button data-view="field" aria-current="true"></button>
+  <button data-view="cars"></button>
+  <button data-view="help"></button>
+  <button data-view="settings"></button>
+</nav>
+
+<button class="bubble-pop" id="popBub" hidden></button>
+<div id="ring"></div>
+<div id="hintCar"></div>
+<div id="finger" hidden><svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M9 14V4.6a1.6 1.6 0 0 1 3.2 0v5.6a1.6 1.6 0 0 1 3.2.4v.4a1.6 1.6 0 0 1 3.2.4v.6a1.6 1.6 0 0 1 3.2.6V16c0 3.6-2.6 6-6 6H14c-2 0-3.4-.8-4.6-2.2l-3.8-4.4A1.6 1.6 0 0 1 8 13.3z" fill="#fff" stroke="#1D1F22" stroke-width="1.3" stroke-linejoin="round"/>
+  <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
+</svg></div>
+
+<script src="core.js"></script>
+<script src="art.js"></script>
+<script src="salon.js"></script>
+<script>
+'use strict';
+const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
+const SAVE_KEY = 'garazh.v3';
+
+// ── Иконки: тонкие линии ───────────────────────────────────────────────────
+const ic = d => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  fuel: ic('<path d="M6 8.2 9.2 5H17a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M11 5V3.5h3V5M9.6 11.6l4.8 4.8M14.4 11.6l-4.8 4.8"/>'),
+  coin: ic('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/>'),
+  star: ic('<path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>'),
+  check: ic('<path d="m6 12.5 4 4 8-9"/>'),
+  plus: ic('<path d="M12 5v14M5 12h14"/>'),
+  lock: ic('<rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8.5a3.5 3.5 0 0 1 7 0V11"/>'),
+  field: ic('<rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/>'),
+  cards: ic('<rect x="5" y="7.5" width="11" height="13" rx="2"/><path d="M8.5 4.5H17a2 2 0 0 1 2 2V17"/>'),
+  sliders: ic('<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>'),
+  salon: ic('<path d="M4 10.5h16V20H4z"/><path d="M3 10.5 5 4h14l2 6.5M9 20v-5.5h6V20"/>'),
+  sound: ic('<path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
+  clock: ic('<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>'),
+  reset: ic('<path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 5v4h-4"/>'),
+  refresh: ic('<path d="M19 12a7 7 0 0 1-12.2 4.7M5 12a7 7 0 0 1 12.2-4.7"/><path d="M17.5 3.5v4h-4M6.5 20.5v-4h4"/>'),
+  wrench: ic('<path d="M15 4a4.5 4.5 0 0 0-4.3 5.9L4.6 16a1.9 1.9 0 0 0 2.7 2.7l6.1-6.1A4.5 4.5 0 0 0 19.5 8l-2.7 2.7-2.4-.6-.6-2.4L16.5 5A4.5 4.5 0 0 0 15 4z"/>'),
+  grid: ic('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/>'),
+  arrow: ic('<path d="M5 12h13M13 7l5 5-5 5"/>'),
+  up: ic('<path d="M12 19V6M6.5 11 12 5.5l5.5 5.5"/>'),
+  calendar: ic('<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><path d="m9 15 2 2 4-4"/>'),
+  flame: ic('<path d="M12 21c3.6 0 6-2.4 6-5.6 0-3.4-2.6-5.4-3.6-8.4-.4 1.8-1.4 3-2.6 3.4.2-2.6-.8-5.2-3-7 .2 3.4-2.8 5.6-2.8 9.8C6 18.6 8.4 21 12 21z"/>'),
+  mergeIn: ic('<path d="M3 12h6M6.5 9 9.5 12l-3 3M21 12h-6M17.5 9 14.5 12l3 3"/>'),
+  card: ic('<rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M4 9h16"/>'),
+  gift: ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11M12 9c-1.5-4-6-4-5-1 .4 1.4 3 1 5 1zM12 9c1.5-4 6-4 5-1-.4 1.4-3 1-5 1z"/>'),
+  key: ic('<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15 12v2"/>'),
+  bubble: ic('<circle cx="12" cy="12" r="8"/><path d="M8.5 9.5a4.5 4.5 0 0 1 3-2"/>'),
+  crate: ic('<rect x="4" y="6" width="16" height="13" rx="1.5"/><path d="M4 12.5h16M5 18 19 7"/>'),
+  merge: ic('<path d="M5 6l5 6-5 6M19 6l-5 6 5 6"/>'),
+  help: ic('<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><circle cx="12" cy="16.9" r=".5" fill="currentColor"/>'),
+  flag: ic('<path d="M6 21V4M6 4.5c4-2 7 2 12 0v9c-5 2-8-2-12 0"/>'),
+  token: ic('<circle cx="12" cy="12" r="8"/><path d="m12 7.6 1.4 2.8 3 .4-2.2 2.1.5 3-2.7-1.4-2.7 1.4.5-3-2.2-2.1 3-.4z"/>'),
+  ship: ic('<path d="M3.5 15.5h17l-2.6 4.2H6.1z"/><path d="M6 15.5V11h12v4.5M9 11V7.5h6V11M12 7.5V4.5"/>'),
+  trophy: ic('<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
+  chest: ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
+  close: ic('<path d="M6 6l12 12M18 6 6 18"/>'),
+  play: ic('<path d="M5 12h12M13 7l5 5-5 5"/>'),
+  share: ic('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8"/>'),
+};
+const ZICON = {
+  box: ic('<path d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
+  workshop: ICON.wrench,
+  wash: ic('<path d="M12 3.5c3.5 4.2 6 7.4 6 10.5a6 6 0 0 1-12 0c0-3.1 2.5-6.3 6-10.5z"/>'),
+  showroom: ic('<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.7L12 21l-2.2-6.3L3.5 12l6.3-2.7z"/>'),
+  depot: ic('<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>'),
+};
+const GARAGE = '<svg class="garage" viewBox="0 0 48 30" aria-hidden="true"><path d="M6 13 24 4l18 9M10 11v17M38 11v17M14 16h20M14 20.5h20"/></svg>';
+const GARAGE_IC = ZICON.depot;
+const ZNAME = ['Бокс', 'Мастерская', 'Мойка', 'Шоурум', 'Порт и склад'];
+const ZDONE = ['Бокс готов', 'Мастерская готова', 'Мойка готова', 'Шоурум готов', 'Порт и склад готовы'];
+const EVNAME = { retro: 'Ретро-неделя', trucks: 'Неделя грузовичков', racing: 'Гоночная неделя' };
+const xbtn = `<button class="xbtn" data-close aria-label="Закрыть">${ICON.close}</button>`;
+const fmtN = n => n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1).replace('.', ',') + 'к' : String(n);
+
+const rv = r => `--rc:var(--r${r});--ri:var(--ri${r});--ra:var(--ra${r});--rb:var(--rb${r});--fa:var(--fa${r});--fb:var(--fb${r})`;
+const badge = lvl => `<b class="lv">${lvl}</b>`;
+// овал-подложка под машиной; у картинок владельца своя тень — им не нужен
+const withPlate = (r, car) => (car.includes('car-img v2') ? '' : `<i class="plate${r === 4 ? ' legend' : ''}"></i>`) + car;
+const nameOf = (line, lvl) => line === P ? Core.PART_NAMES[lvl - 1] : line === Core.EV ? Core.EVENT_CARS[s.ev?.theme || 'retro'][lvl - 1].join(' ') : Core.CARS[line][lvl - 1].join(' ');
+const bestRar = m => 31 - Math.clz32(m || 1);
+
+// ── Состояние и сохранение ─────────────────────────────────────────────────
+const todayKey = () => new Date().toLocaleDateString('sv');
+// Номер дня игры с нуля — по календарю телефона (для недельного события)
+const dayIdx = () => Math.max(0, Math.round((Date.parse(todayKey()) - Date.parse(s.day0)) / 864e5));
+function load() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SAVE_KEY));
+    // версия 3 — до задания 5, 7 — нынешняя (раньше здесь было только «=== 3», и сохранение 7 терялось при перезапуске)
+    return v && v.v >= 3 && Array.isArray(v.cells) && v.cells.length === Core.N ? Core.migrate(v) : null;   // чехлы → обычные машины
+  } catch { return null; }
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch {} }
+function freshGame() {
+  const g = Core.newGame(Date.now(), (Math.random() * 2 ** 31) | 0);
+  g.giftDay = todayKey();              // в первый день подарок не мешает обучению
+  g.day0 = todayKey();
+  return g;
+}
+const saved = load();
+let s = saved || freshGame();
+s.fresh ||= {};
+s.day0 ||= todayKey();
+s.hintSeen ||= {};
+Core.tick(s, Date.now());
+
+// ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
+// Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
+// Личного нет: ни имени, ни почты, ни времени суток.
+const BUILD = 'сборка 5 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
+const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
+let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
+try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
+LOG.n++;
+const freshSum = from => ({ from, clock: 0, idle: [0, 0, 0, ''], none: {}, self: {}, hint: [0, 0, 0, 0], err: 0 });
+if (!saved || !LOG.sum) LOG.sum = freshSum(saved ? 'игра начата до журнала' : 'с начала новой игры');
+let logT = 0, clockAt = T0, shownPage = !document.hidden;
+const logSaveNow = () => { clearTimeout(logT); try { localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); } catch {} };
+// секунды, пока страница на экране (без времени в фоне)
+const clock = () => { const now = Date.now(); if (shownPage) LOG.sum.clock += (now - clockAt) / 1000; clockAt = now; return Math.round(LOG.sum.clock * 10) / 10; };
+function L(text) {
+  clock();
+  LOG.ev.push([LOG.n, Math.round((Date.now() - T0) / 100) / 10, text]);
+  if (LOG.ev.length > LOG_MAX) LOG.cut += LOG.ev.splice(0, LOG.ev.length - LOG_MAX).length;
+  clearTimeout(logT); logT = setTimeout(logSaveNow, 800);
+}
+const fs1 = x => (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
+const VIEWNAME = { field: 'Поле', salon: 'Салон', cars: 'Коллекция', help: 'Подсказки', settings: 'Настройки' };
+const LNAME = ['легковая', 'внедорожник', 'купе', 'деталь Мастерской', 'машина события', 'деталь Ателье'];
+const what = c => !c ? 'пусто' : c.k === 'key' ? 'ключ' : c.k !== 'car' ? c.k :
+  `${LNAME[c.line]} ${c.lvl} ур.${c.r ? ' ' + RNAME[c.r].toLowerCase() : ''}${c.broken ? ' сломанная' : ''}`;
+L(`запуск: ${BUILD}; экран ${screen.width}×${screen.height}, окно ${innerWidth}×${innerHeight}; ` +
+  `${matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'с экрана «Домой»' : 'в браузере'}; ` +
+  `${saved ? `продолжение, уровень ${s.level}` : 'новая игра'}; ${navigator.userAgent}`);
+addEventListener('error', e => { LOG.sum.err++; L(`ОШИБКА: ${e.message} (${String(e.filename).split('/').pop()}:${e.lineno})`); });
+addEventListener('unhandledrejection', e => { LOG.sum.err++; L(`ОШИБКА: ${e.reason?.message || e.reason}`); });
+addEventListener('pagehide', logSaveNow);
+
+// Что на экране: вкладка и открытое окно
+const scr = () => VIEWNAME[view] + (popupOpen ? `, окно «${popupOpen.logName}»` : '');
+// Касания: простой больше 10 с, палец-подсказка, «ничего не сделало»
+let lastTouch = Date.now(), idleHint = false, tap = null, acted = 0, hiddenAt = T0;
+function logIdle(sec, tail = '') {
+  const S = LOG.sum.idle;
+  S[0]++; S[1] += sec;
+  if (sec > S[2]) { S[2] = sec; S[3] = scr(); }
+  L(`простой ${Math.round(sec)} с — ${scr()}${idleHint ? ', палец-подсказка показывался' : ', пальца не было'}${tail}`);
+}
+let hintEp = null;     // палец показан: что показывает и где (прямоугольники клеток), ждём, что сделает игрок
+function hintOn(h, els) {
+  idleHint = true;
+  const rects = els.map(el => el.getBoundingClientRect());
+  const desc = h.t === 'drag' ? `перетащить: ${what(s.cells[h.from])} → ${what(s.cells[h.to])}` :
+    h.t === 'give' ? `отдать: ${what(s.cells[h.from])} → заказ ${h.i + 1}` :
+    { order: `сдать заказ ${h.i + 1}`, port: `нажать ${PORTNAME[s.cells[h.i]?.line]?.toLowerCase()}`, chest: 'открыть сундук', bubble: 'забрать машину из пузыря',
+      cell: 'купить клетку', slot: 'открыть слот заказа', store: 'склад', tier: 'улучшить гараж (долгое нажатие)', fuel: 'купить бак',
+      build: 'построить предмет в салоне', prestige: 'престиж салона', cal: 'открыть задания дня', task: 'забрать награду задания', daily: 'задания дня' }[h.t] || h.t;
+  if (hintEp?.desc === desc) { hintEp.rects = rects; return; }     // тот же палец снова — строку не повторяем
+  if (hintEp) hintEnd('убран, показан другой');
+  hintEp = { h, desc, rects };
+  LOG.sum.hint[0]++;
+  L(`палец-подсказка: ${desc}`);
+}
+function hintEnd(res) {
+  LOG.sum.hint[res === 'сделал' ? 1 : res.startsWith('убран') ? 3 : 2]++;
+  L(`палец-подсказка → ${res}`);
+  hintEp = null;
+}
+function logTouch(e) {            // любое касание экрана, до того как игра его обработает
+  const now = Date.now(), gap = (now - lastTouch) / 1000;
+  if (!shownPage) { shownPage = true; clockAt = now; }     // касание — значит, страница на экране
+  if (gap > 10) logIdle(gap);
+  lastTouch = now; idleHint = false;
+  tap = { x: e.clientX, y: e.clientY, t: e.target, a: acted };
+  if (hintEp && hintShown) {      // палец на экране — попал ли игрок туда, куда он показывал
+    const k = hintEp.rects.findIndex(r => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+    if (k >= 0 && (hintEp.h.t === 'drag' || hintEp.h.t === 'give')) hintEp.down = k;     // перетаскивание: ждём, куда отпустит
+    else hintEnd(k >= 0 ? 'сделал' : 'не сделал, нажал в другое место');
+  }
+}
+// куда пришлось касание, которое ничего не сделало
+function where(t) {
+  const cell = t.closest?.('#board .cell');
+  if (cell) {
+    const c = s.cells[+cell.dataset.i];
+    return cell.classList.contains('far') ? 'закрытая клетка (дальняя)' : !c ? 'пустая клетка' : c.k === 'lock' ? 'закрытая клетка' :
+      c.k === 'box' ? 'ящик без ключа' : c.k === 'slot' ? 'место будущего гаража' : c.k === 'car' ? `машина на поле (${what(c)})` : c.k === 'key' ? 'ключ' : c.k;
+  }
+  const W = [['.stack', 'неизвестная машина в коллекции'], ['.hcard', 'закрытая подсказка'], ['.order.locked', 'закрытый слот заказа'], ['#board', 'поле между клетками'],
+    ['.order', 'заказ'], ['.orders-wrap', 'ряд заказов'], ['.hud', 'шапка'], ['#dock', 'меню'], ['#scene', 'сцена салона'], ['#salon', 'салон'],
+    ['#cars', 'коллекция'], ['#help', 'подсказки'], ['#settings', 'настройки']];
+  for (const [sel, name] of W) if (t.closest?.(sel)) return name;
+  return t.closest?.('.overlay') ? `окно «${popupOpen?.logName || ''}»` : 'фон';
+}
+addEventListener('pointerup', e => {
+  const t = tap;
+  tap = null;
+  if (!t || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 10 || t.t.closest?.('button:not(:disabled), textarea')) return;
+  setTimeout(() => {
+    if (acted !== t.a) return;
+    const w = where(t.t);
+    LOG.sum.none[w] = (LOG.sum.none[w] || 0) + 1;
+    L(`касание ничего не сделало: ${w}`);
+  }, 400);
+}, true);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    const gap = (Date.now() - lastTouch) / 1000;
+    if (gap > 10) logIdle(gap, ', потом ушёл со страницы');
+    L('ушёл со страницы');
+    shownPage = false; hiddenAt = Date.now();
+    logSaveNow();
+  } else {
+    shownPage = true; clockAt = lastTouch = Date.now();
+    L(`вернулся через ${Math.round((Date.now() - hiddenAt) / 1000)} с`);
+  }
+});
+// Слияние, обмен, мимо и т. п. — чем закончилось перетаскивание
+function logDrop(ev, from, to, was, card, depot, cancel) {
+  acted++;
+  const e0 = ev[0], m = ev.find(e => e.t === 'merge');
+  let res;
+  if (m) {
+    const n = ev.filter(e => e.t === 'stars' && e.at === m.to).reduce((a, e) => a + e.n, 0);
+    res = `слияние → ${m.lvl} ур.${m.r ? ' ' + RNAME[m.r].toLowerCase() : ''}, +${n}★${m.lucky ? ', удачное' : ''}${m.same ? '' : ', разные редкости'}` +
+      (ev.some(e => e.t === 'broken') ? ', вышла сломанная' : '');
+    LOG.sum.firstMerge ??= clock();
+  } else res = cancel ? 'отменено (система забрала касание)' :
+    { swap: 'обмен местами', move: 'на пустую клетку', keyUse: 'ключ открыл ящик', repair: 'починил машину', rarUp: `редкость → ${RNAME[e0?.r]?.toLowerCase()}`,
+      needCert: 'не слилось — нужен сертификат', give: `отдал в заказ ${(e0?.order ?? 0) + 1}`, store: 'на склад' }[e0?.t] ||
+    (card ? 'на заказ — не подходит' : depot ? 'на склад — нет места' : to < 0 ? 'мимо' : to === from ? 'на то же место' :
+      { lock: 'на закрытую клетку', box: 'на закрытую клетку', port: 'на гараж', chest: 'на сундук', bubble: 'на пузырь', slot: 'на место гаража' }[was?.k] || 'не подходит');
+  L(`→ ${res}`);
+  if (hintEp?.down !== undefined) {
+    const h = hintEp.h, ok = h.t === 'give' ? card && +card.dataset.o === h.i :
+      (to === h.to || to === h.from) && (!!m || ['keyUse', 'repair', 'rarUp'].includes(e0?.t));
+    hintEnd(ok ? 'сделал' : 'не довёл, отпустил в другом месте');
+  }
+}
+// После каждого хода: заказы, уровень, покупки; заказ, который стал готов
+const LOGEV = {
+  orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
+  refresh: e => `заказ ${e.order + 1} заменён${e.price ? ` за ${e.price} монет` : ' бесплатно'}`,
+  levelUp: e => `новый уровень игрока: ${e.level}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
+  tier: e => e.tier && `улучшил ${PORTNAME[e.line].toLowerCase()} до ступени ${e.tier}`, build: e => `салон: построил «${ITEM_NAME[e.item]}»`,
+  fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', taskClaim: () => 'забрал награду задания дня',
+  claim: () => 'открыл сундук дня', unstore: () => 'вернул машину со склада', prestige: () => 'престиж салона', zoneDone: () => 'зона салона готова',
+};
+const readyNow = () => new Set(s.orders.map((o, oi) => o && oi < s.slots && Core.match(s, o).ready ? o.id : null).filter(x => x !== null));
+let readyIds = readyNow();
+function logPlay(ev) {
+  ev.forEach(e => { const t = LOGEV[e.t]?.(e); if (t) L(t); });
+  const now = readyNow();
+  s.orders.forEach((o, oi) => { if (o && now.has(o.id) && !readyIds.has(o.id)) L(`заказ ${oi + 1} готов — можно сдать`); });
+  readyIds = now;
+}
+// Текст журнала для отправки: сводка, потом события по строке
+function logText() {
+  const S = LOG.sum, f = x => x === undefined ? 'не было' : `${fs1(x)} с`, yes = k => S.self[k] ? 'да' : 'нет';
+  const noneN = Object.values(S.none).reduce((a, n) => a + n, 0);
+  const lines = [
+    `Журнал «Гараж», ${BUILD}`,
+    `СВОДКА (${S.from})`,
+    `До первого касания гаража: ${f(S.firstPort)}. До первого слияния: ${f(S.firstMerge)}. До первого заказа: ${f(S.firstOrder)}.`,
+    `Игра открыта ${fs1(clock() / 60)} мин, из них активно ${fs1(Math.max(0, S.clock - S.idle[1]) / 60)} мин.`,
+    `Простоев больше 10 с: ${S.idle[0]}` + (S.idle[0] ? `, самый длинный ${Math.round(S.idle[2])} с (${S.idle[3]}).` : '.'),
+    `Касаний «ничего не сделало»: ${noneN}` + (noneN ? ` — ${Object.entries(S.none).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}.` : '.'),
+    `Сам открыл вкладки: ${['Салон', 'Коллекция', 'Подсказки', 'Настройки'].map(k => `${k} — ${yes('вкладка ' + k)}`).join(', ')}.`,
+    `Сам открыл карточки: ${['счётчик', 'гараж', 'заказ', 'задания дня', 'подсказка', 'экран модели', 'предмет салона'].map(k => `${k} — ${yes(k)}`).join(', ')}.`,
+    `Палец-подсказка: показан ${S.hint[0]}, игрок сделал ${S.hint[1]}, не сделал ${S.hint[2]}, убран игрой ${S.hint[3]}.`,
+    `Ошибок: ${S.err}.`,
+    `Сейчас: уровень ${s.level}, в коллекции ${Object.keys(s.seen).length} из 24 машин.`,
+    '',
+    `СОБЫТИЯ (секунды от запуска страницы)` + (LOG.cut ? `, первые ${LOG.cut} вытеснены` : ''),
+  ];
+  let n = 0;
+  LOG.ev.forEach(([k, t, x]) => { if (k !== n) { n = k; lines.push(`— запуск ${k} —`); } lines.push(`${fs1(t)}  ${x}`); });
+  return lines.join('\n');
+}
+async function sendLog() {
+  const text = logText();
+  L('отправка журнала');
+  try { if (navigator.share) return await navigator.share({ text }); } catch (e) { if (e.name === 'AbortError') return; }
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+  if (!ok) {                       // старый способ: через невидимое поле
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;top:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+  }
+  // не вышло — показать текст: выделить и скопировать руками
+  queuePopup(ok ? `<div class="sheet narrow"><span class="bigic">${ICON.check}</span><div class="sh-title">Скопировано</div><div class="sh-txt">Вставь в сообщение владельцу</div></div>` :
+    `<div class="sheet">${xbtn}<div class="sh-title">Журнал</div><div class="sh-txt">Выдели всё и скопируй</div><textarea class="logta" readonly>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea></div>`,
+    0, 'card', ok ? 'auto' : 'panel');
+}
+
+// ── Звук и вибрация (звук выключен по умолчанию) ───────────────────────────
+let AC = null;
+const NOTES = { spawn: [520], merge: [660, 990], coin: [1320, 1760], level: [523, 659, 784, 1046], no: [196], unlock: [440, 660], card: [784, 1175], build: [392, 587, 784], pop: [880], lucky: [784, 988, 1319, 1568] };
+function sound(kind) {
+  if (!s.sound) return;
+  try { AC ||= new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
+  const t0 = AC.currentTime;
+  NOTES[kind].forEach((hz, k) => {
+    const o = AC.createOscillator(), g = AC.createGain(), t = t0 + k * .06;
+    o.frequency.value = hz;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(.08, t + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .18);
+    o.connect(g).connect(AC.destination);
+    o.start(t); o.stop(t + .2);
+  });
+}
+const buzz = ms => { try { navigator.vibrate?.(ms); } catch {} };
+
+// ── Рисование ──────────────────────────────────────────────────────────────
+const cellEl = i => $('board').children[i];
+const orderEl = i => $('orders').children[i];
+const fmtWait = () => { const t = Math.ceil(Core.fuelWaitMs(s, Date.now()) / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+const fmtCharge = () => { const m = Math.ceil(Core.chargeWaitMs(s, Date.now()) / 60000); return m >= 60 ? `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}` : `0:${String(m).padStart(2, '0')}`; };
+const canBuild = () => Core.buildable(s).some(b => s.stars >= b.price);
+const portCell = line => C.ports.find(p => p.line === line).cell;
+
+const canPrestige = () => Core.salonDone(s) && s.stars >= Core.prestigePrice(s);
+const DOCK = [[ICON.salon, 'Салон'], [ICON.field, 'Поле'], [ICON.cards, 'Коллекция'], [ICON.help, 'Подсказки'], [ICON.sliders, 'Настройки']];
+function renderHud() {
+  Art.setTheme(s.ev?.theme);
+  $('lvlN').textContent = s.level;
+  $('xpBar').style.width = (Math.min(1, s.xp / Core.xpNeed(s.level)) * 100).toFixed(1) + '%';
+  $('starPill').innerHTML = ICON.star + `<b>${fmtN(s.stars)}</b>`;
+  $('fuelPill').innerHTML = ICON.fuel + `<b>${s.fuel}</b>`;
+  $('fuelPill').classList.toggle('empty', s.fuel < 1);
+  // монеты: полоска — сколько накоплено до следующей покупки
+  const buy = Core.nextBuy(s);
+  $('coinPill').innerHTML = ICON.coin + `<b>${fmtN(s.coins)}</b>` +
+    (buy ? `<span class="goalbar"><i style="width:${Math.min(100, s.coins / buy.price * 100).toFixed(0)}%"></i></span>` : '');
+  // задания дня — после первого заказа; «2/3» и мягкая пульсация, когда есть что забрать
+  const d = s.daily, cal = $('cal');
+  cal.hidden = !d || s.n.orders === 0;
+  if (d) {
+    const done = d.goals.filter(g => g.got || Core.goalDone(g)).length;
+    cal.classList.toggle('ready', Core.taskReady(s) >= 0 || Core.dailyDone(s));
+    cal.innerHTML = ICON.calendar + `<b>${done}/3</b>`;
+  }
+  const ev = $('evBtn');
+  ev.hidden = !Core.evActive(s);
+  if (!ev.hidden) ev.innerHTML = ICON.flag + `<i class="hbadge gold">${s.ev.step}</i>`;
+  const dp = $('depotBtn');
+  dp.hidden = !s.storeN && !s.ship;
+  if (!dp.hidden) dp.innerHTML = ZICON.depot + (s.ship && Date.now() >= s.ship.at ? `<i class="hbadge gold">${ICON.ship.replace('class="ic"', 'class="ic" style="width:12px;height:12px;color:#fff"')}</i>` :
+    s.storeN ? `<i class="hbadge">${s.store.length}/${s.storeN}</i>` : '');
+  const dots = [canBuild() || canPrestige(), false, Object.keys(s.fresh).length > 0, freshHints().length > 0, false];
+  const dk = $('dock').children;
+  DOCK.forEach(([icon, label], k) => { dk[k].innerHTML = icon + `<span>${label}</span>` + (dots[k] ? `<i class="dot${k === 0 ? ' gold' : ''}"></i>` : ''); });
+  const st = $('streak'), hot = s.streak.n >= C.streakNeed && Date.now() - s.streak.at <= C.streakGapMs;
+  const alive = s.streak.n > 0 && Date.now() - s.streak.at <= C.streakGapMs;
+  st.hidden = !alive;
+  st.className = hot ? 'hot' : '';
+  st.innerHTML = ICON.flame + (hot ? `×${C.streakMult}` : `${s.streak.n}`);
+}
+
+function wanted() {
+  const hl = new Set();
+  s.orders.forEach((o, oi) => { if (o && oi < s.slots) Core.match(s, o).cells.flat().forEach(i => hl.add(i)); });
+  return hl;
+}
+
+// Пара седьмых без сертификата, а детали уже начаты — значок цели на самой старшей детали: «сливай дальше»
+function certTarget() {
+  if (Core.certAt(s) >= 0 || ![0, 1, 2].some(l => s.cells.filter(c => Core.isCar(c) && c.line === l && c.lvl === 7).length >= 2)) return -1;
+  let best = -1;
+  s.cells.forEach((c, i) => { if (Core.isCar(c) && c.line === P && c.lvl < 5 && (best < 0 || c.lvl > s.cells[best].lvl)) best = i; });
+  return best;
+}
+let hasCert = false, goalCell = -1;
+function cellHTML(c, i, hl) {
+  if (!c) return `<div class="cell" data-i="${i}"></div>`;
+  if (c.k === 'car') {
+    const r = c.r || 0;
+    // значок сертификата на каждой седьмой: серый — сертификата нет, зелёный и пульсирует — можно сливать
+    const cert = (c.lvl === 7 && c.line < P && !c.broken ? `<i class="needcert${hasCert ? ' on' : ''}">${Art.certMini}</i>` : '') +
+      (i === goalCell ? '<i class="goalmark"></i>' : '');
+    // сломанная машина: значок нужного инструмента (перетащить его на машину)
+    const fix = c.broken ? `<i class="needtool">${Art.item(P, Core.toolFor(c.lvl))}</i>` : '';
+    return `<div class="cell car r${r}${hl.has(i) ? ' wanted' : ''}${c.broken ? ' broken' : ''}" data-i="${i}" style="${rv(r)}">` +
+      `${withPlate(r, Art.item(c.line, c.lvl, false, r))}${badge(c.lvl)}${cert}${fix}</div>`;
+  }
+  if (c.k === 'key') return `<div class="cell key" data-i="${i}" aria-label="Ключ">${Art.thing('key')}</div>`;
+  if (c.k === 'port') {
+    const ev = c.line === Core.EV, cost = Core.tapCost(s, c.line), t = s.tiers[c.line];
+    const ch = c.line === Core.TRIM ? Core.charges(s, Date.now()) : -1, off = s.fuel < cost || ch === 0;   // Ателье — по зарядам
+    const icon = c.line === P ? ICON.wrench : c.line === Core.TRIM ? Art.item(Core.TRIM, 2, true) : Art.item(c.line, 1, true);
+    // на улучшение хватает монет — точка на углу (нажать нельзя, это знак; улучшение — долгим нажатием на гараж)
+    const up = !ev && t < Core.maxTier(s, c.line) && s.coins >= Core.tierPrice(t);
+    return `<div class="cell port${ev ? ' ev' : ''}${off ? ' off' : ''}" data-i="${i}" role="button" tabindex="0" aria-label="Гараж">${GARAGE}` +
+      (off ? `<span class="timer"${ch === 0 ? ' data-charge' : ''}>${ch === 0 ? fmtCharge() : fmtWait()}</span>` : `<span class="port-car">${icon}</span>`) +
+      (Core.portFuel(c.line) > 1 ? `<span class="cost2">${ICON.fuel}${cost}</span>` : '') + (up ? '<i class="updot"></i>' : '') +
+      (ch > 0 ? `<i class="chg">${[0, 1].map(k => `<b class="${k < ch ? 'on' : ''}"></b>`).join('')}</i>` : '') + '</div>';
+  }
+  if (c.k === 'slot') return `<div class="cell slot" data-i="${i}">${GARAGE}</div>`;     // место будущего гаража — бледный контур
+  if (c.k === 'chest') return `<div class="cell chest" data-i="${i}" role="button" tabindex="0" aria-label="Сундук">${Art.thing(c.kind === 'box' ? 'boxOpen' : c.kind)}<span class="cnt">${c.cars.length}</span></div>`;
+  if (c.k === 'bubble') {
+    const p = Math.max(0, (c.until - Date.now()) / C.bubbleMs);
+    return `<div class="cell bubble" data-i="${i}" role="button" tabindex="0" aria-label="Забрать за ${c.price}" style="${rv(c.r || 0)};--p:${p.toFixed(3)}">` +
+      `<span class="bub">${Art.item(c.line, c.lvl, false, c.r || 0)}</span>${badge(c.lvl)}<span class="bprice">${ICON.coin}${c.price}</span></div>`;
+  }
+  // Закрытые: рядом с открытыми — замок с ценой или ящик (ключом), вдали — просто бледная плитка
+  if (c.k === 'box' && nearBoxes.has(i)) return `<div class="cell box${keyOnField ? ' keyable' : ''}" data-i="${i}" role="button" aria-label="Ящик">${Art.thing('box')}</div>`;
+  if (c.k === 'lock' && Core.canOpen(s, i)) {     // цена — только когда на клетку хватает монет
+    const price = Core.cellPrice(s), can = s.coins >= price;
+    return `<div class="cell lock${can ? ' can' : ''}" data-i="${i}" role="button" aria-label="Открыть клетку за ${price}">${ICON.lock}${can ? `<span class="cprice">${ICON.coin}${price}</span>` : ''}</div>`;
+  }
+  return `<div class="cell far" data-i="${i}"></div>`;
+}
+
+let keyOnField = false, nearBoxes = new Set();
+function renderBoard() {
+  const hl = wanted();
+  keyOnField = s.cells.some(c => c?.k === 'key');
+  hasCert = Core.certAt(s) >= 0;
+  goalCell = certTarget();
+  // ящиков видно не больше трёх — ближайшие к центру; остальные появятся, когда поле дорастёт
+  nearBoxes = new Set(s.cells.map((c, i) => c?.k === 'box' && Core.canOpen(s, i) ? i : -1).filter(i => i >= 0)
+    .sort((a, b) => Math.hypot(a % 7 - 3, (a / 7 | 0) - 4) - Math.hypot(b % 7 - 3, (b / 7 | 0) - 4)).slice(0, 3));
+  $('board').innerHTML = s.cells.map((c, i) => cellHTML(c, i, hl)).join('');
+}
+
+function orderHTML(o, oi) {
+  if (oi >= s.slots) {
+    const next = oi === s.slots;
+    return `<div class="order locked${next && s.coins >= C.slotPrices[oi] ? ' can' : ''}" data-slot="${oi}" role="button" tabindex="0" aria-label="Открыть слот заказа">` +
+      `${ICON.lock}${next ? `<span class="oprice">${ICON.coin}${C.slotPrices[oi]}</span>` : ''}</div>`;
+  }
+  const m = Core.match(s, o);
+  const items = o.items.map((it, k) => {
+    const left = it.n - it.got, ok = left === 0 || m.cells[k].length >= left;
+    return `<span class="want${left === 0 ? ' done' : ''}${it.r >= 0 ? ' req' : ''}" style="${rv(Math.max(0, it.r))}">` +
+      `${Art.item(it.line, it.lvl, false, Math.max(0, it.r))}${badge(it.lvl)}${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}${ok ? `<i class="tick">${ICON.check}</i>` : ''}</span>`;
+  }).join('');
+  const price = Core.refreshPrice(s, Date.now());
+  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
+  const single = o.items.length === 1 && o.items[0].n === 1;
+  const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : ICON.coin + Core.orderValue(s, o);
+  return `<div class="order k-${o.kind}${single ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
+    `<span class="ohead">${ava}<span class="oval">${val}</span>` +
+    `<button class="ref" data-ref="${oi}" aria-label="Заменить заказ">${ICON.refresh}${price ? `<b>${price}</b>` : ''}</button></span>` +
+    `<span class="wants">${items}</span></div>`;
+}
+function renderOrders() {
+  $('orders').innerHTML = s.orders.map(orderHTML).join('');
+}
+
+// Что даёт пункт салона: значок эффекта и число (на «+») и та же мысль одной строкой (в карточке)
+const LINE_NAME = ['легковых', 'внедорожников', 'купе', 'Мастерской', 'события', 'Ателье'];
+function fxChip(fx) {
+  if (fx.cells) return ICON.grid + '+' + fx.cells;
+  if (fx.gift) return ICON.gift + '+' + fx.gift;
+  if (fx.fuel) return ICON.fuel + '+' + fx.fuel;
+  if (fx.slot) return ICON.card + '+1';
+  if (fx.tier !== undefined) return ICON.up + Art.item(fx.tier, 1, true);
+  if (fx.port !== undefined) return GARAGE_IC + ICON.wrench;
+  if (fx.regen) return ICON.fuel + ICON.clock;
+  if (fx.crates) return ICON.crate + '+';
+  if (fx.coins) return ICON.coin + `+${Math.round(C.washBonus * 100)}%`;
+  if (fx.keys) return ICON.key + '+';
+  if (fx.bubbles) return ICON.bubble + '−30%';
+  if (fx.newStars) return ICON.star + '×2';
+  if (fx.showcase) return ICON.card + ZICON.showroom;
+  if (fx.refresh) return ICON.refresh + '×2';
+  if (fx.store) return ZICON.depot + '+4';
+  if (fx.tier2) return ICON.up + ICON.up;
+  if (fx.ship) return ICON.ship + '4ч';
+  if (fx.toolUp) return ICON.up + ICON.wrench;
+  if (fx.shipFast) return ICON.ship + '3ч';
+  return '';
+}
+function fxText(fx) {
+  if (fx.cells) return `+${fx.cells} клетки поля`;
+  if (fx.gift) return 'Подарок дня: +1 машина каждый день';
+  if (fx.fuel) return `Бак +${fx.fuel}`;
+  if (fx.slot) return '+1 слот заказа';
+  if (fx.tier !== undefined) return `Гараж ${LINE_NAME[fx.tier]}: +1 ступень`;
+  if (fx.port !== undefined) return 'Гараж деталей на поле';
+  if (fx.regen) return 'Топливо копится на 25% быстрее';
+  if (fx.crates) return 'Ящики из гаража в 2 раза чаще';
+  if (fx.coins) return `+${Math.round(C.washBonus * 100)}% монет за заказы`;
+  if (fx.keys) return 'Ключи выпадают в 1,5 раза чаще';
+  if (fx.bubbles) return 'Пузыри на 30% дешевле';
+  if (fx.newStars) return '×2 звёзд за новую модель';
+  if (fx.showcase) return `Заказы «на витрину»: ×${String(C.kinds.showcase.mult).replace('.', ',')} монет`;
+  if (fx.refresh) return 'Бесплатная замена заказа раз в 15 мин';
+  if (fx.store) return 'Склад: место для машин вне поля';
+  if (fx.tier2) return 'Второй ряд улучшений гаража за монеты';
+  if (fx.ship) return 'Корабль с ящиком машин раз в 4 ч';
+  if (fx.toolUp) return 'Деталь из Мастерской и Ателье на уровень выше — шанс 10%';
+  if (fx.shipFast) return 'Корабль приходит раз в 3 ч';
+  return '';
+}
+const ITEM_NAME = {
+  trash: 'Уборка', walls: 'Покраска стен', light: 'Свет', gate: 'Новые ворота', sign: 'Вывеска',
+  lift: 'Подъёмник', bench: 'Стол мастера', tires: 'Шиномонтаж', compressor: 'Компрессор', tools: 'Инструменты',
+  washpost: 'Пост мойки', hoses: 'Шланги', dryer: 'Сушка', washlight: 'Подсветка', mats: 'Коврики',
+  window: 'Витрина', podium: 'Подиум', chairs: 'Кресла', desk: 'Стойка', plants: 'Растения', chandelier: 'Люстра',
+  shelves: 'Стеллажи', forklift: 'Погрузчик', crane: 'Кран', pier: 'Причал', containers: 'Контейнеры', office: 'Диспетчерская', lighthouse: 'Маяк',
+};
+// Плашка «Бонусы салона»: 4 группы по смыслу, у каждой одна строка с суммой; нажатие раскрывает, из чего она сложилась
+const GROUP = fx => fx.coins || fx.bubbles || fx.showcase || fx.refresh ? 0 : fx.fuel || fx.regen ? 1 : fx.cells || fx.slot || fx.store || fx.ship || fx.shipFast ? 3 : 2;
+const GNAME = ['Монеты', 'Топливо', 'Гаражи и машины', 'Поле и склад'];
+const GICON = () => [ICON.coin, ICON.fuel, GARAGE_IC, ICON.grid];
+let openGroups = new Set();
+function salonGroups() {
+  const parts = [[], [], [], []], sum = n => Core.fxSum(s, n), has = n => Core.fxHas(s, n);
+  C.salon.forEach((z, zi) => z.items.forEach((it, k) => { if (Core.built(s, zi, it)) parts[GROUP(z.fx[k])].push(`${ITEM_NAME[it]}: ${fxText(z.fx[k]).replace(/^./, ch => ch.toLowerCase())}`); }));
+  if (s.prestige) parts[0].push(`Престиж салона ${s.prestige}: +${Math.round(s.prestige * C.prestige.pct * 100)}% монет`);
+  Object.keys(s.trophies || {}).forEach(k => parts[0].push(`Трофей «${EVNAME[k]}»: +${Math.round(C.event.trophyPct * 100)}% монет`));
+  const full = Object.values(s.seen).filter(m => m === 31).length;
+  if (full) parts[0].push(`Полные стопки (${full}): +${full}% монет`);
+  const tiers = C.salon.reduce((a, z, zi) => a + z.items.filter((it, k) => z.fx[k].tier !== undefined && Core.built(s, zi, it)).length, 0);
+  const total = [
+    `+${Math.round(Core.bonusPct(s) * 100)}% за заказы${has('bubbles') ? ', пузыри −30%' : ''}`,
+    `бак +${sum('fuel')}${has('regen') ? ', копится на 25% быстрее' : ''}`,
+    [tiers && `+${tiers} ${plural(tiers, 'ступень', 'ступени', 'ступеней')}`, parts[2].length - tiers > 0 && `ещё ${parts[2].length - tiers} ${plural(parts[2].length - tiers, 'бонус', 'бонуса', 'бонусов')}`].filter(Boolean).join(', '),
+    [sum('cells') && `+${sum('cells')} клеток`, has('slot') && '+1 слот', has('store') && `склад ${s.storeN} из 4`, has('ship') && `корабль раз в ${has('shipFast') ? 3 : 4} ч`].filter(Boolean).join(', '),
+  ];
+  return parts.map((list, g) => ({ g, list, total: total[g] })).filter(x => x.list.length);
+}
+function bonusesHTML() {
+  const gs = salonGroups();
+  if (!gs.length) return `<b>Бонусы салона</b><span class="none">Пока пусто. Купи первый предмет — бонус появится здесь.</span>`;
+  return `<b>Бонусы салона</b>` + gs.map(({ g, list, total }) => `<button class="bgroup${openGroups.has(g) ? ' open' : ''}" data-g="${g}">` +
+    `<span class="bgline">${GICON()[g]}<b>${GNAME[g]}:</b><span>${total}</span>${ICON.play}</span>` +
+    (openGroups.has(g) ? `<ul>${list.map(x => `<li>${ICON.check}<span>${x}</span></li>`).join('')}</ul>` : '') + '</button>').join('');
+}
+
+// Коллекция: две карточки в ряд, машина 640 px в высшей полученной редкости, пять кружков редкостей внизу.
+// Сзади — тонкие края стопки. Не полученная ни разу модель — тёмный силуэт и «?»
+const RCH = ['из гаража', 'краска на машину или гараж', 'диски на машину', 'обвес на машину', 'эмблема мастера на машину или удачное слияние'];
+// чем редкость отличается от белой — по строкам комплектаций (assets/cars/ПРОМТЫ.md)
+const RDIFF = ['Базовая: стальные диски, чёрный пластик', 'Кузов без чёрного пластика, литые диски', 'Гоночные полосы, спойлер', 'Чёрная крыша, подсветка', 'Медная серия'];
+const popc = m => [0, 1, 2, 3, 4].filter(r => m & (1 << r)).length;
+// машина в окне: помечена, чтобы докачанная картинка 640 px встала на место временной (см. renderAll)
+const artOf = a => { const [line, lvl, r, big, mono] = a.split(',').map(Number); return Art.item(line, lvl, !!mono, r, !!big); };
+const artBox = (line, lvl, r, big, mono = 0) => { const a = [line, lvl, r, big ? 1 : 0, mono ? 1 : 0].join(','); return `<span class="art" data-art="${a}">${artOf(a)}</span>`; };
+// кружки редкостей: полученные — в цвете (обычная — белый с обводкой), неполученные — серые
+const rdots = (m, cur = -1) => `<span class="rdots5">${[0, 1, 2, 3, 4].map(r => `<i class="r${r}${m & (1 << r) ? ' on' : ''}${r === cur ? ' now' : ''}" style="--c:var(--r${r})"></i>`).join('')}</span>`;
+function stackHTML(line, lvl) {
+  const k = Core.key(line, lvl), m = s.seen[k] || 0, top = m ? bestRar(m) : 0, on = Core.rarOn(s), [brand, model] = Core.CARS[line][lvl - 1];
+  const under = [...[3, 2, 1, 0].filter(r => r < top), ...[0, 1, 2, 3, 4].filter(r => r > top)].slice(0, 2);
+  const edges = on && m ? under.map((r, q) => `<i class="edge${m & (1 << r) ? '' : ' no'}" style="--q:${q + 1};${rv(r)}"></i>`).join('') : '';
+  return `<button class="stack${m ? '' : ' unknown'}${s.fresh[k] ? ' fresh' : ''}" data-k="${k}"${m ? '' : ' disabled'} aria-label="${m ? nameOf(line, lvl) : 'Неизвестная машина'}">${edges}` +
+    `<span class="scard${s.landRar?.[k] !== undefined ? ' land' : ''}" style="${rv(top)}">${badge(lvl)}` +
+    `<span class="sc-car">${m ? Art.item(line, lvl, false, top, true) : Art.item(line, lvl, true, 0)}</span>` +
+    (m ? `<span class="sc-name"><small>${brand}</small>${model}</span>${on ? rdots(m) : ''}` : '<b class="sc-q">?</b>') + '</span></button>';
+}
+function renderCollection() {
+  const seen = Object.keys(s.seen).length, full = Object.values(s.seen).filter(m => m === 31).length;
+  let h = `<div class="view-head">${ICON.cards}<span>${seen}/24</span>${full ? `<span class="bonus on" style="margin-left:auto">${full} ${plural(full, 'полная стопка', 'полные стопки', 'полных стопок')} · ${ICON.coin}+${full}%</span>` : ''}</div>`;
+  const bonus = [ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'];
+  [0, 1, 2].forEach(line => {
+    const n = Core.CARS[line].filter((_, i) => s.seen[Core.key(line, i + 1)]).length;
+    h += `<div class="line-head">${Art.item(line, 1, n === 0)}<span>${n}/8</span><span class="bonus${Core.lineDone(s, line) ? ' on' : ''}">${bonus[line]}</span></div>`;
+    h += `<div class="col-line">` + Core.CARS[line].map((_, i) => stackHTML(line, i + 1)).join('') + '</div>';
+  });
+  const tr = Object.keys(s.trophies || {});
+  if (tr.length) h += `<div class="line-head">${ICON.trophy}<span>Трофеи событий</span></div><div class="trophies">${tr.map(k => `<span class="trophy">${ICON.trophy}${EVNAME[k]}</span>`).join('')}</div>`;
+  $('cars').innerHTML = h;
+  s.landRar = {};          // новая редкость легла на стопку — анимация один раз
+}
+
+// Новая редкость (и первая машина модели) — на весь экран: затемнение, крупная карточка цвета редкости.
+// Закрытие — касание: машина улетает в «Коллекцию», на значке загорается точка
+function rarCardHTML(line, lvl, r) {
+  const [brand, model] = Core.CARS[line][lvl - 1], m = s.seen[Core.key(line, lvl)] || 0, on = Core.rarOn(s);
+  return `<div class="rcard r${r}" style="${rv(r)}"><div class="rc-in">` +
+    `<div class="rc-head">${on ? `<i class="rc-dot"></i>${RNAME[r]}` : 'Новая машина'}</div>` +
+    `<div class="rc-car"><i class="rc-flash"></i>${artBox(line, lvl, r, true)}</div>` +
+    `<div class="rc-name"><small>${brand}</small>${model}</div><span class="rc-lvl">Уровень ${lvl}</span>` +
+    (on && r ? `<div class="rc-diff">${RDIFF[r]}</div>` : '') + (on ? rdots(m, r) : '') + '</div></div>';
+}
+// карточки по одной цепочке: сначала докачать картинку 640 px этой редкости (не дольше 2,5 с), потом в очередь
+let rarChain = Promise.resolve();
+function openRarCard(line, lvl, r, delay) {
+  const t0 = Date.now();
+  rarChain = rarChain.then(() => Promise.race([Art.preload(line, lvl, r, true), new Promise(ok => setTimeout(ok, 2500))]))
+    .then(() => showRarCard(line, lvl, r, Math.max(0, delay - (Date.now() - t0))));
+}
+function showRarCard(line, lvl, r, delay) {
+  queuePopup(rarCardHTML(line, lvl, r), delay, r >= 3 ? 'lucky' : 'level', 'tap', el => {
+    anim(el.querySelector('.rc-flash'), [{ opacity: .95, transform: 'scale(.2)' }, { opacity: 0, transform: 'scale(2.2)' }], { duration: 520, easing: 'ease-out' });
+    anim(el.querySelector('.rc-car .art'), [{ opacity: 0, transform: 'scale(.7)', filter: 'brightness(2.2)' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    el.beforeClose = () => {            // карточка улетает в значок коллекции
+      const car = el.querySelector('.rc-car .car'), dockBtn = $('dock').children[2];
+      if (car) flyEl(car.outerHTML, 'fly-card', center(car), center(dockBtn), car.getBoundingClientRect().width, 460, 0, .12, .6);
+      setTimeout(() => { pop(dockBtn.querySelector('.dot') || dockBtn); buzz(10); }, RM.matches ? 0 : 440);
+    };
+  }, { hold: true, cls: 'dim', auto: true });
+}
+
+// Экран модели: машина во всю ширину, пять редкостей — свайпом и кружками; у закрытой — силуэт и «как получить»
+function modelInfo(line, lvl, r) {
+  const k = Core.key(line, lvl), m = s.seen[k] || 0, d = s.seenAt?.[`${k}:${r}`];
+  if (!(m & (1 << r))) return `<b class="ms-rn no">${RNAME[r]}</b><span>Как получить: ${RCH[r]}</span>`;
+  return `<b class="ms-rn r${r}" style="${rv(r)}">${RNAME[r]}</b><span>${RDIFF[r]}</span>` +
+    (d ? `<i>Получена ${new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'long' })}</i>` : '');
+}
+function openModel(line, lvl, r0) {
+  const k = Core.key(line, lvl), m = s.seen[k] || 0, on = Core.rarOn(s), [brand, model] = Core.CARS[line][lvl - 1];
+  const rs = on ? [0, 1, 2, 3, 4] : [0];
+  let cur = Math.min(rs.length - 1, r0 ?? (m ? bestRar(m) : 0));
+  const slides = rs.map(r => m & (1 << r) ? `<div class="ms-slide" style="${rv(r)}">${artBox(line, lvl, r, true)}</div>` :
+    `<div class="ms-slide no">${artBox(line, lvl, 0, false, 1)}</div>`).join('');
+  const html = `<div class="mscreen">${xbtn}<div class="ms-head"><small>${brand}</small><b>${model}</b>` +
+    `<span class="ms-meta" style="${rv(m ? bestRar(m) : 0)}">${badge(lvl)}${on ? `<span>${popc(m)} из 5</span>` : ''}</span></div>` +
+    `<div class="ms-view"><div class="ms-track" style="--i:${cur}">${slides}</div>` +
+    (on ? `<button class="ms-arr l" data-step="-1" aria-label="Предыдущая редкость">${ICON.play}</button><button class="ms-arr r" data-step="1" aria-label="Следующая редкость">${ICON.play}</button>` : '') + '</div>' +
+    // все пять редкостей сразу — маленькими картинками: полученные в цвете, закрытые силуэтом; нажал — она крупно
+    (on ? `<div class="ms-thumbs">${rs.map(r => `<button data-r="${r}" class="${m & (1 << r) ? 'on' : ''}${r === cur ? ' cur' : ''}" style="${rv(r)}" aria-label="${RNAME[r]}">` +
+      (m & (1 << r) ? artBox(line, lvl, r, false) : artBox(line, lvl, 0, false, 1)) + '</button>').join('')}</div>` : '') +
+    `<div class="ms-info">${modelInfo(line, lvl, cur)}</div></div>`;
+  queuePopup(html, 0, 'card', 'panel', el => {
+    const show = r => {
+      cur = Math.max(0, Math.min(rs.length - 1, r));
+      el.querySelector('.ms-track').style.setProperty('--i', cur);
+      el.querySelectorAll('.ms-thumbs button').forEach((b, q) => b.classList.toggle('cur', q === cur));
+      el.querySelectorAll('.ms-arr').forEach(b => { b.hidden = cur + +b.dataset.step < 0 || cur + +b.dataset.step >= rs.length; });
+      el.querySelector('.ms-info').innerHTML = modelInfo(line, lvl, cur);
+    };
+    el.addEventListener('click', e => { const b = e.target.closest('[data-r]'), a = e.target.closest('[data-step]'); if (b) show(+b.dataset.r); if (a) show(cur + +a.dataset.step); });
+    show(cur);
+    let x0 = null, y0 = 0;
+    el.addEventListener('pointerdown', e => { x0 = e.clientX; y0 = e.clientY; });
+    el.addEventListener('pointerup', e => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) show(cur + (dx < 0 ? 1 : -1));
+    });
+  });
+}
+
+// Машины на сценах салона: на подъёмнике — Pico, в мойке — внедорожник, на подиуме — лучшая (уровень + редкость)
+function bestCar() {
+  let best = [0, 1], score = 0;
+  Object.entries(s.seen).forEach(([k, m]) => { const [l, v] = k.split('-').map(Number), sc = v * 10 + bestRar(m); if (sc > score) { score = sc; best = [l, v]; } });
+  return best;
+}
+const zoneCar = id => ({ workshop: [0, 1], wash: s.seen['1-1'] ? [1, 1] : [0, 2], showroom: bestCar(), depot: [0, 3] }[id]);
+
+let zoneSel = null;
+function renderSalon() {
+  const cur = Core.currentZone(s);
+  if (zoneSel === null) zoneSel = cur < 0 ? C.salon.length - 1 : cur;
+  $('bonuses').innerHTML = bonusesHTML();
+  $('zoneTabs').innerHTML = C.salon.map((z, zi) => {
+    const done = Core.zoneDone(s, zi);
+    return `<button class="ztab${zi === zoneSel ? ' on' : ''}${!done && zi !== cur ? ' locked' : ''}" data-z="${zi}" aria-label="${ZNAME[zi]}">` +
+      `${ZICON[z.id]}${done ? `<i class="zstar">${ICON.star}</i>` : ''}</button>`;
+  }).join('');
+  const zi = zoneSel, z = C.salon[zi], done = Core.zoneDone(s, zi), active = zi === cur;
+  const builtObj = s.salon[z.id] || {}, car = zoneCar(z.id);
+  const svg = SALON.scene(zi, builtObj, { car: car && ((cx, g, w) => Art.nested(car[0], car[1], cx, g, w)) });
+  const plus = active ? Core.buildable(s).map(b => {
+    const [x, y] = SALON.anchors[b.item];
+    return `<button class="plus${s.stars >= b.price ? ' can' : ''}" data-item="${b.item}" style="left:${(x / SALON.W * 100).toFixed(1)}%;top:${(y / SALON.H * 100).toFixed(1)}%" aria-label="${ITEM_NAME[b.item]}">` +
+      `${ICON.plus}<span class="cost">${ICON.star}<b>${b.price}</b><span class="fx">${fxChip(b.fx)}</span></span></button>`;
+  }).join('') : '';
+  const prog = `<div class="zprog">${z.items.map(it => `<i class="${builtObj[it] ? 'on' : ''}"></i>`).join('')}</div>`;
+  const fxs = `<div class="zfx">${z.items.map((it, k) => `<span class="${builtObj[it] ? 'on' : ''}" data-item="${it}">${fxChip(z.fx[k])}</span>`).join('')}</div>`;
+  // после всех зон — престиж салона: бесконечная трата звёзд
+  const pr = Core.salonDone(s) ? `<div class="prest"><span class="pt"><b>Престиж салона ${s.prestige}</b>Каждый уровень: +1% монет за заказы</span>` +
+    `<button class="btn${s.stars >= Core.prestigePrice(s) ? '' : ' off'}" id="prestBtn">${ICON.star}${Core.prestigePrice(s)}</button></div>` : '';
+  $('prest').innerHTML = pr;
+  $('prest').hidden = !pr;
+  // второй путь к улучшениям гаражей: все гаражи, их ступени и та же кнопка «Улучшить»
+  $('ports').innerHTML = '<b>Гаражи</b>' + [0, 1, 2, 3, 5].filter(l => Core.portOpen(s, l)).map(l => {
+    const t = s.tiers[l], max = Core.maxTier(s, l), price = Core.tierPrice(t);
+    return `<div class="prow" data-pl="${l}">${Art.item(l, 1, true)}<span><b>${PORTNAME[l]}</b>ступень ${t}</span>` +
+      (t < max ? `<button class="btn gold${s.coins < price ? ' off' : ''}" data-pup="${l}">${ICON.coin}${price}</button>` : '<span class="works">макс.</span>') + '</div>';
+  }).join('');
+  $('scene').innerHTML = `<div class="stage${!active && !done ? ' dim' : ''}">${svg}${plus}` +
+    `${!active && !done ? `<i class="zlock">${ICON.lock}</i>` : ''}${done ? `<i class="zdone">${ICON.star}</i>` : ''}</div>${prog}${fxs}`;
+}
+
+// Карточка предмета салона: картинка, название, эффект одной строкой, цена или «Работает»
+function itemCard(zi, item) {
+  const z = C.salon[zi], k = z.items.indexOf(item), fx = z.fx[k], isBuilt = Core.built(s, zi, item);
+  const canBuy = !isBuilt && Core.buildable(s).some(b => b.item === item);
+  const [ax, ay] = SALON.anchors[item];
+  const vx = Math.max(0, Math.min(360 - 200, ax - 100)), vy = Math.max(0, Math.min(260 - 130, ay - 70));
+  const car = zoneCar(z.id);
+  const pic = SALON.scene(zi, { ...(s.salon[z.id] || {}), [item]: 1 }, { car: car && ((cx, g, w) => Art.nested(car[0], car[1], cx, g, w)) })
+    .replace('viewBox="0 0 360 260"', `viewBox="${vx} ${vy} 200 130"`);
+  const act = isBuilt ? `<span class="works">${ICON.check}Работает</span>` :
+    canBuy ? `<button class="btn gold${s.stars >= z.prices[k] ? '' : ' off'}" data-buy="${item}">${ICON.star}${z.prices[k]}</button>` :
+    `<span class="chip star">${ICON.star}${z.prices[k]}</span><span class="sh-foot">Откроется, когда будет готова прошлая зона</span>`;
+  return `<div class="sheet narrow" data-z="${zi}">${xbtn}<div class="ipic">${pic}</div><div class="sh-title">${ITEM_NAME[item]}</div>` +
+    `<div class="sh-txt">${fxText(fx)}</div>${act}</div>`;
+}
+function openItem(zi, item) {
+  queuePopup(itemCard(zi, item), 0, 'card', 'panel', el => el.querySelector('[data-buy]')?.addEventListener('click', e => {
+    const ev = Core.build(s, zi, item, Date.now());
+    if (ev[0]?.t !== 'build') { shake(e.currentTarget); shake($('starPill')); sound('no'); return; }
+    el.close();
+    play(ev);
+  }));
+}
+// Законченная зона: что она дала
+function zoneDoneCard(zi) {
+  const z = C.salon[zi];
+  return `<div class="sheet narrow">${xbtn}<div class="ipic">${SALON.scene(zi, s.salon[z.id] || {}, {})}</div><div class="sh-title">${ZDONE[zi]}</div>` +
+    `<div class="bonuses" style="padding:0;width:100%"><ul style="grid-template-columns:1fr">${z.fx.map(fx => `<li>${ICON.check}<span>${fxText(fx)}</span></li>`).join('')}</ul></div>` +
+    `<button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`;
+}
+
+function renderSettings() {
+  $('sSound').innerHTML = ICON.sound + '<span>Звук</span><i class="sw"></i>';
+  $('sSound').setAttribute('aria-checked', String(!!s.sound));
+  $('sFill').innerHTML = ICON.fuel + '<span>Полный бак</span>';
+  $('sSpeed').innerHTML = ICON.clock + '<span>Ускорить время ×10</span><i class="sw"></i>';
+  $('sSpeed').setAttribute('aria-checked', String(s.speed === 10));
+  $('sReset').innerHTML = ICON.reset + `<span>${$('sReset').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Новая игра'}</span>`;
+  $('sLogSend').innerHTML = ICON.share + '<span>Отправить журнал</span>';
+  $('sLogClear').innerHTML = ICON.close + `<span>${$('sLogClear').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Очистить журнал'}</span>`;
+  const n = LOG.ev.length;
+  $('sLogInfo').textContent = `Версия: ${BUILD}. В журнале ${n} ${plural(n, 'событие', 'события', 'событий')}.`;
+}
+
+let view = 'field', dragging = false, boardDirty = false;
+function renderAll() {
+  document.querySelectorAll('.overlay [data-art]').forEach(el => { el.innerHTML = artOf(el.dataset.art); });
+  renderHud();
+  if (dragging) boardDirty = true; else renderBoard();
+  renderOrders();
+  if (view === 'salon') renderSalon();
+  if (view === 'cars') renderCollection();
+  if (view === 'help') renderHelp();
+  if (view === 'settings') renderSettings();
+}
+
+// Раскладка: поле по ширине экрана, заказы — всё, что осталось сверху (сетка 2 × 2 или лента)
+function fit() {
+  const app = $('app'), cs = getComputedStyle(app);
+  if (view !== 'field' || !app.clientWidth) return;
+  const W = app.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const H = app.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - $('app').querySelector('.hud').offsetHeight - 16;   // без шапки и двух зазоров
+  // клетки — по ширине экрана; не влезает по высоте — сначала ужимаются заказы (лента вместо сетки), клетки — в последнюю очередь
+  let cell = Math.min(64, Math.floor((W - 24) / 7));
+  if (H - (cell * 9 + 32) < 76) cell = Math.floor((H - 76 - 32) / 9);
+  cell = Math.max(30, cell);
+  document.documentElement.style.setProperty('--cell', cell + 'px');
+  $('orders').className = 'orders ' + (H - (cell * 9 + 32) >= 128 ? 'grid' : 'row');
+}
+addEventListener('resize', fit);
+
+// ── Анимации ───────────────────────────────────────────────────────────────
+const anim = (el, frames, opt) => (!RM.matches && el?.animate) ? el.animate(frames, opt) : null;
+const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r]; };
+
+function flyEl(html, cls, [x0, y0], [x1, y1], w, ms, delay = 0, scaleTo = 1, fade = .9) {
+  if (RM.matches) return;
+  const el = document.createElement('div');
+  el.className = 'fly ' + cls;
+  el.innerHTML = html;
+  if (w) el.style.width = w + 'px';
+  document.body.appendChild(el);
+  const h = el.offsetHeight, ww = el.offsetWidth;
+  const a = el.animate([
+    { transform: `translate(${x0 - ww / 2}px,${y0 - h / 2}px) scale(1)`, opacity: 1 },
+    { transform: `translate(${x1 - ww / 2}px,${y1 - h / 2}px) scale(${scaleTo})`, opacity: fade },
+  ], { duration: ms, delay, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'backwards' });
+  a.onfinish = () => el.remove();
+}
+// Крупная плашка над тем, что игрок получил: target — номер клетки или элемент
+function floatText(target, html, cls = '', color = '') {
+  const box = typeof target === 'number' ? cellEl(target) : target;
+  if (!box || RM.matches) return;
+  const [x, y] = center(box), el = document.createElement('div');
+  el.className = 'floater ' + cls;
+  if (color) el.style.setProperty('--fc', color);
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  const w = el.offsetWidth / 2, h = el.offsetHeight / 2, big = cls !== '';
+  const left = Math.max(6, Math.min(innerWidth - 2 * w - 6, x - w));     // не вылезать за край экрана
+  el.animate([
+    { transform: `translate(${left}px,${y - h}px) scale(.5)`, opacity: 0 },
+    { transform: `translate(${left}px,${y - h - 26}px) scale(1.12)`, opacity: 1, offset: .18 },
+    { transform: `translate(${left}px,${y - h - 38}px) scale(1)`, opacity: 1, offset: .75 },
+    { transform: `translate(${left}px,${y - h - 58}px) scale(1)`, opacity: 0 },
+  ], { duration: big ? 1500 : 1200, easing: 'ease-out' }).onfinish = () => el.remove();
+}
+const mulTxt = m => '×' + String(m).replace('.', ',');
+
+function flash(i, color, lucky) {
+  const cell = cellEl(i);
+  if (!cell || RM.matches) return;
+  const d = document.createElement('i');
+  d.className = 'flash' + (lucky ? ' lucky' : '');
+  if (color) d.style.setProperty('--fc', color);
+  cell.appendChild(d);
+  anim(d, [{ transform: 'scale(.35)', opacity: 1 }, { transform: `scale(${lucky ? 1.8 : 1.3})`, opacity: 0 }], { duration: lucky ? 520 : 380, easing: 'ease-out' }).onfinish = () => d.remove();
+}
+
+const pop = el => anim(el, [{ transform: 'scale(.55)' }, { transform: 'scale(1.12)', offset: .6 }, { transform: 'scale(1)' }], { duration: 320, easing: 'ease-out' });
+const shake = el => anim(el, [{ transform: 'none' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(-2px)' }, { transform: 'none' }], { duration: 240 });
+const hop = el => anim(el, [{ transform: 'none' }, { transform: 'translateY(-7px) scale(1.04)', offset: .4 }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
+const bump = el => anim(el, [{ transform: 'scale(1)' }, { transform: 'scale(1.15)', offset: .4 }, { transform: 'scale(1)' }], { duration: 260 });
+const peek = el => { if (!el) return; el.classList.add('peek'); setTimeout(() => el.classList.remove('peek'), 1600); };
+const RCOL = ['#C9CDD2', '#4E9A63', '#2E6BD1', '#7A4BC2', '#E07A22'];
+
+let busyUntil = 0, pendingFx = [], auto = 0;
+// ход игры: записать в журнал, нарисовать; окна, открытые по ходу, — «открыла игра», не игрок
+function play(ev) {
+  if (ev.length) { acted++; logPlay(ev); }
+  auto++;
+  try { playFx(ev); } finally { auto--; }
+}
+function playFx(ev) {
+  if (!ev.length) return;
+  const now = Date.now();
+  const done = ev.find(e => e.t === 'orderDone');
+  save();
+  renderAll();
+  if (done && !RM.matches) {   // число монет наверху меняется, когда монеты долетят
+    $('coinPill').querySelector('b').textContent = s.coins - done.coins;
+    setTimeout(() => { renderHud(); bump($('coinPill')); }, 760);
+  }
+  busyUntil = now + (done ? 1100 : 450);
+  let popDelay = done ? 900 : 380;
+  const onField = view === 'field';
+  const later = fn => { if (onField) fn(); else pendingFx.push(fn); };   // эффект на поле — когда вернёмся на поле
+
+  for (const e of ev) {
+    switch (e.t) {
+      case 'spawn': {
+        const car = cellEl(e.to)?.querySelector('.car,.thing');
+        const [x0, y0] = center(cellEl(e.from)), [x1, y1] = center(cellEl(e.to));
+        anim(car, [{ transform: `translate(${x0 - x1}px,${y0 - y1}px) scale(.35)`, opacity: .2 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        if (s.cells[e.from]?.k === 'port') pop(cellEl(e.from).querySelector('.garage')); else hop(cellEl(e.from));
+        if (s.cells[e.from]?.k === 'port' && s.fuel < 1) setTimeout(() => showFuelBub(e.from), 350);
+        sound('spawn');
+        break;
+      }
+      case 'merge': {
+        const good = e.lucky || (e.same && e.r > 0);              // пара одной редкости — правильно, награда больше
+        flash(e.to, good ? RCOL[e.r] : null, good);
+        if (good) setTimeout(() => flash(e.to, RCOL[e.r], true), 140);
+        pop(cellEl(e.to).querySelector('.car'));
+        buzz(e.lucky ? [20, 40, 20] : good ? [15, 30, 15] : 12); sound(e.lucky ? 'lucky' : good ? 'coin' : 'merge');
+        break;
+      }
+      case 'stars': {   // звёзды за одно действие на одной клетке — одной плашкой (слияние + бонус за новую модель)
+        if (!onField || e.at === undefined || ev.find(x => x.t === 'stars' && x.at === e.at) !== e) break;
+        const n = ev.filter(x => x.t === 'stars' && x.at === e.at).reduce((a, x) => a + x.n, 0);
+        const m = ev.find(x => x.t === 'merge' && x.to === e.at);
+        if (m?.lucky) floatText(e.at, `<span class="ok">${ICON.up}</span>+${n}${ICON.star}<span class="mul">${mulTxt(C.rarityCoins[m.r])}</span>`, 'fl-rar', RCOL[m.r]);
+        else if (m?.same && m.r > 0) floatText(e.at, `<span class="ok">${ICON.check}</span>+${n}${ICON.star}<span class="mul">${mulTxt(C.rarityCoins[m.r])}</span>`, 'fl-rar', RCOL[m.r]);
+        else floatText(e.at, `+${n}${ICON.star}`);
+        break;
+      }
+      case 'cert': {
+        const [x0, y0] = center(cellEl(e.at)), [x1, y1, r] = center(cellEl(e.to));
+        flyEl(Art.item(P, 5), '', [x0, y0], [x1, y1], r.width * .8, 360, 0, .3, 0);
+        flash(e.at);
+        break;
+      }
+      case 'needCert':     // машины мягко отскакивают, значки сертификата вздрагивают, открывается карточка
+        [e.at, e.from].forEach(i => { hop(cellEl(i)); bump(cellEl(i)?.querySelector('.needcert')); });
+        sound('no'); openCert(350);
+        break;
+      case 'levelCar': later(() => { flash(e.at); pop(cellEl(e.at).querySelector('.car')); }); break;
+      // деталь на машину: вспышка на клетке, над ней — новая редкость или «починено»
+      case 'repair': case 'rarUp': later(() => {
+        flash(e.to, e.t === 'rarUp' ? RCOL[e.r] : '#3E7A57', e.t === 'rarUp');
+        pop(cellEl(e.to).querySelector('.car'));
+        if (e.t === 'rarUp') floatText(e.to, `<span class="ok">${ICON.up}</span>${RNAME[e.r]}`, 'fl-rar', RCOL[e.r]);
+        else floatText(e.to, `<span class="ok" style="--fc:#3E7A57">${ICON.check}</span>${ICON.wrench}`, 'fl-rar', '#3E7A57');
+      });
+        sound(e.t === 'rarUp' ? 'lucky' : 'build'); buzz([15, 30, 15]); break;
+      case 'noCharge': shake(cellEl(e.at)); sound('no');
+        showPop(e.at, `${ICON.clock}<b>${fmtCharge()}</b><span style="margin:0 4px;color:var(--ink-3)">или</span>⚡${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.chargePrice(s, todayKey())}</b>`,
+          () => Core.buyCharge(s, Date.now(), todayKey()));
+        break;
+      case 'chargeBuy': later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); bump($('coinPill')); sound('unlock'); break;
+      case 'cellBuy': flash(e.at, '#B88A2E'); pop(cellEl(e.at)); sound('unlock'); bump($('coinPill')); buzz(12); break;
+      case 'taskClaim': break;   // топливо вылетает из кнопки «Забрать» в шапку — см. openDaily
+      case 'store': {
+        const [x0, y0, r] = center(cellEl(e.from)), [x1, y1] = center($('depotBtn'));
+        const c = s.store[s.store.length - 1];
+        if (c) flyEl(Art.item(c.line, c.lvl, false, c.r || 0), '', [x0, y0], [x1, y1], r.width, 360, 0, .5);
+        setTimeout(() => bump($('depotBtn')), 360); sound('pop');
+        break;
+      }
+      case 'unstore': later(() => { flash(e.to); pop(cellEl(e.to).querySelector('.car')); }); break;
+      case 'storeSlot': case 'prestige': sound('build'); bump($(e.t === 'prestige' ? 'starPill' : 'depotBtn')); break;
+      case 'ship': later(() => { flash(e.at, '#3D5A79'); pop(cellEl(e.at)); }); sound('unlock'); break;
+      case 'evStart': setTimeout(() => bump($('evBtn')), 400); explain('event', popDelay); break;
+      case 'evEnd':
+        queuePopup(`<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.flag}</span><div class="sh-title">${EVNAME[e.theme]} закончилась</div>` +
+          `<div class="sh-txt">Ступень <b>${e.step} из ${C.event.track.length}</b>. Награды остаются у тебя.</div><button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay, 'level', 'tap');
+        break;
+      case 'evStep': {
+        const [ic, n] = rewardIcon(e.reward);
+        setTimeout(() => { floatText($('evBtn'), `${ICON.flag}${e.k + 1}<span class="mul">${ic}${n}</span>`, 'fl-gold'); bump($('evBtn')); }, popDelay);
+        if (e.reward[0] === 'trophy') queuePopup(`<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.trophy}</span><div class="sh-title">Трофей: ${EVNAME[s.ev.theme]}</div>` +
+          `<div class="sh-txt">Навсегда +${Math.round(C.event.trophyPct * 100)}% монет за заказы. Трофей — в коллекции.</div><button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 400, 'level', 'tap');
+        break;
+      }
+      case 'keyUse': {
+        const [x0, y0, r] = center(cellEl(e.from)), [x1, y1] = center(cellEl(e.at));
+        flyEl(Art.thing('key'), '', [x0, y0], [x1, y1], r.width * .8, 300, 0, .6, 0);
+        flash(e.at); pop(cellEl(e.at)); sound('unlock');
+        break;
+      }
+      case 'open': case 'port': case 'boxOpen': later(() => { flash(e.at); pop(cellEl(e.at)); }); if (e.t === 'port' && e.line === P) explain('cert', popDelay + 200); break;
+      case 'chest': case 'crate': case 'gift': case 'bubble': case 'key': case 'claim': case 'broken':
+        later(() => { flash(e.at); pop(cellEl(e.at)); if (e.t === 'key') floatText(e.at, `+1${Art.thing('key').replace('class="thing"', 'class="ic" style="width:34px;height:28px"')}`, 'fl-gold'); });
+        if (e.t === 'bubble') sound('pop');
+        if (e.t === 'key') explain('keys', popDelay + 300);
+        if (e.t === 'broken') explain('bench', popDelay + 300);
+        if (e.t === 'bubble') explain('bubble', popDelay + 300);
+        break;
+      case 'swap': {
+        const [x0, y0] = center(cellEl(e.to)), [x1, y1] = center(cellEl(e.from));
+        anim(cellEl(e.from).querySelector('.car,.thing'), [{ transform: `translate(${x0 - x1}px,${y0 - y1}px)` }, { transform: 'none' }], { duration: 200, easing: 'ease-out' });
+        break;
+      }
+      case 'reject': if (e.at !== undefined) { shake(cellEl(e.at)); sound('no'); } break;
+      case 'poor': shake($('coinPill')); sound('no'); if (e.at !== undefined) shake(cellEl(e.at)); break;
+      case 'full': hop(cellEl(e.at)); sound('no'); break;
+      case 'noFuel': shake(cellEl(e.at)); shake($('fuelPill')); sound('no'); showFuelBub(e.at); break;
+      case 'repair': flash(e.at, '#3E7A57'); pop(cellEl(e.at).querySelector('.car')); sound('coin'); break;
+      case 'bubbleBuy': flash(e.at); pop(cellEl(e.at).querySelector('.car')); sound('coin'); bump($('coinPill')); break;
+      case 'bubblePop': if (onField) { const [x, y, r] = center(cellEl(e.at)); flyEl('<i class="bub" style="display:block;position:static;width:100%;aspect-ratio:1"></i>', '', [x, y], [x, y], r.width, 260, 0, 1.4, 0); } break;
+      case 'fuel': case 'fuelBuy': setTimeout(() => bump($('fuelPill')), e.t === 'fuel' ? popDelay : 0); if (e.t === 'fuelBuy') hidePop(); break;
+      case 'fuelGift': case 'coinGift': {
+        floatText(e.at, `+${e.n}${e.t === 'fuelGift' ? ICON.fuel : ICON.coin}`, 'fl-gold');
+        const [x0, y0] = center(cellEl(e.at)), [x1, y1] = center(e.t === 'fuelGift' ? $('fuelPill') : $('coinPill'));
+        flyEl(e.t === 'fuelGift' ? ICON.fuel : ICON.coin, 'coin', [x0, y0], [x1, y1], 0, 420);
+        setTimeout(() => bump(e.t === 'fuelGift' ? $('fuelPill') : $('coinPill')), 420);
+        break;
+      }
+      case 'tier': later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); hidePop(); sound('unlock'); break;
+      case 'freeTap': floatText(e.at, `${ICON.fuel}0`); break;
+      case 'slot': setTimeout(() => { pop(orderEl(e.i)); }, 50); sound('unlock'); break;
+      case 'give': {
+        const card = orderEl(e.order), [cx, cy] = center(card), [x, y, r] = center(cellEl(e.from));
+        flyEl(Art.item(e.line, e.lvl, false, e.r || 0), '', [x, y], [cx, cy], r.width, 340, 0, .6);
+        break;
+      }
+      case 'orderDone': {
+        const card = orderEl(e.order), [cx, cy] = center(card), evo = e.kind === 'event', [hx, hy] = center($(evo ? 'evBtn' : 'coinPill'));
+        for (let k = 0; k < 5; k++) flyEl(evo ? ICON.token : ICON.coin, 'coin', [cx + (k - 2) * 8, cy], [hx - (evo ? 0 : 14), hy], 0, 420, 330 + k * 45);
+        anim(card, [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 380, fill: 'backwards', easing: 'ease-out' });
+        if (evo) floatText(card, `+${e.tokens}${ICON.token}`, 'fl-big fl-gold');
+        else floatText(card, `+${e.coins}${ICON.coin}` + (e.streak ? `<span class="mul">${mulTxt(C.streakMult)}${ICON.flame}</span>` : ''), 'fl-big fl-gold');
+        // салон работает на игрока: рядом с монетами мелькает значок салона и надбавка
+        if (!evo && e.pct > 0) setTimeout(() => { const r = card.getBoundingClientRect(); floatText({ getBoundingClientRect: () => ({ left: r.left, top: r.top + r.height * .75, width: r.width, height: 0 }) }, `${ICON.salon}+${e.pct}%`, 'fl-salon'); }, 260);
+        if (e.streak) bump($('streak'));
+        setTimeout(() => sound('coin'), 700);
+        if (s.n.orders === 1) setTimeout(() => { if (!$('cal').hidden) { hop($('cal')); setTimeout(() => hop($('cal')), 350); } }, 900);   // первое задание дня
+        break;
+      }
+      case 'refresh': anim(orderEl(e.order), [{ transform: 'rotateY(90deg)' }, { transform: 'none' }], { duration: 300 }); break;
+      case 'newCar': case 'newRar': {
+        const k = Core.key(e.line, e.lvl);
+        s.fresh[k] = 1;
+        (s.seenAt ||= {})[`${k}:${e.r}`] = todayKey();      // дата первого получения — на карточке стопки
+        if (e.t === 'newRar') (s.landRar ||= {})[k] = e.r;
+        save(); renderHud();
+        // обучение: белые 1–2-го уровня в первые минуты — короткая карточка, чтобы не мешать пальцу
+        if (e.t === 'newCar' && e.r === 0 && e.lvl <= 2 && s.level < 3) { if (!(e.line === 0 && e.lvl === 1)) queuePopup(bigCard(e.line, e.lvl, e.r, true), popDelay); }
+        else openRarCard(e.line, e.lvl, e.r, popDelay);
+        if (e.lvl === 7 && e.line < P && !s.hintSeen.cert7) { s.hintSeen.cert7 = 1; openCert(popDelay + 200); }   // первая седьмая — заранее
+        break;
+      }
+      case 'rarityOn': s.hintSeen.atelier = 1; explain('rarity', popDelay + 120); break;   // Ателье открыто — редкость появилась
+      case 'lineDone': queuePopup(`<div class="big"><div class="reward">${Art.item(e.line, 8)}</div><div class="reward">${[ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'][e.line]}</div></div>`, popDelay + 60, 'level'); break;
+      case 'levelUp': {
+        const port = ev.find(x => x.t === 'port');
+        const reward = e.reward === 'port' ? Art.item(port.line, 1) : e.reward === 'chest' ? Art.thing('level') : `${ICON.fuel}+${C.levelFuel}`;
+        queuePopup(`<div class="big"><span class="lvl-big">${e.level}</span><div class="reward">${reward}</div></div>`, popDelay, 'level');
+        popDelay += 50;
+        break;
+      }
+      case 'build': {
+        sound('build');
+        const g = $('scene').querySelector(`[data-item="${e.item}"]`);
+        if (g) { g.style.transformBox = 'fill-box'; g.style.transformOrigin = 'center bottom'; }
+        anim(g, [{ opacity: 0, transform: 'translateY(-14px) scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        bump($('starPill'));
+        // постоянные эффекты — вспышка там, где они работают
+        const fx = e.fx;
+        if (fx.regen || fx.fuel) later(() => bump($('fuelPill')));
+        if (fx.coins || fx.bubbles) later(() => bump($('coinPill')));
+        if (fx.newStars) later(() => bump($('starPill')));
+        if (fx.crates) later(() => s.cells.forEach((c, i) => { if (c?.k === 'port') flash(i); }));
+        if (fx.refresh || fx.showcase) later(() => [...$('orders').children].forEach(pop));
+        if (fx.store || fx.ship) explain('depot', 900);
+        break;
+      }
+      case 'zoneDone':
+        showPoster();
+        queuePopup(zoneDoneCard(e.zone), 1500, 'level', 'tap');
+        if (Core.salonDone(s)) explain('prestige', 1700);
+        break;
+    }
+  }
+}
+
+// «Готово»: плакат на сцене законченной зоны
+function showPoster() {
+  const st = $('scene').querySelector('.stage');
+  if (!st) return;
+  const el = document.createElement('div');
+  el.className = 'poster';
+  el.innerHTML = `${ICON.star}<b>Готово</b>`;
+  st.appendChild(el);
+  sound('level');
+  anim(el, [{ transform: 'scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, delay: 300, fill: 'backwards', easing: 'cubic-bezier(.2,.8,.2,1)' });
+  setTimeout(() => { el.remove(); zoneSel = null; if (view === 'salon') renderSalon(); }, 2800);
+}
+
+// Пузырь над портом: «полный бак за монеты» или «улучшить порт»
+let popTimer = 0, popAct = null;
+function showPop(at, html, onTap) {
+  const b = $('popBub'), [x, , r] = center(cellEl(at));
+  acted++;
+  b.innerHTML = html;
+  b.hidden = false;
+  b.style.transform = `translate(${x - b.offsetWidth / 2}px,${r.top - b.offsetHeight - 8}px)`;
+  popAct = onTap;
+  pop(b);
+  clearTimeout(popTimer);
+  popTimer = setTimeout(hidePop, 4000);
+}
+function hidePop() { $('popBub').hidden = true; popAct = null; }
+const showFuelBub = at => showPop(at, `${ICON.fuel}<b>${Core.fuelMax(s)}</b>${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${C.fuelCoins}</b>`, () => Core.buyFuel(s));
+// Карточка гаража (долгое нажатие): ступень, что даст следующая — «было → станет», цена и «Улучшить»
+const PORTNAME = ['Гараж легковых', 'Гараж внедорожников', 'Гараж купе', 'Гараж Мастерской', 'Гараж события', 'Ателье'];
+const pc = v => `${Math.round(v * 1000) / 10}%`.replace('.', ',');
+function portSheet(line) {
+  const t = s.tiers[line], max = Core.maxTier(s, line), a = Core.tierStats(s, line, t), b = Core.tierStats(s, line, t + 1);
+  const of = max === Infinity ? (t < 8 ? ' из 8' : '') : ` из ${max}`;
+  const rows = t >= max ? [] : [
+    ['Машина 2-го уровня', pc(a.lvl2), pc(b.lvl2)], ['Машина 3-го уровня', a.lvl3 !== undefined && pc(a.lvl3), b.lvl3 !== undefined && pc(b.lvl3)],
+    ['Без топлива', a.free ? `каждое ${a.free}-е` : 'нет', b.free ? `каждое ${b.free}-е` : 'нет'],
+    ['Необычная', a.rar1 !== undefined && pc(a.rar1), b.rar1 !== undefined && pc(b.rar1)], ['Эпическая', a.rar3 !== undefined && pc(a.rar3), b.rar3 !== undefined && pc(b.rar3)],
+    ['Бак', a.fuel !== undefined && `+${a.fuel}`, b.fuel !== undefined && `+${b.fuel}`],
+  ].filter(([, x, y]) => x !== y);
+  const price = Core.tierPrice(t), poor = s.coins < price;
+  const act = t >= max ? `<div class="sh-txt">${line < P && !Core.fxHas(s, 'tier2') ? 'Второй ряд улучшений — после погрузчика в салоне «Порт и склад».' : 'Все ступени куплены.'}</div>` :
+    `<button class="btn gold${poor ? ' off' : ''}" data-up>${ICON.up}Улучшить ${ICON.coin}${price}</button>` + (poor ? `<div class="sh-foot">нужно ещё ${price - s.coins} монет</div>` : '');
+  // Ателье: заряды, время до следующего и «Заряд сейчас» за монеты (цена растёт с каждой покупкой за день)
+  const now = Date.now(), ch = line === Core.TRIM ? Core.charges(s, now) : -1, cp = Core.chargePrice(s, todayKey());
+  const charge = ch < 0 ? '' : `<div class="daychest" style="width:100%;box-sizing:border-box"><span class="dc-txt">Заряды: <b>${ch} из ${C.atelier.charges}</b>` +
+    (ch < C.atelier.charges ? `<br>следующий через ${fmtCharge()}</span><button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>⚡ ${ICON.coin}${cp}</button>` : '</span>') + '</div>';
+  return `<div class="sheet narrow" data-port="${line}">${xbtn}<div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(line, line === Core.TRIM ? 2 : 1)}</div>` +
+    `<div class="sh-title">${PORTNAME[line]}</div><div class="sh-sub" style="justify-content:center">Ступень ${t}${of}</div>` + charge +
+    (rows.length ? `<table class="tbl">${rows.map(([l, x, y]) => `<tr><td>${l}</td><td style="color:var(--ink-3)">${x}</td><td>→ ${y}</td></tr>`).join('')}</table>` : '') + act + '</div>';
+}
+function openPort(line) {
+  queuePopup(portSheet(line), 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    const cb = e.target.closest('[data-charge]');
+    if (cb) {
+      const ev = Core.buyCharge(s, Date.now(), todayKey());
+      if (ev[0]?.t !== 'chargeBuy') { shake(cb); if (ev[0]?.t === 'poor') shake($('coinPill')); sound('no'); return; }
+      play(ev); el.innerHTML = portSheet(line);
+      return;
+    }
+    const b = e.target.closest('[data-up]');
+    if (!b) return;
+    const ev = Core.upgradePort(s, line);
+    if (ev[0]?.t !== 'tier') { shake(b); shake($('coinPill')); sound('no'); return; }
+    s.hintSeen.portCard = 1;
+    play(ev);
+    el.innerHTML = portSheet(line);
+    pop(el.querySelector('.tbl') || el.firstElementChild);
+  }));
+}
+
+$('popBub').addEventListener('click', () => {
+  if (!popAct) return;
+  const ev = popAct();
+  if (ev[0]?.t === 'reject' || ev[0]?.t === 'poor') { shake($('popBub')); shake($('coinPill')); sound('no'); return; }
+  hidePop();
+  play(ev);
+});
+
+// ── Всплывающие карточки: по одной, закрываются касанием или сами ─────────────
+const popups = [];
+let popupOpen = null;
+// mode: 'auto' — закрывается касанием или сама через 2,3 с; 'tap' — касанием в любом месте (не сразу, чтобы не смахнуть);
+// 'panel' — касанием по фону или кнопкой «×»
+// onOpen(el) — вызывается, когда карточка показана (повесить кнопки)
+// opt.hold — не показывать, пока палец на экране или доигрывает слияние; opt.cls — свой фон (затемнение)
+function queuePopup(html, delay, snd = 'card', mode = 'auto', onOpen = null, opt = {}) {
+  acted++;
+  opt = { auto: auto > 0, ...opt };
+  setTimeout(() => { popups.push([html, snd, mode, onOpen, opt]); pump(); }, RM.matches ? 0 : delay);
+}
+// Окно для журнала: [вид, название] — по содержимому карточки
+function popName(el) {
+  const tx = q => [...el.querySelector(q)?.childNodes || []].map(n => n.textContent.trim()).filter(Boolean).join(' ');
+  if (el.querySelector('.rcard')) return ['новая машина', `${tx('.rc-head')}: ${tx('.rc-name')}`];
+  if (el.querySelector('.mscreen')) return ['экран модели', `экран модели ${tx('.ms-head small')} ${tx('.ms-head b')}`];
+  if (el.querySelector('.big .lvl-big')) return ['новый уровень', `новый уровень ${tx('.lvl-big')}`];
+  if (el.querySelector('.big-model')) return ['новая машина', `новая машина ${tx('.big-brand')} ${tx('.big-model')}`];
+  if (el.querySelector('.big')) return ['награда', 'награда за линейку'];
+  const t = tx('.sh-title');
+  if (el.querySelector('[data-port]')) return ['гараж', t];
+  if (el.querySelector('[data-order]')) return ['заказ', t];
+  if (el.querySelector('[data-z]')) return ['предмет салона', `салон: ${t}`];
+  if (['Уровень', 'Звёзды', 'Топливо', 'Монеты'].includes(t)) return ['счётчик', `счётчик ${t}`];
+  if (t === 'Задания на сегодня') return ['задания дня', t];
+  if (HINTS.some(h => h.t === t)) return ['подсказка', `подсказка: ${t}`];
+  return ['окно', t || 'окно'];
+}
+function pump() {
+  if (popupOpen || !popups.length) return;
+  if (popups[0][4].hold && (press || dragging || Date.now() < busyUntil)) return setTimeout(pump, 150);
+  const [html, snd, mode, onOpen, opt] = popups.shift(), shownAt = Date.now();
+  const el = document.createElement('div');
+  el.className = 'overlay' + (opt.cls ? ' ' + opt.cls : '');
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  popupOpen = el;
+  const [cat, name] = popName(el);
+  el.logName = name;
+  if (!opt.auto) LOG.sum.self[cat] = 1;
+  L(`окно: ${name}${opt.auto ? '' : ' (открыл сам)'}`);
+  hideFinger();
+  sound(snd);
+  anim(el.firstElementChild, [{ transform: 'scale(.85)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  const close = how => {
+    if (popupOpen !== el) return;
+    popupOpen = null;
+    acted++;
+    L(`закрыто «${el.logName}» через ${fs1((Date.now() - shownAt) / 1000)} с${how === 'само' ? ', само' : ''}`);
+    el.beforeClose?.();
+    el.remove();
+    lastInput = Date.now();
+    setTimeout(pump, 120);
+  };
+  let y0 = null;
+  el.addEventListener('pointerup', e => { if (mode === 'panel' && y0 !== null && e.clientY - y0 > 70) close(); y0 = null; });   // свайп вниз закрывает
+  el.addEventListener('pointerdown', e => {
+    y0 = e.clientY;
+    if (mode === 'auto' || e.target.closest('[data-close]')) return close();
+    if (mode === 'tap' && Date.now() - shownAt > 600) return close();
+    if (mode === 'panel' && e.target === el) close();
+  });
+  el.close = close;
+  if (mode === 'auto') setTimeout(() => close('само'), 2300);
+  onOpen?.(el);
+  return el;
+}
+function bigCard(line, lvl, r, isNew) {
+  const [brand, model] = Core.CARS[line][lvl - 1];
+  return `<div class="big" style="${rv(r)}">${isNew ? '<span class="new">новая!</span>' : ''}${badge(lvl)}` +
+    `<div class="big-car">${withPlate(r, Art.item(line, lvl, false, r, true))}</div>` +
+    `<span class="big-brand">${brand}</span><span class="big-model">${model}</span><i class="stripe${r === 4 ? ' legend' : ''}"></i></div>`;
+}
+
+// ── Подсказки: карточки всех механик. Встретил механику — карточка открылась (новая — с точкой) ──
+const tileR = (line, lvl, r = 0, cls = '') => `<span class="rtile${cls}" style="${rv(r)}">${Art.item(line, lvl, false, r)}${badge(lvl)}</span>`;
+const RNAME = ['Обычная', 'Необычная', 'Редкая', 'Эпическая', 'Легендарная'];
+const RHOW = ['из гаража', 'краска или гараж', 'диски', 'обвес', 'эмблема мастера'];
+const plural = (n, a, b, c) => { const k = n % 100 > 10 && n % 100 < 20 ? 2 : [2, 0, 1, 1, 1, 2][Math.min(n % 10, 5)]; return [a, b, c][k]; };
+const rarLvl = () => 3;   // седан 3-го уровня — малиновый: его цвет не спорит ни с одной редкостью
+const HINTS = [
+  { id: 'merge', t: 'Слияние', lvl: 1, ic: () => ICON.merge,
+    pic: () => `<div class="mpic">${tileR(0, 1, 0, ' a')}${tileR(0, 1, 0, ' b')}${tileR(0, 2, 0, ' c')}</div>`,
+    txt: ['Перетащи машину на такую же.', 'Получится машина уровнем выше и <b>звёзды</b>.'] },
+  { id: 'orders', t: 'Заказы', lvl: 1, ic: () => ICON.card,
+    pic: () => `<div class="rule">${tileR(0, 2)}${ICON.play}${ICON.card.replace('class="ic"', 'class="ic" style="width:34px;height:34px;color:var(--ink)"')}${ICON.play}<span class="chip coin">${ICON.coin}+</span></div>`,
+    txt: ['Перетащи машину на заказ — сдавать можно по одной. Готовый заказ — просто нажми.', `${ICON.refresh.replace('class="ic"', 'class="ic" style="width:16px;height:16px;vertical-align:-3px"')} — заменить заказ.`, `3 заказа подряд без паузы — монеты ×${String(C.streakMult).replace('.', ',')}.`] },
+  { id: 'money', t: 'Монеты и звёзды', lvl: 1, ic: () => ICON.coin,
+    table: () => `<table class="tbl"><tr><td>${ICON.coin}</td><td>Монеты</td><td>за заказы</td></tr><tr><td>${ICON.star}</td><td>Звёзды</td><td>за слияния</td></tr></table>`,
+    txt: ['Монеты — на слоты заказов, гараж, клетки, ремонт.', 'Звёзды — на салон. От звёзд растёт уровень.'] },
+  { id: 'fuel', t: 'Топливо', lvl: 1, ic: () => ICON.fuel,
+    txt: ['1 топливо — одно нажатие гаража.', `+1 каждые ${C.fuelRegenMs / 60000} мин. Пустой бак — заполнить за ${C.fuelCoins} монет.`] },
+  { id: 'cells', t: 'Клетки поля', lvl: 1, ic: () => ICON.lock,
+    pic: () => `<div class="cell lock can" style="position:relative;width:56px;height:56px">${ICON.lock}<span class="cprice">${ICON.coin}${Core.cellPrice(s)}</span></div>`,
+    txt: ['Клетку рядом с открытыми можно купить за монеты.', 'Ещё клетки дают уровни, салон и новые гаражи.'] },
+  { id: 'chest', t: 'Сундуки', lvl: 1, ic: () => ICON.chest,
+    pic: () => `<div class="rule">${Art.thing('level')}${Art.thing('crate')}${Art.thing('gift')}</div>`,
+    txt: ['Нажимай на сундук — из него выезжают машины, топливо, монеты.', 'Сундуки дают уровни, задания и подарок дня.'] },
+  { id: 'port', t: 'Гараж и улучшения', lvl: 2, ic: () => ICON.up,
+    txt: ['Нажми на гараж — выедет машина.', 'Долгое нажатие на гараж — его карточка: что даст улучшение и цена.', 'Точка на углу гаража — на улучшение хватает монет.'] },
+  { id: 'bubble', t: 'Пузырь', lvl: 2, ic: () => ICON.bubble,
+    txt: ['После слияния иногда всплывает копия машины.', `Забери её за монеты, пока не лопнула: ${C.bubbleMs / 1000} с.`] },
+  { id: 'salon', t: 'Салон', lvl: 2, ic: () => ICON.salon,
+    txt: ['Звёзды тратятся на салон.', 'Каждый предмет даёт бонус навсегда: клетки, топливо, монеты.'] },
+  { id: 'daily', t: 'Задания дня', open: () => s.n.orders > 0, lock: 'Откроется после первого заказа', ic: () => ICON.calendar,
+    pic: () => `<div class="rule">${Art.thing('daily')}</div>`,
+    txt: ['Три задания каждый день, за каждое — топливо.', 'За все три — сундук дня.'] },
+  { id: 'rarity', t: 'Редкость', open: () => Core.rarOn(s), lock: 'Откроется с Ателье', ic: () => `<span class="rtile" style="${rv(2)};width:40px">${Art.item(0, 2, false, 2)}</span>`,
+    table: () => `<table class="tbl">${[0, 1, 2, 3, 4].map(r => `<tr><td>${tileR(0, rarLvl(), r)}</td><td>${RNAME[r]}</td>` +
+      `<td style="font-weight:600;color:var(--ink-2);font-size:12px">${RHOW[r]}</td><td>${ICON.coin}×${String(C.rarityCoins[r]).replace('.', ',')}</td></tr>`).join('')}</table>`,
+    txt: ['Главный путь к редкости — детали Ателье: перетащи деталь на машину.', `<div class="rule">${tileR(0, 3, 1)}+${tileR(0, 3, 2)}${ICON.play}${tileR(0, 4, 1)}</div>Разные редкости → младшая.`, `Удачное слияние (${Math.round(C.luckyChance * 100)}%) поднимает редкость.`] },
+  { id: 'lucky', t: 'Удачное слияние', open: () => Core.rarOn(s), lock: 'Откроется с Ателье', ic: () => ICON.up,
+    pic: () => `<div class="rule">${tileR(0, 3, 1)}+${tileR(0, 3, 1)}${ICON.play}${tileR(0, 4, 2)}</div>`,
+    txt: [`В ${Math.round(C.luckyChance * 100)}% слияний редкость поднимается на ступень.`, 'Сливай машины одного цвета — награда больше.'] },
+  { id: 'keys', t: 'Ящик и ключ', lvl: 5, ic: () => Art.thing('box'),
+    pic: () => `<div class="rule">${Art.thing('key')}${ICON.play}${Art.thing('box')}</div>`,
+    txt: ['Ключ выпадает за крупные заказы и слияния.', 'Перетащи ключ на ящик — внутри машины.'] },
+  { id: 'collection', t: 'Коллекция', lvl: 1, ic: () => ICON.cards,
+    table: () => `<table class="tbl"><tr><td>${Art.item(0, 1).replace('class="car', 'style="width:44px" class="car')}</td><td>Все легковые</td><td>+20% монет</td></tr>` +
+      `<tr><td>${Art.item(1, 1).replace('class="car', 'style="width:44px" class="car')}</td><td>Все внедорожники</td><td>2-е нажатие даром</td></tr>` +
+      `<tr><td>${Art.item(2, 1).replace('class="car', 'style="width:44px" class="car')}</td><td>Все купе</td><td>+20% звёзд</td></tr></table>`,
+    txt: ['Каждая новая машина — в коллекцию и звёзды.', 'Вся линейка — бонус навсегда.'] },
+  { id: 'bench', t: 'Ремонт', open: () => Core.portOpen(s, P), lock: `Откроется на уровне ${C.ports.find(q => q.line === P).level}`, ic: () => ICON.wrench,
+    table: () => `<table class="tbl">${[[1, 2], [3, 4], [5, 6], [7, 8]].map(([a, b], k) => `<tr><td>Сломанная ${a}–${b}-го уровня</td>` +
+      `<td>${Art.item(P, k + 1).replace('class="car', 'style="width:34px" class="car')}</td><td>${Core.PART_NAMES[k].toLowerCase()}</td></tr>`).join('')}</table>`,
+    txt: ['Машина 5–7-го уровня после слияния часто сломана. Иногда сломанную даёт и гараж.', 'Перетащи на неё нужный инструмент — она починится.', 'Инструменты даёт гараж Мастерской: сливай одинаковые.'] },
+  { id: 'atelier', t: 'Ателье и редкость', open: () => Core.rarOn(s), lock: `Откроется на уровне ${C.ports.find(q => q.line === Core.TRIM).level}`, ic: () => Art.item(Core.TRIM, 5),
+    table: () => `<table class="tbl">${[0, 1, 2, 3].map(r => `<tr><td><i class="rdot" style="background:var(--r${r})"></i> → <i class="rdot" style="background:var(--r${r + 1})"></i></td>` +
+      `<td>${Art.item(Core.TRIM, r + 2).replace('class="car', 'style="width:34px" class="car')}</td><td>${Core.TRIM_NAMES[r + 1].toLowerCase()}</td></tr>`).join('')}</table>`,
+    txt: ['Перетащи деталь Ателье на машину — редкость вырастет на ступень.', `Ателье даёт ${C.atelier.charges} детали, потом по одной каждые ${C.atelier.regenMs / 36e5} ч.`] },
+  { id: 'cert', t: 'Сертификат коллекционера', open: () => Core.portOpen(s, P) || [0, 1, 2].some(l => s.top[l] >= 7), lock: `Откроется на уровне ${C.ports.find(q => q.line === P).level}`, ic: () => Art.certMini,
+    pic: () => chainPic(),
+    txt: ['Две машины 7-го уровня сливаются в 8-ю, если на поле есть сертификат — в любом месте.', 'Сертификат собирают из деталей: ключ → набор → колесо → двигатель → сертификат.', 'Детали даёт гараж Мастерской.'] },
+  { id: 'event', t: 'Событие недели', open: () => !!s.ev, lock: 'Откроется на 2-й неделе', ic: () => ICON.flag,
+    txt: ['Сливай → сдавай заказы события → двигайся по треку.', '10 ступеней наград, на последней — трофей.', 'Жетоны сгорают в конце недели.'] },
+  { id: 'depot', t: 'Склад и причал', open: () => s.storeN > 0 || !!s.ship, lock: 'Откроется в салоне «Порт и склад»', ic: () => ZICON.depot,
+    txt: ['Перетащи машину на значок склада вверху — она подождёт вне поля.', 'Корабль привозит сундук машин раз в 4 ч.'] },
+  { id: 'prestige', t: 'Престиж салона', open: () => Core.salonDone(s), lock: 'Откроется, когда салон готов', ic: () => ICON.star,
+    txt: ['Каждый уровень престижа: +1% монет за заказы.', 'Уровней сколько угодно.'] },
+];
+const hintOpen = h => !!s.hintSeen[h.id] || (h.open ? h.open() : s.level >= h.lvl);
+const freshHints = () => s.hintRead ? HINTS.filter(h => hintOpen(h) && !s.hintRead[h.id]) : [];
+// Новая игра или старое сохранение: то, что уже открыто, — прочитано (точка — только у новых карточек)
+const initHints = () => { s.hintSeen ||= {}; s.hintRead ||= Object.fromEntries(HINTS.filter(hintOpen).map(h => [h.id, 1])); };
+initHints();
+function hintCard(id, footer) {
+  const h = HINTS.find(x => x.id === id);
+  return `<div class="sheet narrow">${xbtn}${h.pic ? `<div class="sh-pic">${h.pic()}</div>` : `<span class="bigic">${h.ic()}</span>`}<div class="sh-title">${h.t}</div>` +
+    (h.table ? h.table() : '') + h.txt.map(x => `<div class="sh-txt">${x}</div>`).join('') +
+    (footer ? `<div class="sh-foot">Всегда можно перечитать в Подсказках</div><button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button>` : '') + '</div>';
+}
+// Объяснение новой механики — один раз, когда она впервые встретилась; потом лежит в Подсказках с точкой
+function explain(id, delay = 0) {
+  if (s.hintSeen[id] || s.n.orders === 0) return;      // во время обучения не отвлекаем — объясним при следующей встрече
+  s.hintSeen[id] = 1;
+  save();
+  queuePopup(hintCard(id, true), delay, 'card', 'tap');
+}
+function renderHelp() {
+  $('help').innerHTML = `<div class="view-head">${ICON.help}<span>Подсказки</span></div><div class="hints">` + HINTS.map(h => hintOpen(h) ?
+    `<button class="hcard" data-h="${h.id}"><span class="hpic">${h.ic()}</span><b>${h.t}</b>${s.hintRead[h.id] ? '' : '<i class="dot"></i>'}</button>` :
+    `<button class="hcard locked" disabled><span class="hpic">${ICON.lock}</span><b>${h.t}</b><span>${h.lock || `Откроется на уровне ${h.lvl}`}</span></button>`).join('') + '</div>';
+}
+function openHint(id) {
+  s.hintRead[id] = 1;
+  save(); renderHud();
+  if (view === 'help') renderHelp();
+  queuePopup(hintCard(id, false), 0, 'card', 'panel');
+}
+
+// ── «Где взять»: цепочка нужной линейки (инструменты Мастерской или детали Ателье) и «Показать гараж» ──
+function openWhere([line, lvl]) {
+  const chain = [1, 2, 3, 4, 5].map(l => Art.item(line, l, l !== lvl).replace('class="car part', `class="car${l === lvl ? ' last' : ''} part`)).join(ICON.play);
+  const name = line === P ? Core.PART_NAMES[lvl - 1] : Core.TRIM_NAMES[lvl - 1];
+  queuePopup(`<div class="sheet narrow">${xbtn}<div class="sh-pic"><div class="chain">${chain}</div></div><div class="sh-title">Где взять: ${name.toLowerCase()}</div>` +
+    `<div class="sh-txt">${line === P ? 'Инструменты даёт гараж Мастерской' : 'Детали даёт Ателье'}: сливай одинаковые, пока не получится нужная ступень.</div>` +
+    `<button class="btn ok" data-show>Показать гараж</button></div>`, 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    if (!e.target.closest('[data-show]')) return;
+    el.close();
+    if (view !== 'field') setView('field');
+    const i = s.cells.findIndex(c => c?.k === 'port' && c.line === line);
+    [0, 500, 1000].forEach(d => setTimeout(() => { flash(i, '#3E7A57', true); pop(cellEl(i)); }, d + 150));
+  }));
+}
+
+// ── «Нужен сертификат»: цепочка деталей, откуда они и кнопка «Показать» ──────────
+const chainPic = () => `<div class="chain">${[1, 2, 3, 4, 5].map(l => Art.item(P, l).replace('class="car part"', `class="car${l === 5 ? ' last' : ''}"`)).join(ICON.play)}</div>`;
+function certSheet() {
+  const ws = Core.portOpen(s, P);
+  return `<div class="sheet narrow">${xbtn}<div class="sh-pic">${chainPic()}</div><div class="sh-title">Нужен сертификат</div>` +
+    `<div class="sh-txt">Две машины 7-го уровня сливаются в 8-ю, если на поле есть сертификат коллекционера — в любом месте.</div>` +
+    `<div class="sh-txt">Детали даёт гараж Мастерской: сливай их до сертификата.</div>` +
+    (ws ? `<button class="btn ok" data-show>Показать</button>` :
+      `<div class="sh-txt">Гараж Мастерской откроется на уровне ${C.ports.find(q => q.line === P).level}.</div>`) + '</div>';
+}
+function openCert(delay = 0) {
+  s.hintSeen.cert = 1;
+  queuePopup(certSheet(), delay, 'card', 'panel', el => el.addEventListener('click', e => {
+    if (e.target.closest('[data-show]')) {
+      el.close();
+      if (view !== 'field') setView('field');
+      const i = s.cells.findIndex(c => c?.k === 'port' && c.line === P);
+      [0, 500, 1000].forEach(d => setTimeout(() => { flash(i, '#3E7A57', true); pop(cellEl(i)); }, d + 150));
+      peek(cellEl(i));
+    }
+    if (e.target.closest('[data-go]')) { el.close(); setView('salon'); zoneSel = Core.zoneIdx('workshop'); renderSalon(); }
+  }));
+}
+
+// ── Карточки счётчиков шапки: что это, откуда, на что тратится ───────────────
+const hm = ms => { const m = Math.ceil(ms / 60000); return m >= 60 ? `${Math.floor(m / 60)} ч ${m % 60} мин` : `${m} мин`; };
+function levelCard() {
+  const need = Core.xpNeed(s.level), next = s.level + 1, port = C.ports.find(p => p.level === next);
+  const [pic, txt] = port ? [Art.item(port.line, 1), `гараж ${LINE_NAME[port.line]}`] : next % 2 === 0 ? [Art.thing('level'), 'сундук машин'] : [ICON.fuel, `+${C.levelFuel} топлива`];
+  const cell = next >= C.levelCellsFrom && (next - C.levelCellsFrom) % C.levelCellsEvery === 0;
+  return `<div class="sheet narrow">${xbtn}<span class="lvl-big">${s.level}</span><div class="sh-title">Уровень</div>` +
+    `<div class="xpbig"><i style="width:${(Math.min(1, s.xp / need) * 100).toFixed(0)}%"></i></div>` +
+    `<div class="sh-txt"><b>${s.xp} из ${need}</b> звёзд до ${next}-го уровня. Уровень растёт от звёзд за слияния.</div>` +
+    `<div class="daychest" style="width:100%;box-sizing:border-box">${pic.replace('class="car', 'style="width:64px" class="car')}<span class="dc-txt">${next}-й уровень: ${txt}${cell ? ' и клетка поля' : ''}</span></div></div>`;
+}
+function starCard() {
+  const b = Core.buildable(s).sort((x, y) => x.price - y.price)[0];
+  return `<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.star}</span><span class="bignum">${s.stars}</span><div class="sh-title">Звёзды</div>` +
+    `<div class="sh-txt">Дают слияния. Тратятся на салон.</div>` +
+    (b ? `<div class="sh-txt">Следующий предмет: <b>${ITEM_NAME[b.item]}</b> — <span class="chip star">${ICON.star}${b.price}</span></div>` : '') +
+    `<button class="btn" data-go="salon">${ICON.salon}Салон</button></div>`;
+}
+function fuelCard() {
+  const now = Date.now(), max = Core.fuelMax(s), full = s.fuel >= max ? 0 : Core.fuelWaitMs(s, now) + (max - s.fuel - 1) * Core.regenMs(s);
+  return `<div class="sheet narrow">${xbtn}<span class="bigic" style="color:var(--ink)">${ICON.fuel}</span><span class="bignum">${s.fuel}<span style="font-size:22px;color:var(--ink-3)"> / ${max}</span></span>` +
+    `<div class="sh-title">Топливо</div><div class="sh-txt">1 топливо — одно нажатие гаража. +1 каждые ${Math.round(Core.regenMs(s) / 6000) / 10} мин.</div>` +
+    `<div class="sh-txt">${full ? `Полный бак через <b>${hm(full)}</b>` : '<b>Бак полный</b>'}</div>` +
+    (s.fuel < 1 ? `<button class="btn gold" data-fill>${ICON.fuel}${max} за ${ICON.coin}${C.fuelCoins}</button>` : '') + '</div>';
+}
+function coinCard() {
+  const b = Core.nextBuy(s), what = !b ? '' : b.t === 'slot' ? 'слот заказа' : b.t === 'tier' ? `улучшение ${b.line === Core.TRIM ? 'Ателье' : 'гаража ' + LINE_NAME[b.line]}` :
+    b.t === 'cell' ? 'клетка поля' : 'место на складе';
+  return `<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.coin}</span><span class="bignum">${s.coins}</span><div class="sh-title">Монеты</div>` +
+    `<div class="sh-txt">Дают заказы. Тратятся на слоты заказов, улучшения гаражей, клетки поля, заряды Ателье.</div>` +
+    (b ? `<div class="xpbig"><i style="width:${Math.min(100, s.coins / b.price * 100).toFixed(0)}%"></i></div><div class="sh-txt">Дальше: <b>${what}</b> — <span class="chip coin">${ICON.coin}${b.price}</span></div>` : '') + '</div>';
+}
+function openCard(html) {
+  queuePopup(html, 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]');
+    if (go) { el.close(); setView(go.dataset.go); }
+    if (e.target.closest('[data-fill]')) { const ev = Core.buyFuel(s); if (ev[0].t === 'reject') { shake($('coinPill')); sound('no'); return; } el.close(); play(ev); }
+  }));
+}
+$('lvlBox').addEventListener('click', () => openCard(levelCard()));
+$('starPill').addEventListener('click', () => openCard(starCard()));
+$('fuelPill').addEventListener('click', () => openCard(fuelCard()));
+$('coinPill').addEventListener('click', () => openCard(coinCard()));
+
+// ── Задания дня: строка, прогресс, награда и «Забрать»; внизу — сундук за все три ──
+const TASK = {
+  merge: n => [ICON.merge, `Слей ${n} ${plural(n, 'машину', 'машины', 'машин')}`],
+  order: n => [ICON.card, `Выполни ${n} ${plural(n, 'заказ', 'заказа', 'заказов')}`],
+  chest: n => [ICON.chest, `Открой ${n} ${plural(n, 'сундук', 'сундука', 'сундуков')}`],
+  big: () => [ICON.crate, 'Выполни крупный заказ'],
+  lvl: n => [Art.item(0, n), `Собери машину ${n}-го уровня`],
+  repair: () => [ICON.wrench, 'Почини 1 машину'],
+  rarity: () => [Art.item(Core.TRIM, 2), 'Подними редкость 1 машины'],
+};
+function tasksSheet() {
+  const d = s.daily, mid = new Date(); mid.setHours(24, 0, 0, 0);
+  const rows = d.goals.map((g, k) => {
+    const [ic, txt] = TASK[g.t](g.need), have = Math.min(g.have, g.need), ok = Core.goalDone(g);
+    const right = g.got ? `<i class="tick">${ICON.check}</i>` : ok ? `<button class="take" data-take="${k}">Забрать ${ICON.fuel}+${g.fuel}</button>` :
+      `<span class="chip fuel rw">${ICON.fuel}+${g.fuel}</span>`;
+    return `<div class="task${g.got ? ' got' : ''}"><span class="tic">${ic}</span><span class="tmid"><b>${txt}</b>` +
+      `<span class="tbar"><span><i style="width:${(have / g.need * 100).toFixed(0)}%"></i></span>${have}/${g.need}</span></span>${right}</div>`;
+  }).join('');
+  const all = Core.dailyDone(s);
+  const chest = d.claimed ? `<div class="daychest"><span class="dc-txt">Сундук дня получен. Новые задания завтра.</span></div>` :
+    `<div class="daychest${all ? ' can' : ''}">${Art.thing('daily')}<span class="dc-txt">За все три задания — сундук дня: машины, детали, монеты</span>` +
+    (all ? `<button class="btn ok" data-chest>Открыть</button>` : '') + '</div>';
+  return `<div class="sheet">${xbtn}<div class="sh-title">Задания на сегодня</div><div class="sh-sub">${ICON.clock}новые через ${hm(mid - Date.now())}</div>${rows}${chest}</div>`;
+}
+function openDaily() {
+  if (!s.daily) return;
+  if (!s.hintSeen.daily) { s.hintSeen.daily = 1; save(); }
+  queuePopup(tasksSheet(), 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    const take = e.target.closest('[data-take]');
+    if (take) {
+      const ev = Core.claimTask(s, +take.dataset.take);
+      if (ev[0].t !== 'taskClaim') return;
+      const [x0, y0] = center(take), [x1, y1] = center($('fuelPill'));
+      for (let k = 0; k < 4; k++) flyEl(ICON.fuel, 'coin', [x0 + (k - 1.5) * 10, y0], [x1, y1], 0, 460, k * 60);
+      setTimeout(() => bump($('fuelPill')), 520);
+      sound('coin'); buzz(15);
+      play(ev);
+      el.innerHTML = tasksSheet();
+      return;
+    }
+    if (e.target.closest('[data-chest]')) {
+      const ev = Core.claimDaily(s);
+      if (ev[0].t !== 'claim') { shake(e.target.closest('[data-chest]')); sound('no'); return; }
+      el.close();
+      play(ev);
+    }
+  }));
+}
+$('cal').addEventListener('click', openDaily);
+
+// ── Событие недели: схема, жетоны, трек из 10 ступеней, таймер ──────────────
+const evEnd = () => { const [y, m, d] = s.day0.split('-').map(Number); return new Date(y, m - 1, d + 7 * (s.ev.w + 1)).getTime(); };
+function rewardIcon([t, a]) {
+  if (t === 'fuel') return [ICON.fuel, `+${a}`];
+  if (t === 'coins') return [ICON.coin.replace('class="ic"', 'class="ic" style="color:var(--gold)"'), `+${a}`];
+  if (t === 'crate') return [Art.thing('event'), `×${a}`];
+  return [ICON.trophy, 'трофей'];
+}
+function eventSheet() {
+  const e = s.ev, tr = C.event.track, left = Math.max(0, evEnd() - Date.now());
+  const days = Math.floor(left / 864e5), hours = Math.floor(left % 864e5 / 36e5);
+  const next = tr[e.step], prev = e.step ? tr[e.step - 1] : 0;
+  const steps = tr.map((need, k) => { const [ic, n] = rewardIcon(C.event.rewards[k]);
+    return `<div class="step${k < e.step ? ' done' : k === e.step ? ' next' : ''}${k === tr.length - 1 ? ' last' : ''}"><span class="n">${k + 1}</span><span class="sr">${ic}</span>${n}</div>`; }).join('');
+  return `<div class="sheet">${xbtn}<div class="sh-title">${EVNAME[e.theme]}</div><div class="sh-sub">${ICON.clock}ещё ${days ? `${days} д ` : ''}${hours} ч</div>` +
+    `<div class="scheme"><div><span class="sic">${Art.item(Core.EV, 2)}</span>Сливай</div>${ICON.play}<div><span class="sic">${ICON.card}</span>Сдавай заказы</div>${ICON.play}<div><span class="sic">${ICON.flag}</span>Двигайся по треку</div></div>` +
+    `<div class="tokens">${ICON.token}${e.tokens}${next ? `<span class="xpbig"><i style="width:${((e.tokens - prev) / (next - prev) * 100).toFixed(0)}%"></i></span><span style="font-size:14px;color:var(--ink-2)">${next}</span>` : ''}</div>` +
+    `<div class="track">${steps}</div><div class="sh-foot">Жетоны дают заказы события. В конце недели они сгорают, награды остаются.</div></div>`;
+}
+$('evBtn').addEventListener('click', () => { if (Core.evActive(s)) queuePopup(eventSheet(), 0, 'card', 'panel'); });
+
+// ── Склад и причал ─────────────────────────────────────────────────────────
+function depotSheet() {
+  const now = Date.now(), slots = [0, 1, 2, 3].map(k => {
+    const c = s.store[k];
+    if (c) return `<button class="sslot car" data-out="${k}" style="${rv(c.r || 0)}" aria-label="Вернуть на поле">${Art.item(c.line, c.lvl)}${badge(c.lvl)}</button>`;
+    if (k < s.storeN) return '<span class="sslot"></span>';
+    return k === s.storeN && s.storeN ? `<button class="sslot lock" data-slot aria-label="Купить место">${ICON.lock}<span class="cprice">${ICON.coin}${C.storePrices[k]}</span></button>` : `<span class="sslot lock">${ICON.lock}</span>`;
+  }).join('');
+  const store = s.storeN ? `<div class="sh-title">Склад</div><div class="slots4">${slots}</div><div class="sh-txt">Перетащи машину на значок склада вверху — она подождёт здесь. Нажми на машину — вернётся на поле.</div>` : '';
+  const ready = s.ship && now >= s.ship.at;
+  const ship = s.ship ? `<div class="shipbox">${ICON.ship}<span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
+    (ready ? '' : `<button class="btn gold" data-ship>Сейчас ${ICON.coin}${Core.shipPrice(s, now)}</button>`) + '</div>' : '';
+  return `<div class="sheet">${xbtn}${store}${ship}</div>`;
+}
+function openDepot() {
+  queuePopup(depotSheet(), 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    const out = e.target.closest('[data-out]'), slot = e.target.closest('[data-slot]'), ship = e.target.closest('[data-ship]');
+    const ev = out ? Core.unstore(s, +out.dataset.out) : slot ? Core.buyStore(s) : ship ? Core.arrive(s, Date.now(), true) : null;
+    if (!ev) return;
+    if (['poor', 'full', 'reject'].includes(ev[0]?.t)) { shake(out || slot || ship); sound('no'); if (ev[0].t === 'poor') shake($('coinPill')); return; }
+    play(ev);
+    if (ship) el.close(); else el.innerHTML = depotSheet();
+  }));
+}
+$('depotBtn').addEventListener('click', openDepot);
+
+// ── Палец-подсказка: в обучении сразу, потом после 5 секунд бездействия ─────────
+let lastInput = Date.now(), hintShown = false, hintAnims = [];
+function hideFinger() {
+  hintAnims.forEach(a => a.cancel());
+  hintAnims = [];
+  $('finger').hidden = true;
+  $('ring').style.opacity = 0;
+  $('hintCar').style.opacity = 0;
+  hintShown = false;
+}
+function hintTarget(h) {
+  if (h.t === 'build') {
+    if (view !== 'salon') return $('dock').children[0];
+    if (zoneSel !== h.zone) return $('zoneTabs').children[h.zone];
+    return $('scene').querySelector(`.plus[data-item="${h.item}"] > .ic`);
+  }
+  if (h.t === 'prestige') return view !== 'salon' ? $('dock').children[0] : $('prestBtn');
+  if (view !== 'field') return null;
+  if (h.t === 'order') return orderEl(h.i);
+  if (h.t === 'slot') return orderEl(h.i);
+  if (h.t === 'daily' || h.t === 'task' || h.t === 'cal') return $('cal');
+  if (h.t === 'store') return $('depotBtn');
+  if (h.t === 'tier') return popupOpen ? null : cellEl(portCell(h.line));
+  if (h.t === 'fuel') return $('popBub').hidden ? cellEl(s.cells.findIndex(c => c?.k === 'port')) : $('popBub');
+  return cellEl(h.i);
+}
+function showHint() {
+  // первое задание дня: после первого заказа палец показывает на значок заданий, пока их не откроют
+  const h = s.n.orders > 0 && !s.hintSeen.daily && !$('cal').hidden && view === 'field' ? { t: 'cal' } : Core.nextHint(s, Date.now());
+  if (!h || (view === 'salon' && h.t !== 'build' && h.t !== 'prestige')) return;
+  const fg = $('finger');
+  const tip = (x, y) => `translate(${x - 19}px,${y - 4}px)`;    // кончик пальца — в точку касания
+  const loop = { iterations: Infinity, easing: 'ease-in-out' };
+  if (h.t === 'drag' || h.t === 'give') {
+    if (view !== 'field') return;
+    hintShown = true;
+    fg.hidden = false;
+    hintOn(h, h.t === 'give' ? [cellEl(h.from)] : [cellEl(h.from), cellEl(h.to)]);
+    const [ax, ay] = center(cellEl(h.from)), [bx, by, r] = center(h.t === 'give' ? orderEl(h.i) : cellEl(h.to));
+    const c = s.cells[h.from];
+    if (RM.matches) { fg.style.transform = tip(ax, ay); return; }
+    const hc = $('hintCar'), w = cellEl(h.from).getBoundingClientRect().width;
+    hc.innerHTML = c.k === 'key' ? Art.thing('key') : Art.item(c.line, c.lvl, false, c.r || 0);
+    hc.style.width = w + 'px';
+    const ch = w * 52 / 120 * .9;
+    hintAnims.push(fg.animate([
+      { transform: tip(ax, ay) + ' scale(1.1)', opacity: 0 },
+      { transform: tip(ax, ay), opacity: 1, offset: .15 },
+      { transform: tip(ax, ay) + ' scale(.9)', offset: .25 },
+      { transform: tip(bx, by) + ' scale(.9)', offset: .7 },
+      { transform: tip(bx, by), opacity: 1, offset: .82 },
+      { transform: tip(bx, by), opacity: 0 },
+    ], { duration: 1900, ...loop }));
+    const car = (x, y) => `translate(${x - w / 2}px,${y - ch}px)`;
+    hintAnims.push(hc.animate([
+      { transform: car(ax, ay), opacity: 0 }, { transform: car(ax, ay), opacity: 0, offset: .24 },
+      { transform: car(ax, ay), opacity: .75, offset: .28 }, { transform: car(bx, by), opacity: .75, offset: .7 },
+      { transform: car(bx, by), opacity: 0, offset: .78 }, { transform: car(bx, by), opacity: 0 },
+    ], { duration: 1900, ...loop }));
+    return;
+  }
+  const target = hintTarget(h);
+  if (!target) return;
+  hintShown = true;
+  fg.hidden = false;
+  hintOn(h, [target]);
+  const [x, y] = center(target);
+  if (RM.matches) { fg.style.transform = tip(x, y); return; }
+  if (h.t === 'tier') {          // улучшение гаража — палец показывает долгое нажатие: нажал и держит, кольцо растёт
+    hintAnims.push(fg.animate([
+      { transform: tip(x + 14, y + 22), opacity: 0 }, { transform: tip(x, y), opacity: 1, offset: .2 },
+      { transform: tip(x, y) + ' scale(.86)', offset: .28 }, { transform: tip(x, y) + ' scale(.86)', offset: .78 },
+      { transform: tip(x, y), opacity: 1, offset: .86 }, { transform: tip(x, y), opacity: 0 },
+    ], { duration: 2200, ...loop }));
+    hintAnims.push($('ring').animate([
+      { transform: `translate(${x}px,${y}px) scale(.3)`, opacity: 0 }, { transform: `translate(${x}px,${y}px) scale(.3)`, opacity: .7, offset: .28 },
+      { transform: `translate(${x}px,${y}px) scale(1.3)`, opacity: .7, offset: .78 }, { transform: `translate(${x}px,${y}px) scale(1.5)`, opacity: 0, offset: .86 },
+      { transform: `translate(${x}px,${y}px) scale(1.5)`, opacity: 0 },
+    ], { duration: 2200, iterations: Infinity }));
+    return;
+  }
+  hintAnims.push(fg.animate([
+    { transform: tip(x + 14, y + 22), opacity: 0 },
+    { transform: tip(x, y), opacity: 1, offset: .3 },
+    { transform: tip(x, y) + ' scale(.86)', offset: .42 },
+    { transform: tip(x, y), offset: .56 },
+    { transform: tip(x, y), opacity: 1, offset: .85 },
+    { transform: tip(x, y), opacity: 0 },
+  ], { duration: 1400, ...loop }));
+  hintAnims.push($('ring').animate([
+    { transform: `translate(${x}px,${y}px) scale(.4)`, opacity: 0 },
+    { transform: `translate(${x}px,${y}px) scale(.4)`, opacity: 0, offset: .4 },
+    { transform: `translate(${x}px,${y}px) scale(.5)`, opacity: .5, offset: .43 },
+    { transform: `translate(${x}px,${y}px) scale(1.5)`, opacity: 0, offset: .8 },
+    { transform: `translate(${x}px,${y}px) scale(1.5)`, opacity: 0 },
+  ], { duration: 1400, iterations: Infinity }));
+}
+setInterval(() => {
+  const now = Date.now();
+  if (dragging || popupOpen || (view !== 'field' && view !== 'salon') || now < busyUntil) { if (hintShown) hideFinger(); return; }
+  const tutorial = s.n.orders === 0 || (!s.hintSeen.daily && !$('cal').hidden);   // обучение и знакомство с заданиями дня — палец сразу
+  if (!hintShown && now - lastInput > (tutorial ? 600 : 5000)) showHint();
+}, 200);
+addEventListener('pointerdown', e => {
+  logTouch(e);
+  lastInput = Date.now();
+  if (hintShown) hideFinger();
+  if (!e.target.closest('#popBub')) hidePop();
+}, true);
+
+// ── Касания и перетаскивание ───────────────────────────────────────────────
+let press = null, ghost = null, over = null;
+const board = $('board');
+
+function tapCell(i) {
+  const c = s.cells[i], now = Date.now();
+  if (!c) return;
+  if (c.k === 'port') {
+    const ev = Core.tapPort(s, i, now), sp = ev.find(e => e.t === 'spawn');
+    LOG.sum.firstPort ??= clock();
+    L(`${PORTNAME[c.line]}: ${sp ? `выехала ${ev.some(e => e.t === 'crate') ? 'коробка машин' : what(s.cells[sp.to])}` :
+      { full: 'не выехала — поле полное', noFuel: 'не выехала — бак пуст', noCharge: 'не выехала — нет заряда' }[ev[0]?.t] || 'ничего'}`);
+    return play(ev);
+  }
+  if (c.k === 'chest') { L('нажал сундук'); return play(Core.tapChest(s, i)); }
+  if (c.k === 'bubble') { L('нажал пузырь'); return play(Core.buyBubble(s, i, now)); }
+  if (c.k === 'car' && c.broken) {
+    acted++; L('нажал сломанную машину');
+    hop(cellEl(i));
+    const t = s.cells.findIndex(x => Core.isCar(x) && Core.itemFits(c, x));
+    if (t >= 0) { peek(cellEl(t)); hop(cellEl(t)); } else openWhere(Core.needItem(c));
+    return;
+  }
+  if (c.k === 'lock' && Core.canOpen(s, i)) return L('нажал закрытую клетку: показана цена'), showPop(i, `${ICON.grid}+1${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.cellPrice(s)}</b>`, () => Core.buyCell(s, i));
+  if (c.k === 'box') { shake(cellEl(i)); const k = s.cells.findIndex(x => x?.k === 'key'); if (k >= 0) hop(cellEl(k)); return; }
+  if (c.k === 'lock' || c.k === 'slot') return;
+  if (c.k === 'car' || c.k === 'key') hop(cellEl(i).querySelector('.car,.thing'));
+}
+// деталь и машина, которой она подходит (в любом порядке): инструмент — сломанной, деталь Ателье — на следующую редкость
+const itemPair = (a, b) => { if (a?.k !== 'car' || b?.k !== 'car') return false; const [car, it] = Core.isPart(a.line) ? [b, a] : [a, b];
+  return car.line < P && Core.isPart(it.line) && (car.broken || Core.rarOn(s)) && Core.itemFits(car, it); };
+const cellAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest('#board .cell');
+const cardAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest('#orders .order[data-o]');
+const depotAtPoint = (x, y) => s.storeN ? document.elementFromPoint(x, y)?.closest('#depotBtn') : null;
+const ghostSize = () => { const r = cellEl(press.i).getBoundingClientRect(); return [r.width * 1.3, r.width * 1.3 * 52 / 120]; };
+const ghostPoint = (x, y) => [x, y - ghostSize()[0] * .35];   // машина чуть выше пальца — её видно
+
+// Долгое нажатие на предмет поля — его карточка из Подсказок (машина — карточка модели)
+function longPress(i) {
+  const c = s.cells[i];
+  if (!c || c.k === 'far') return;
+  L(`долгое нажатие: ${c.k === 'port' ? PORTNAME[c.line].toLowerCase() : what(c)}`);
+  if (c.k === 'port' && c.line !== Core.EV) { buzz(10); return openPort(c.line); }
+  if (c.k === 'car' && c.line === P && c.lvl < 5) return openHint('bench');
+  if (c.k === 'car' && !c.broken && c.line < P && c.lvl !== 7) return openModel(c.line, c.lvl, c.r || 0);
+  const id = c.k === 'lock' ? 'cells' : c.k === 'box' || c.k === 'key' ? 'keys' : c.k === 'bubble' ? 'bubble' : c.k === 'slot' ? 'port' :
+    c.k === 'port' ? (c.line === Core.EV ? 'event' : 'port') : c.k === 'chest' ? (c.kind === 'ship' ? 'depot' : c.kind === 'event' ? 'event' : c.kind === 'daily' ? 'daily' : 'chest') :
+    c.broken ? 'bench' : c.line === Core.TRIM ? 'atelier' : c.line === P || c.lvl === 7 ? 'cert' : c.line === Core.EV ? 'event' : 'merge';
+  const h = HINTS.find(x => x.id === id);
+  if (!hintOpen(h)) s.hintSeen[id] = 1;     // предмет уже на поле — значит, механика встретилась
+  buzz(10);
+  if (id === 'cert' && c.k === 'car' && c.lvl === 7) return openCert();
+  openHint(id);
+}
+board.addEventListener('pointerdown', e => {
+  const cell = e.target.closest('.cell');
+  if (!cell || press || cell.classList.contains('far')) return;
+  press = { i: +cell.dataset.i, x: e.clientX, y: e.clientY, id: e.pointerId, drag: false, long: false };
+  press.timer = setTimeout(() => { if (press && !press.drag) { press.long = true; longPress(press.i); } }, 550);
+  board.setPointerCapture(e.pointerId);
+});
+board.addEventListener('pointermove', e => {
+  const c = press && s.cells[press.i];
+  if (!press || e.pointerId !== press.id || (c?.k !== 'car' && c?.k !== 'key')) return;
+  if (!press.drag && !press.long && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) {
+    clearTimeout(press.timer);
+    press.drag = dragging = true;
+    L(`тащит: ${what(c)}`);
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.style.width = ghostSize()[0] * (c.k === 'key' || c.line === P ? .75 : 1) + 'px';
+    ghost.innerHTML = c.k === 'key' ? Art.thing('key') : Art.item(c.line, c.lvl, false, c.r || 0);
+    document.body.appendChild(ghost);
+    cellEl(press.i).classList.add('lifted');
+  }
+  if (!press.drag) return;
+  const [w, h] = ghostSize(), [gx, gy] = ghostPoint(e.clientX, e.clientY);
+  ghost.style.transform = `translate(${gx - w / 2}px,${gy - h / 2}px) scale(1.05)`;
+  const t = cellAtPoint(gx, gy) || cardAtPoint(gx, gy) || depotAtPoint(gx, gy);
+  if (t !== over) {
+    over?.classList.remove('over', 'match');
+    over = t && t !== cellEl(press.i) ? t : null;
+    if (over?.id === 'depotBtn') { if (Core.isCar(c) && s.store.length < s.storeN) over.classList.add('over'); else over = null; }
+    else if (over?.dataset.i !== undefined) {
+      const b = s.cells[+over.dataset.i];
+      over.classList.add('over');
+      if (Core.isCar(c) && Core.isCar(b) && b.line === c.line && b.lvl === c.lvl && c.lvl < Core.maxLvl(c.line)) over.classList.add('match');
+      if (c.k === 'key' && Core.canKey(s, +over.dataset.i)) over.classList.add('match');
+      if (b?.k === 'car' && itemPair(c, b)) over.classList.add('match');     // деталь подходит машине
+    } else if (over && Core.isCar(c) && s.orders[+over.dataset.o]?.items.some(it => it.got < it.n && Core.fits(c, it))) over.classList.add('over');
+    else over = null;
+  }
+});
+function endPress(e, cancel) {
+  if (!press || e.pointerId !== press.id) return;
+  const p = press, gp = p.drag && !cancel ? ghostPoint(e.clientX, e.clientY) : null;
+  const drop = gp && cellAtPoint(...gp), card = gp && !drop && cardAtPoint(...gp);
+  const depot = gp && !drop && !card && depotAtPoint(...gp);
+  clearTimeout(p.timer);
+  press = null;
+  over?.classList.remove('over', 'match');
+  ghost?.remove();
+  ghost = null; over = null;
+  if (p.drag) {
+    dragging = false;
+    cellEl(p.i)?.classList.remove('lifted');
+    if (boardDirty) { boardDirty = false; renderBoard(); }
+    const to = drop ? +drop.dataset.i : -1, was = s.cells[to];
+    const ev = to >= 0 && to !== p.i ? Core.move(s, p.i, to, Date.now()) : card ? Core.giveOne(s, +card.dataset.o, p.i, Date.now()) : depot ? Core.store(s, p.i) : [];
+    logDrop(ev, p.i, to, was, card, depot, cancel);
+    play(ev);
+    return;
+  }
+  if (hintEp?.down !== undefined) hintEnd('не сделал, нажал, но не потащил');
+  if (!cancel && !p.long && cellAtPoint(e.clientX, e.clientY) === cellEl(p.i)) tapCell(p.i);
+}
+board.addEventListener('pointerup', e => endPress(e, false));
+board.addEventListener('pointercancel', e => endPress(e, true));
+board.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.i) { e.preventDefault(); tapCell(+e.target.dataset.i); }
+});
+
+$('orders').addEventListener('click', e => {
+  const now = Date.now(), ref = e.target.closest('.ref');
+  if (ref) {
+    const ev = Core.refreshOrder(s, +ref.dataset.ref, now);
+    if (ev[0]?.t === 'poor') { shake(ref); shake($('coinPill')); sound('no'); return; }
+    return play(ev);
+  }
+  const lock = e.target.closest('.order.locked');
+  if (lock) {
+    const ev = Core.buySlot(s, +lock.dataset.slot, now);
+    if (ev[0]?.t !== 'slot') { shake(lock); if (ev[0]?.t === 'poor') shake($('coinPill')); sound('no'); return; }
+    return play(ev);
+  }
+  const b = e.target.closest('.order[data-o]');
+  if (!b) return;
+  const oi = +b.dataset.o;
+  // готовый заказ — сдать сразу; иначе — раскрыть крупно: что нужно, что уже есть на поле, награда
+  if (Core.match(s, s.orders[oi]).ready) return play(Core.deliver(s, oi, now));
+  openOrder(oi);
+});
+const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события' };
+function orderSheet(oi) {
+  const o = s.orders[oi], m = Core.match(s, o), price = Core.refreshPrice(s, Date.now());
+  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
+  const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : `<span class="chip coin">${ICON.coin}${Core.orderValue(s, o)}</span>`;
+  const tiles = o.items.map((it, k) => {
+    const left = it.n - it.got, have = m.cells[k].length;
+    return `<span class="rtile${left === 0 ? ' done' : ''}" style="${rv(Math.max(0, it.r))}">${Art.item(it.line, it.lvl)}${badge(it.lvl)}` +
+      `${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}${left === 0 || have >= left ? `<i class="tick">${ICON.check}</i>` : '<i class="miss"></i>'}</span>`;
+  }).join('');
+  return `<div class="sheet" data-order="${oi}">${xbtn}<div class="ohead2">${ava}<div class="sh-title">${KIND[o.kind]}</div></div>` +
+    `<div class="obig">${tiles}</div><div class="sh-txt">Награда: ${reward}</div>` +
+    `<div class="obtns">${m.any ? `<button class="btn ok" data-give>${ICON.check}Сдать, что есть</button>` : ''}` +
+    `<button class="btn light" data-refresh>${ICON.refresh}${price ? `${ICON.coin}${price}` : 'Заменить'}</button></div></div>`;
+}
+function openOrder(oi) {
+  queuePopup(orderSheet(oi), 0, 'card', 'panel', el => el.addEventListener('click', e => {
+    const now = Date.now();
+    if (e.target.closest('[data-give]')) { el.close(); return play(Core.deliver(s, oi, now)); }
+    if (e.target.closest('[data-refresh]')) {
+      const ev = Core.refreshOrder(s, oi, now);
+      if (ev[0]?.t === 'poor') { shake(e.target.closest('[data-refresh]')); shake($('coinPill')); sound('no'); return; }
+      el.close(); play(ev);
+    }
+  }));
+}
+
+// ── Автосалон: вкладки зон, «+», листание пальцем ─────────────────────────────
+$('zoneTabs').addEventListener('click', e => {
+  const b = e.target.closest('.ztab');
+  if (b) { zoneSel = +b.dataset.z; renderSalon(); }
+});
+$('bonuses').addEventListener('click', e => {
+  const g = e.target.closest('.bgroup');
+  if (!g) return;
+  const k = +g.dataset.g;
+  openGroups.has(k) ? openGroups.delete(k) : openGroups.add(k);
+  $('bonuses').innerHTML = bonusesHTML();
+});
+$('ports').addEventListener('click', e => {
+  const b = e.target.closest('[data-pup]'), row = e.target.closest('[data-pl]');
+  if (b) {
+    const ev = Core.upgradePort(s, +b.dataset.pup);
+    if (ev[0]?.t !== 'tier') { shake(b); shake($('coinPill')); sound('no'); return; }
+    return play(ev);
+  }
+  if (row) openPort(+row.dataset.pl);
+});
+$('prest').addEventListener('click', e => {
+  if (!e.target.closest('#prestBtn')) return;
+  const ev = Core.buyPrestige(s);
+  if (ev[0]?.t !== 'prestige') { shake(e.target.closest('#prestBtn')); shake($('starPill')); sound('no'); return; }
+  play(ev);
+});
+$('scene').addEventListener('click', e => {
+  // «+», купленный предмет на сцене или значок эффекта под сценой — карточка предмета
+  const b = e.target.closest('.plus, [data-item]');
+  if (b) openItem(zoneSel, b.dataset.item);
+});
+let swipeX = null;
+$('scene').addEventListener('pointerdown', e => { swipeX = e.clientX; });
+$('scene').addEventListener('pointerup', e => {
+  if (swipeX === null) return;
+  const dx = e.clientX - swipeX;
+  swipeX = null;
+  if (Math.abs(dx) < 50) return;
+  zoneSel = Math.max(0, Math.min(C.salon.length - 1, zoneSel + (dx < 0 ? 1 : -1)));
+  renderSalon();
+});
+
+// ── Меню, коллекция, настройки ─────────────────────────────────────────────
+function setView(v) {
+  acted++;
+  if (v !== view) { L(`вкладка: ${VIEWNAME[v]}`); LOG.sum.self['вкладка ' + VIEWNAME[v]] = 1; }
+  if (view === 'cars' && v !== 'cars') { s.fresh = {}; save(); }
+  if (v === 'salon' && view !== 'salon') zoneSel = null;
+  view = v;
+  hidePop();
+  $('field').style.display = v === 'field' ? 'contents' : 'none';
+  ['salon', 'cars', 'help', 'settings'].forEach(id => { $(id).hidden = v !== id; });
+  [...$('dock').children].forEach(b => b.setAttribute('aria-current', String(b.dataset.view === v)));
+  renderAll();
+  if (v === 'field') {
+    fit();
+    pendingFx.forEach(fn => fn());
+    pendingFx = [];
+  }
+}
+$('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); });
+$('help').addEventListener('click', e => { const b = e.target.closest('.hcard[data-h]'); if (b) openHint(b.dataset.h); });
+$('cars').addEventListener('click', e => {
+  const b = e.target.closest('.stack');
+  if (!b || b.disabled) return;
+  const [line, lvl] = b.dataset.k.split('-').map(Number);
+  openModel(line, lvl);
+});
+$('sSound').addEventListener('click', () => { s.sound = !s.sound; save(); renderSettings(); sound('coin'); });
+$('sFill').addEventListener('click', () => { s.fuel = Core.fuelMax(s); s.fuelAt = Date.now(); save(); renderAll(); bump($('fuelPill')); });
+$('sSpeed').addEventListener('click', () => { Core.setSpeed(s, Date.now(), s.speed === 10 ? 1 : 10); save(); renderSettings(); });
+let resetTimer = 0;
+$('sReset').addEventListener('click', () => {
+  const b = $('sReset');
+  if (!b.classList.contains('confirm')) {
+    b.classList.add('confirm');
+    renderSettings();
+    resetTimer = setTimeout(() => { b.classList.remove('confirm'); renderSettings(); }, 3000);
+    return;
+  }
+  clearTimeout(resetTimer);
+  b.classList.remove('confirm');
+  const keep = { sound: s.sound };
+  s = Object.assign(freshGame(), keep);
+  s.fresh = {};
+  LOG.sum = freshSum('с начала новой игры');
+  L('новая игра (Настройки)');
+  readyIds = new Set();
+  initHints();
+  save();
+  lastInput = 0;
+  setView('field');
+});
+
+$('sLogSend').addEventListener('click', sendLog);
+let logClearTimer = 0;
+$('sLogClear').addEventListener('click', () => {          // как «Новая игра»: второе нажатие подтверждает
+  const b = $('sLogClear');
+  if (!b.classList.contains('confirm')) {
+    b.classList.add('confirm'); renderSettings();
+    logClearTimer = setTimeout(() => { b.classList.remove('confirm'); renderSettings(); }, 3000);
+    return;
+  }
+  clearTimeout(logClearTimer);
+  b.classList.remove('confirm');
+  LOG = { n: LOG.n, ev: [], sum: freshSum('с очистки журнала'), cut: 0 };
+  L('журнал очищен');
+  logSaveNow();
+  renderSettings();
+});
+
+// Каждую секунду: топливо копится по часам, пузыри лопаются, раз в день — подарок и задания
+setInterval(() => {
+  const was = s.fuel, now = Date.now();
+  const ev = Core.tick(s, now);
+  if (s.n.orders > 0) ev.push(...Core.dailyGift(s, todayKey()), ...Core.eventTick(s, dayIdx(), now), ...Core.arrive(s, now));
+  if (ev.length) play(ev);
+  else if (s.fuel !== was) {
+    save(); renderHud();
+    if (was < 2) { if (dragging) boardDirty = true; else renderBoard(); }
+  }
+  renderHud();
+  document.querySelectorAll('.timer').forEach(t => { t.textContent = t.hasAttribute('data-charge') ? fmtCharge() : fmtWait(); });
+  document.querySelectorAll('.cell.bubble').forEach(el => {
+    const c = s.cells[+el.dataset.i];
+    if (c?.k === 'bubble') el.style.setProperty('--p', Math.max(0, (c.until - now) / C.bubbleMs).toFixed(3));
+  });
+}, 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { Core.tick(s, Date.now()); renderAll(); } });
+
+// Для проверки и снимков экрана: window.G.s — состояние, G.set(состояние) — подменить
+window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
+  Core, Art, play, setView, hidePop, openDaily, openHint, openPort, openCard, levelCard, starCard, fuelCard, coinCard, openDepot, eventSheet, openItem, explain, queuePopup, HINTS };
+
+Art.loadRasters(renderAll);
+renderAll();
+fit();
+// без интернета игра открывается из памяти телефона
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>

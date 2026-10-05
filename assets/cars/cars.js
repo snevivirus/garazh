@@ -1,0 +1,3 @@
+// Создано prototype/tools/cars-import.js — руками не править.
+// Машины владельца: марка-модель → номера редкости, для которых есть <марка-модель>-<N>.webp и <марка-модель>-<N>-640.webp.
+window.CAR_FILES = {"arion-kammen":[1,2,3,4,5],"arion-solace":[1,2,3,4,5],"fjellvik-vidde":[1,2,3,4,5],"haneul-arin":[1,2,3,4,5],"haneul-pico":[1,2,3,4,5],"haneul-tarn":[1,2,3,4,5],"nordhaus-gletscher":[1,2,3,4,5],"nordhaus-konsul":[1,2,3,4,5],"nordhaus-konsul-lang":[1,2,3,4,5],"rheinmark-kante":[1,2,3,4,5],"rheinmark-tor":[1,2,3,4,5],"seiran-mori":[1,2,3,4,5],"seora-crest":[1,2,3,4,5],"seora-vela":[1,2,3,4,5],"vierling-aurel":[1,2,3,4,5],"vierling-v6":[1,2,3,4,5]};
