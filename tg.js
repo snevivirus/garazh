@@ -130,7 +130,6 @@
       disableVerticalSwipes() { calls.push('disableVerticalSwipes'); this.isVerticalSwipesEnabled = false; },
       setHeaderColor(c) { calls.push('header ' + c); }, setBackgroundColor(c) { calls.push('bg ' + c); },
       enableClosingConfirmation() { calls.push('closingConfirmation'); },
-      openTelegramLink(url) { calls.push('openTelegramLink ' + url); console.log('[имитация Telegram] ссылка:', url); },
       onEvent(name, fn) { (ev[name] ||= []).push(fn); }, offEvent(name, fn) { ev[name] = (ev[name] || []).filter(f => f !== fn); },
       HapticFeedback: {
         impactOccurred(s) { calls.push('haptic ' + s); console.log('[имитация Telegram] вибрация:', s); },

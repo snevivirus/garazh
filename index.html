@@ -526,13 +526,6 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .set-head { margin: 14px 4px 0; font-size: 14px; font-weight: 700; color: var(--ink-2); }
 .set-note { margin: 0 4px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .logta { width: 100%; height: 50vh; box-sizing: border-box; font: 12px/1.35 ui-monospace, monospace; -webkit-user-select: text; user-select: text; }
-/* окно «Журнал»: кнопки сверху, поле сжимается под высоту экрана */
-.logsheet .logta { flex: 1 1 40vh; min-height: 96px; }
-.kinds { display: flex; gap: 8px; justify-content: center; }
-.kind { width: 56px; height: 40px; border-radius: 12px; background: var(--tile-2, #F1F1EE); display: grid; place-items: center; }
-.kind .car { width: 50px; height: auto; position: static; }
-.kind.off { color: var(--ink-3); }
-.logst { min-height: 20px; font-size: 15px; font-weight: 700; line-height: 1.3; }
 .set {
   display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 14px;
   background: var(--tile); font-size: 16px; font-weight: 500; text-align: left;
@@ -714,16 +707,6 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .shipbox > .ic { width: 40px; height: 40px; color: #3D5A79; flex: none; }
 .shipbox .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
 .shipbox .btn { height: 46px; padding: 0 14px; font-size: 16px; flex: none; }
-.shipbox.ad { flex-wrap: wrap; }
-/* задание 16 (только в тесте монетизации): плашка ролика над доком, тестовая панель в Настройках */
-.adplq { position: fixed; left: 50%; transform: translateX(-50%); z-index: 15; display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px;
-  border-radius: 22px; background: var(--ink); color: #fff; font-size: 18px; font-weight: 800; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
-.adplq .ic { width: 22px; height: 22px; }
-#monetPanel .mrow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-top: 6px; border-radius: 16px; background: var(--tile); }
-#monetPanel .mrow > span:first-child { flex: 1; display: flex; flex-direction: column; font-size: 13px; color: var(--ink-2); }
-#monetPanel .mrow b { font-size: 15px; color: var(--ink); }
-#monetPanel .btn { height: 38px; padding: 0 12px; font-size: 14px; }
-#monetPanel .mday { display: flex; gap: 6px; }
 
 /* Подсказки: список карточек механик */
 .hints { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -847,12 +830,10 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
       <button class="set" id="sLogSend"></button>
       <button class="set" id="sLogClear"></button>
       <div class="set-note" id="sLogInfo"></div>
-      <div id="monetPanel" hidden></div>
     </div>
   </section>
 </div>
 
-<button class="adplq" id="adPlaque" hidden></button>
 <nav class="dock" id="dock">
   <button data-view="salon"></button>
   <button data-view="field" aria-current="true"></button>
@@ -869,11 +850,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=12"></script>
-<script src="core.js?v=12"></script>
-<script src="art.js?v=12"></script>
-<script src="salon.js?v=12"></script>
-<script src="monet.js?v=12"></script>
+<script src="tg.js?v=9"></script>
+<script src="core.js?v=9"></script>
+<script src="art.js?v=9"></script>
+<script src="salon.js?v=9"></script>
+<script src="monet.js?v=9"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -920,7 +901,6 @@ const ICON = {
   video: ic('<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>'),
   play: ic('<path d="M5 12h12M13 7l5 5-5 5"/>'),
   share: ic('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8"/>'),
-  copy: ic('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
 };
 const ZICON = {
   box: ic('<path d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
@@ -972,7 +952,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 12 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 9 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1107,9 +1087,9 @@ function logDrop(ev, from, to, was, card, depot, cancel) {
 const LOGEV = {
   orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
   refresh: e => `заказ ${e.order + 1} заменён${e.price ? ` за ${e.price} монет` : ' бесплатно'}`,
-  levelUp: e => `новый уровень игрока: ${e.level}`, kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
+  levelUp: e => `новый уровень игрока: ${e.level}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
   tier: e => e.tier && `улучшил ${PORTNAME[e.line].toLowerCase()} до ступени ${e.tier}`, build: e => `салон: построил «${ITEM_NAME[e.item]}»`,
-  fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', reward: e => `награда за ролик: ${Monet.NAME[e.place] || e.place}`, taskClaim: () => 'забрал награду задания дня',
+  fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', reward: e => `награда за ролик или покупку: ${e.place === 'fuel' ? 'полный бак' : '+1 заряд Ателье'}`, taskClaim: () => 'забрал награду задания дня',
   claim: () => 'открыл сундук дня', unstore: () => 'вернул машину со склада', prestige: () => 'престиж салона', zoneDone: () => 'зона салона готова',
 };
 const readyNow = () => new Set(s.orders.map((o, oi) => o && oi < s.slots && Core.match(s, o).ready ? o.id : null).filter(x => x !== null));
@@ -1147,57 +1127,23 @@ function logText() {
   LOG.ev.forEach(([k, t, x]) => { if (k !== n) { n = k; lines.push(`— запуск ${k} —`); } lines.push(`${fs1(t)}  ${x}`); });
   return lines.join('\n');
 }
-// Окно «Журнал» (задание 14): статус, «Скопировать», «Отправить в чат» (Telegram), «Файлом» (браузер, где можно файлы),
-// поле с журналом. Статус «Скопировано» — только когда копирование подтвердилось. В Telegram navigator.share не вызываем:
-// там он «успешно» ничего не отправлял (в имитации — не завершался вовсе)
-function openLog() {
-  L('журнал: открыт');
-  const text = logText(), wa = TG.on && window.Telegram?.WebApp;
-  const chat = typeof wa?.openTelegramLink === 'function';
-  const file = !TG.on && new File([text], 'garazh-log.txt', { type: 'text/plain' });
-  const canFile = !!file && !!navigator.canShare?.({ files: [file] });
-  queuePopup(`<div class="sheet logsheet">${xbtn}<div class="sh-title">Журнал</div><div class="logst" aria-live="polite"></div>` +
-    `<div class="obtns adrow"><button class="btn ok" data-copy>${ICON.copy}Скопировать</button>` +
-    (chat ? `<button class="btn light" data-chat>${ICON.share}Отправить в чат</button>` : '') +
-    (canFile ? `<button class="btn light" data-file>${ICON.share}Файлом</button>` : '') + '</div>' +
-    `<textarea class="logta" readonly>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea></div>`, 0, 'card', 'panel', el => {
-    const st = el.querySelector('.logst'), ta = el.querySelector('.logta');
-    el.addEventListener('click', async e => {
-      if (e.target.closest('[data-copy]')) {
-        const ok = await copyText(text, ta);
-        st.textContent = ok ? 'Скопировано — вставь в чат' : 'Не получилось скопировать. Выдели текст ниже и скопируй';
-        if (!ok) { ta.focus(); ta.select(); }
-        L(ok ? 'журнал: скопирован' : 'журнал: копирование не вышло');
-      } else if (e.target.closest('[data-chat]')) {
-        wa.openTelegramLink(chatLink(text));
-        st.textContent = 'Открыто окно Telegram — выбери чат';
-        L('журнал: окно чата открыто');
-      } else if (e.target.closest('[data-file]')) {
-        try { await navigator.share({ files: [file], title: 'Журнал «Гараж»' }); st.textContent = 'Файл передан'; L('журнал: файл передан'); }
-        catch (err) { if (err.name !== 'AbortError') { st.textContent = 'Файл не ушёл. Скопируй текст'; L('журнал: файл не ушёл'); } }
-      }
-    });
-  });
-}
-async function copyText(text, ta) {
-  try { await navigator.clipboard.writeText(text); return true; } catch {}
-  try { ta.focus(); ta.select(); if (document.execCommand('copy')) return true; } catch {}
-  return false;
-}
-// «Отправить в чат»: t.me/share/url с краткой сводкой — заголовок, строка «запуск», «Среда», дальше строки сводки,
-// пока вся ссылка после кодирования не длиннее 3500 знаков (не влезло — «…»)
-function chatLink(text) {
-  const lines = text.split('\n'), sum = lines.slice(1, lines.indexOf('')), env = sum.find(l => l.startsWith('Среда:'));
-  const run = lines.filter(l => /^\S+\s+запуск: /.test(l)).pop()?.replace(/^\S+\s+/, '');
-  const head = [lines[0], run, env].filter(Boolean), rest = sum.filter(l => l !== env);
-  const base = `https://t.me/share/url?url=${encodeURIComponent(location.href.split(/[?#]/)[0])}&text=`;
-  for (let n = rest.length; n >= 0; n--) {
-    const link = base + encodeURIComponent([...head, ...rest.slice(0, n)].join('\n') + (n < rest.length ? '\n…' : ''));
-    if (link.length <= 3500) return link;
+async function sendLog() {
+  const text = logText();
+  L('отправка журнала');
+  try { if (navigator.share) return await navigator.share({ text }); } catch (e) { if (e.name === 'AbortError') return; }
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+  if (!ok) {                       // старый способ: через невидимое поле
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;top:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
   }
-  let body = head.join('\n');
-  while ((base + encodeURIComponent(body + '…')).length > 3500) body = body.slice(0, -20);
-  return base + encodeURIComponent(body + '…');
+  // не вышло — показать текст: выделить и скопировать руками
+  queuePopup(ok ? `<div class="sheet narrow"><span class="bigic">${ICON.check}</span><div class="sh-title">Скопировано</div><div class="sh-txt">Вставь в сообщение владельцу</div></div>` :
+    `<div class="sheet">${xbtn}<div class="sh-title">Журнал</div><div class="sh-txt">Выдели всё и скопируй</div><textarea class="logta" readonly>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea></div>`,
+    0, 'card', ok ? 'auto' : 'panel');
 }
 
 // ── Звук и вибрация (звук выключен по умолчанию) ───────────────────────────
@@ -1228,9 +1174,8 @@ const fmtCharge = () => { const m = Math.ceil(Core.chargeWaitMs(s, Date.now()) /
 const canBuild = () => Core.buildable(s).some(b => s.stars >= b.price);
 const buyN = () => Core.buildable(s).filter(b => s.stars >= b.price).length;      // сколько предметов салона по карману
 // на улучшение гаража хватает монет (гараж события не улучшается)
-const upOK = line => line !== Core.EV && Core.portOpen(s, line) && s.tiers[line] < Core.maxTier(s, line) && s.coins >= Core.tierPrice(s.tiers[line], line);
-const PORTS = C.ports.map(p => p.line);           // задание 15: основной гараж, Мастерская, Ателье
-const upLines = () => PORTS.filter(upOK);
+const upOK = line => line !== Core.EV && Core.portOpen(s, line) && s.tiers[line] < Core.maxTier(s, line) && s.coins >= Core.tierPrice(s.tiers[line]);
+const upLines = () => [0, 1, 2, 3, 5].filter(upOK);
 const portCell = line => C.ports.find(p => p.line === line).cell;
 
 const canPrestige = () => Core.salonDone(s) && s.stars >= Core.prestigePrice(s);
@@ -1398,7 +1343,7 @@ function fxText(fx) {
   if (fx.gift) return 'Подарок дня: +1 машина каждый день';
   if (fx.fuel) return `Бак +${fx.fuel}`;
   if (fx.slot) return '+1 слот заказа';
-  if (fx.tier !== undefined) return `${PORTNAME[fx.tier]}: +1 ступень`;
+  if (fx.tier !== undefined) return `Гараж ${LINE_NAME[fx.tier]}: +1 ступень`;
   if (fx.port !== undefined) return 'Гараж деталей на поле';
   if (fx.regen) return 'Топливо копится на 25% быстрее';
   if (fx.crates) return 'Ящики из гаража в 2 раза чаще';
@@ -1591,8 +1536,8 @@ function renderSalon() {
   $('prest').innerHTML = pr;
   $('prest').hidden = !pr;
   // второй путь к улучшениям гаражей: все гаражи, их ступени и та же кнопка «Улучшить»
-  $('ports').innerHTML = '<b>Гаражи</b>' + PORTS.filter(l => Core.portOpen(s, l)).map(l => {
-    const t = s.tiers[l], max = Core.maxTier(s, l), price = Core.tierPrice(t, l);
+  $('ports').innerHTML = '<b>Гаражи</b>' + [0, 1, 2, 3, 5].filter(l => Core.portOpen(s, l)).map(l => {
+    const t = s.tiers[l], max = Core.maxTier(s, l), price = Core.tierPrice(t);
     return `<div class="prow" data-pl="${l}">${Art.item(l, 1, true)}<span><b>${PORTNAME[l]}</b>ступень ${t}</span>` +
       (t < max ? `<button class="btn gold${s.coins < price ? ' off' : ''}" data-pup="${l}">${ICON.coin}${price}</button>` : '<span class="works">макс.</span>') + '</div>';
   }).join('');
@@ -1642,7 +1587,6 @@ function renderSettings() {
   $('sLogClear').innerHTML = ICON.close + `<span>${$('sLogClear').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Очистить журнал'}</span>`;
   const n = LOG.ev.length;
   $('sLogInfo').textContent = `Версия: ${BUILD}. В журнале ${n} ${plural(n, 'событие', 'события', 'событий')}.`;
-  renderMonetPanel();
 }
 
 let view = 'field', dragging = false, boardDirty = false;
@@ -1856,11 +1800,7 @@ function playFx(ev) {
           () => Core.buyCharge(s, Date.now(), todayKey()));
         break;
       case 'chargeBuy': later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); bump($('coinPill')); sound('unlock'); break;
-      case 'reward':                       // награда за ролик (задание 16): у мест с сундуком, кораблём, клетками — свои события
-        if (e.at >= 0) later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); });
-        if (e.place === 'fuel') bump($('fuelPill'));
-        if (e.place === 'double') { bump($('coinPill')); floatText($('coinPill'), `+${e.coins}${ICON.coin}`, 'fl-gold'); }
-        sound('unlock'); break;
+      case 'reward': if (e.at >= 0) later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); else bump($('fuelPill')); sound('unlock'); break;
       case 'cellBuy': flash(e.at, '#B88A2E'); pop(cellEl(e.at)); sound('unlock'); bump($('coinPill')); buzz(12); break;
       case 'taskClaim': break;   // топливо вылетает из кнопки «Забрать» в шапку — см. openDaily
       case 'store': {
@@ -1892,8 +1832,7 @@ function playFx(ev) {
         break;
       }
       case 'open': case 'port': case 'boxOpen': later(() => { flash(e.at); pop(cellEl(e.at)); }); if (e.t === 'port' && e.line === P) explain('cert', popDelay + 200); break;
-      case 'gift': if (Monet.canShow('gift')) giftWindow(popDelay + 300);      // и дальше — как у сундука
-      case 'chest': case 'crate': case 'bubble': case 'key': case 'claim': case 'broken':
+      case 'chest': case 'crate': case 'gift': case 'bubble': case 'key': case 'claim': case 'broken':
         later(() => { flash(e.at); pop(cellEl(e.at)); if (e.t === 'key') floatText(e.at, `+1${Art.thing('key').replace('class="thing"', 'class="ic" style="width:34px;height:28px"')}`, 'fl-gold'); });
         if (e.t === 'bubble') sound('pop');
         if (e.t === 'key') explain('keys', popDelay + 300);
@@ -1907,7 +1846,7 @@ function playFx(ev) {
       }
       case 'reject': if (e.at !== undefined) { shake(cellEl(e.at)); sound('no'); } break;
       case 'poor': shake($('coinPill')); sound('no'); if (e.at !== undefined) shake(cellEl(e.at)); break;
-      case 'full': hop(cellEl(e.at)); sound('no'); if (s.cells[e.at]?.k === 'port') showPlaque('room', `${ICON.grid}+2`); break;
+      case 'full': hop(cellEl(e.at)); sound('no'); break;
       case 'noFuel': shake(cellEl(e.at)); shake($('fuelPill')); sound('no'); showFuelBub(e.at); break;
       case 'repair': flash(e.at, '#3E7A57'); pop(cellEl(e.at).querySelector('.car')); sound('coin'); break;
       case 'bubbleBuy': flash(e.at); pop(cellEl(e.at).querySelector('.car')); sound('coin'); bump($('coinPill')); break;
@@ -1939,7 +1878,6 @@ function playFx(ev) {
         if (e.streak) bump($('streak'));
         setTimeout(() => sound('coin'), 700);
         if (s.n.orders === 1) setTimeout(() => { if (!$('cal').hidden) { hop($('cal')); setTimeout(() => hop($('cal')), 350); } }, 900);   // первое задание дня
-        if (e.kind === 'big' && e.coins > 0) setTimeout(() => showPlaque('double', `${ICON.coin}×2`), 900);
         break;
       }
       case 'refresh': anim(orderEl(e.order), [{ transform: 'rotateY(90deg)' }, { transform: 'none' }], { duration: 300 }); break;
@@ -1955,16 +1893,11 @@ function playFx(ev) {
         if (e.lvl === 7 && e.line < P && !s.hintSeen.cert7) { s.hintSeen.cert7 = 1; openCert(popDelay + 200); }   // первая седьмая — заранее
         break;
       }
-      case 'kind':
-        later(() => { flash(e.at, '#3E7A57', true); pop(cellEl(e.at)); });
-        queuePopup(`<div class="sheet narrow"><div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(e.line, 1)}</div>` +
-          `<div class="sh-title">Новый вид в гараже</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 80, 'card', 'panel');
-        break;
       case 'rarityOn': s.hintSeen.atelier = 1; explain('rarity', popDelay + 120); break;   // Ателье открыто — редкость появилась
       case 'lineDone': queuePopup(`<div class="big"><div class="reward">${Art.item(e.line, 8)}</div><div class="reward">${[ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'][e.line]}</div></div>`, popDelay + 60, 'level'); break;
       case 'levelUp': {
-        const port = ev.find(x => x.t === 'port' || x.t === 'kind');
-        const reward = e.reward === 'port' || e.reward === 'kind' ? Art.item(port.line, 1) : e.reward === 'chest' ? Art.thing('level') : `${ICON.fuel}+${C.levelFuel}`;
+        const port = ev.find(x => x.t === 'port');
+        const reward = e.reward === 'port' ? Art.item(port.line, 1) : e.reward === 'chest' ? Art.thing('level') : `${ICON.fuel}+${C.levelFuel}`;
         queuePopup(`<div class="big"><span class="lvl-big">${e.level}</span><div class="reward">${reward}</div></div>`, popDelay, 'level');
         popDelay += 50;
         break;
@@ -2023,7 +1956,7 @@ function showPop(at, html, onTap) {
 function hidePop() { $('popBub').hidden = true; popAct = null; }
 const showFuelBub = at => showPop(at, `${ICON.fuel}<b>${Core.fuelMax(s)}</b>${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${C.fuelCoins}</b>`, () => Core.buyFuel(s));
 // Карточка гаража (долгое нажатие): ступень, что даст следующая — «было → станет», цена и «Улучшить»
-const PORTNAME = ['Гараж', 'Гараж внедорожников', 'Гараж купе', 'Гараж Мастерской', 'Гараж события', 'Ателье'];
+const PORTNAME = ['Гараж легковых', 'Гараж внедорожников', 'Гараж купе', 'Гараж Мастерской', 'Гараж события', 'Ателье'];
 const pc = v => `${Math.round(v * 1000) / 10}%`.replace('.', ',');
 function portSheet(line) {
   const t = s.tiers[line], max = Core.maxTier(s, line), a = Core.tierStats(s, line, t), b = Core.tierStats(s, line, t + 1);
@@ -2034,7 +1967,7 @@ function portSheet(line) {
     ['Необычная', a.rar1 !== undefined && pc(a.rar1), b.rar1 !== undefined && pc(b.rar1)], ['Эпическая', a.rar3 !== undefined && pc(a.rar3), b.rar3 !== undefined && pc(b.rar3)],
     ['Бак', a.fuel !== undefined && `+${a.fuel}`, b.fuel !== undefined && `+${b.fuel}`],
   ].filter(([, x, y]) => x !== y);
-  const price = Core.tierPrice(t, line), poor = s.coins < price;
+  const price = Core.tierPrice(t), poor = s.coins < price;
   const act = t >= max ? `<div class="sh-txt">${line < P && !Core.fxHas(s, 'tier2') ? 'Второй ряд улучшений — после погрузчика в салоне «Порт и склад».' : 'Все ступени куплены.'}</div>` :
     `<button class="btn gold${poor ? ' off' : ''}" data-up>${ICON.up}Улучшить ${ICON.coin}${price}</button>` + (poor ? `<div class="sh-foot">нужно ещё ${price - s.coins} монет</div>` : '');
   // Ателье: заряды, время до следующего и «Заряд сейчас» за монеты (цена растёт с каждой покупкой за день)
@@ -2043,12 +1976,9 @@ function portSheet(line) {
   const charge = ch < 0 ? '' : `<div class="daychest${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%;box-sizing:border-box"><span class="dc-txt">Заряды: <b>${ch} из ${C.atelier.charges}</b>` +
     (ch < C.atelier.charges ? `<br>следующий через ${fmtCharge()}</span>` + btns : '</span>') + '</div>';
   return `<div class="sheet narrow" data-port="${line}">${xbtn}<div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(line, line === Core.TRIM ? 2 : 1)}</div>` +
-    `<div class="sh-title">${PORTNAME[line]}</div><div class="sh-sub" style="justify-content:center">Ступень ${t}${of}</div>` + kindsRow(line) + charge +
+    `<div class="sh-title">${PORTNAME[line]}</div><div class="sh-sub" style="justify-content:center">Ступень ${t}${of}</div>` + charge +
     (rows.length ? `<table class="tbl">${rows.map(([l, x, y]) => `<tr><td>${l}</td><td style="color:var(--ink-3)">${x}</td><td>→ ${y}</td></tr>`).join('')}</table>` : '') + act + '</div>';
 }
-// основной гараж: какие виды машин выдаёт — открытые картинкой 1-го уровня, закрытые замком
-const kindsRow = line => line !== 0 ? '' : `<div class="kinds">${C.ports[0].kinds.map(k => Core.carLines(s).includes(k.line) ?
-  `<span class="kind">${Art.item(k.line, 1)}</span>` : `<span class="kind off">${ICON.lock}</span>`).join('')}</div>`;
 const chargeBtn = cp => `<button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>⚡ ${ICON.coin}${cp}</button>`;
 function openPort(line) {
   rep.tier.done = true;
@@ -2218,8 +2148,7 @@ const HINTS = [
     pic: () => `<div class="rule">${Art.thing('level')}${Art.thing('crate')}${Art.thing('gift')}</div>`,
     txt: ['Нажимай на сундук — из него выезжают машины, топливо, монеты.', 'Сундуки дают уровни, задания и подарок дня.'] },
   { id: 'port', t: 'Гараж и улучшения', lvl: 2, ic: () => ICON.up,
-    txt: [`Нажми на гараж — выедет машина: легковая, с ${C.ports[0].kinds[1].level}-го уровня и внедорожник, с ${C.ports[0].kinds[2].level}-го и купе.`,
-      'Долгое нажатие на гараж — его карточка: что даст улучшение и цена.', 'Точка на углу гаража — на улучшение хватает монет.'] },
+    txt: ['Нажми на гараж — выедет машина.', 'Долгое нажатие на гараж — его карточка: что даст улучшение и цена.', 'Точка на углу гаража — на улучшение хватает монет.'] },
   { id: 'bubble', t: 'Пузырь', lvl: 2, ic: () => ICON.bubble,
     txt: ['После слияния иногда всплывает копия машины.', `Забери её за монеты, пока не лопнула: ${C.bubbleMs / 1000} с.`] },
   { id: 'salon', t: 'Салон', lvl: 2, ic: () => ICON.salon,
@@ -2300,7 +2229,7 @@ function openWhere([line, lvl]) {
     if (!e.target.closest('[data-show]')) return;
     el.close();
     if (view !== 'field') setView('field');
-    const i = s.cells.findIndex(c => c?.k === 'port' && c.line === (line < P ? 0 : line));     // машины любого вида — основной гараж
+    const i = s.cells.findIndex(c => c?.k === 'port' && c.line === line);
     [0, 500, 1000].forEach(d => setTimeout(() => { flash(i, '#3E7A57', true); pop(cellEl(i)); }, d + 150));
   }));
 }
@@ -2332,8 +2261,8 @@ function openCert(delay = 0) {
 // ── Карточки счётчиков шапки: что это, откуда, на что тратится ───────────────
 const hm = ms => { const m = Math.ceil(ms / 60000); return m >= 60 ? `${Math.floor(m / 60)} ч ${m % 60} мин` : `${m} мин`; };
 function levelCard() {
-  const need = Core.xpNeed(s.level), next = s.level + 1, port = C.ports.find(p => p.level === next), kind = C.ports[0].kinds.find(k => k.level === next);
-  const [pic, txt] = kind ? [Art.item(kind.line, 1), `новый вид в гараже — ${LINE_NAME[kind.line]}`] : port ? [Art.item(port.line, 1), port.line === Core.TRIM ? 'Ателье' : `гараж ${LINE_NAME[port.line]}`] : next % 2 === 0 ? [Art.thing('level'), 'сундук машин'] : [ICON.fuel, `+${C.levelFuel} топлива`];
+  const need = Core.xpNeed(s.level), next = s.level + 1, port = C.ports.find(p => p.level === next);
+  const [pic, txt] = port ? [Art.item(port.line, 1), `гараж ${LINE_NAME[port.line]}`] : next % 2 === 0 ? [Art.thing('level'), 'сундук машин'] : [ICON.fuel, `+${C.levelFuel} топлива`];
   const cell = next >= C.levelCellsFrom && (next - C.levelCellsFrom) % C.levelCellsEvery === 0;
   return `<div class="sheet narrow">${xbtn}<span class="lvl-big">${s.level}</span><div class="sh-title">Уровень</div>` +
     `<div class="xpbig"><i style="width:${(Math.min(1, s.xp / need) * 100).toFixed(0)}%"></i></div>` +
@@ -2352,107 +2281,28 @@ function fuelCard() {
   return `<div class="sheet narrow">${xbtn}<span class="bigic" style="color:var(--ink)">${ICON.fuel}</span><span class="bignum">${s.fuel}<span style="font-size:22px;color:var(--ink-3)"> / ${max}</span></span>` +
     `<div class="sh-title">Топливо</div><div class="sh-txt">1 топливо — одно нажатие гаража. +1 каждые ${Math.round(Core.regenMs(s) / 6000) / 10} мин.</div>` +
     `<div class="sh-txt">${full ? `Полный бак через <b>${hm(full)}</b>` : '<b>Бак полный</b>'}</div>` +
-    (s.fuel < 1 ? withAd('fuel', `<button class="btn gold" data-fill>${ICON.fuel}${max} за ${ICON.coin}${C.fuelCoins}</button>`, `${ICON.fuel}${max}`) :
-      s.fuel < C.fuelBelow ? withAd('fuel', '', `${ICON.fuel}${max}`) : '') + '</div>';
+    (s.fuel < 1 ? withAd('fuel', `<button class="btn gold" data-fill>${ICON.fuel}${max} за ${ICON.coin}${C.fuelCoins}</button>`, `${ICON.fuel}${max}`) : '') + '</div>';
 }
 function coinCard() {
-  const b = Core.nextBuy(s), what = !b ? '' : b.t === 'slot' ? 'слот заказа' : b.t === 'tier' ? `улучшение ${b.line === Core.TRIM ? 'Ателье' : b.line === 0 ? 'гаража' : 'гаража ' + LINE_NAME[b.line]}` :
+  const b = Core.nextBuy(s), what = !b ? '' : b.t === 'slot' ? 'слот заказа' : b.t === 'tier' ? `улучшение ${b.line === Core.TRIM ? 'Ателье' : 'гаража ' + LINE_NAME[b.line]}` :
     b.t === 'cell' ? 'клетка поля' : 'место на складе';
   return `<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.coin}</span><span class="bignum">${s.coins}</span><div class="sh-title">Монеты</div>` +
     `<div class="sh-txt">Дают заказы. Тратятся на слоты заказов, улучшения гаражей, клетки поля, заряды Ателье.</div>` +
     (b ? `<div class="xpbig"><i style="width:${Math.min(100, s.coins / b.price * 100).toFixed(0)}%"></i></div><div class="sh-txt">Дальше: <b>${what}</b> — <span class="chip coin">${ICON.coin}${b.price}</span></div>` : '') + '</div>';
 }
 // Ролик с наградой рядом с кнопкой за монеты (задание 12): только с ?monet=1 и по правилам Monet (с 4-го дня, лимиты)
-// (с задания 16 — 8 мест; ctx — что нужно месту, например номер заказа для замены)
-const adBtn = (place, label, ctx) => Monet.canShow(place) ?
-  `<button class="btn light" data-ad="${place}"${ctx ? ` data-ctx='${JSON.stringify(ctx)}'` : ''} aria-label="Ролик">${ICON.video}${label}</button>` : '';
-function withAd(place, coinBtn, label, ctx) {
-  const ad = adBtn(place, label, ctx);
-  return ad ? `<div class="obtns adrow">${coinBtn}${ad}</div>` : coinBtn;
+function withAd(place, coinBtn, label) {
+  if (!Monet.canShow(place)) return coinBtn;
+  return `<div class="obtns adrow">${coinBtn}<button class="btn light" data-ad="${place}" aria-label="Ролик">${ICON.video}${label}</button></div>`;
 }
 const adOffered = el => el.querySelectorAll('[data-ad]').forEach(b => Monet.offered(b.dataset.ad));
 function adTap(e, el) {
   const b = e.target.closest('[data-ad]');
   if (!b) return false;
   el.close();
-  Monet.rewarded(b.dataset.ad, b.dataset.ctx && JSON.parse(b.dataset.ctx));
+  Monet.rewarded(b.dataset.ad);
   return true;
 }
-// Плашка ролика над доком на 6 с («×2» за крупный заказ, «+2 клетки», когда поле полное): игру не блокирует, не в очереди окон
-let plqTimer = 0;
-function showPlaque(place, html) {
-  const b = $('adPlaque');
-  if (!Monet.canShow(place)) return;
-  b.innerHTML = html + ICON.video;
-  b.dataset.ad = place;
-  b.style.bottom = (innerHeight - $('dock').getBoundingClientRect().top + 10) + 'px';
-  b.hidden = false;
-  pop(b);
-  Monet.offered(place);
-  clearTimeout(plqTimer);
-  plqTimer = setTimeout(() => { b.hidden = true; }, 6000);
-}
-// Подарок дня пришёл (в тесте монетизации): окно «Забрать» и «×2 за ролик»; «Забрать» — подарок и так на поле
-function giftWindow(delay) {
-  queuePopup(`<div class="sheet narrow">${xbtn}<div class="sh-pic">${Art.thing('gift')}</div><div class="sh-title">Подарок дня</div>` +
-    withAd('gift', `<button class="btn ok" data-close>Забрать</button>`, '×2') + '</div>', delay, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => adTap(e, el))));
-}
-// Тестовая панель (только в тесте монетизации): по месту — «сегодня n из N» и «Подготовить», сброс счётчиков, день игры для лимитов
-function renderMonetPanel() {
-  const mp = $('monetPanel');
-  mp.hidden = !Monet.on;
-  if (!Monet.on) { mp.innerHTML = ''; return; }
-  const c = Monet.counts(), L = Monet.LIMIT, d = Monet.day();
-  mp.innerHTML = '<div class="set-head">Тест монетизации</div>' +
-    Object.keys(L.place).map(p => `<div class="mrow"><span><b>${Monet.NAME[p]}</b>сегодня ${c.by[p] || 0} из ${L.place[p]}</span>` +
-      `<button class="btn light" data-prep="${p}">Подготовить</button></div>`).join('') +
-    `<div class="mrow"><span><b>Всего роликов</b>сегодня ${c.n} из ${L.perDay}</span><button class="btn light" data-mreset>Сбросить</button></div>` +
-    `<div class="mrow"><span><b>День игры: ${d + 1}-й</b>${d < L.fromDay ? `роликов нет до ${L.fromDay + 1}-го` : 'ролики можно'}</span>` +
-    `<span class="mday"><button class="btn light" data-mday="-1">−</button><button class="btn light" data-mday="1">+</button></span></div>` +
-    '<div class="set-note">тест, без денег</div>';
-}
-// «Подготовить»: привести игру в состояние, где место предлагает ролик (меняется только игра; в журнал — «тест: …»)
-function prepMonet(p) {
-  const now = Date.now(), free = () => s.cells.findIndex(c => !c);
-  L(`тест: подготовить «${Monet.NAME[p]}»`);
-  if (p === 'fuel') s.fuel = 0;
-  if (p === 'charge') { const c = Core.portOf(Core.TRIM).cell; if (!Core.rarOn(s)) s.cells[c] = { k: 'port', line: Core.TRIM }; s.atelier = { n: 0, at: now }; }
-  if (p === 'double') s.lastBig = { coins: Math.max(60, Core.orderValue(s, s.orders.find(o => o) || { kind: 'big', items: [] }) || 60) };
-  if (p === 'chest') { s.daily.goals.forEach(g => { g.have = g.need; g.got = true; }); s.daily.claimed = false; }
-  if (p === 'gift' && free() >= 0) s.cells[free()] = { k: 'chest', kind: 'gift', cars: [[0, 2, 0], [0, 3, 0], ['fuel', 15]] };
-  if (p === 'reroll') s.refreshAt = now + C.refreshMs[0];
-  if (p === 'ship') s.ship = { at: now + 3600e3 };
-  if (p === 'room') s.cells.forEach((c, i) => { if (!c) s.cells[i] = { k: 'car', line: 0, lvl: 1, r: 0 }; });
-  save(); setView('field'); renderAll();
-  if (p === 'fuel') openCard(fuelCard());
-  if (p === 'charge') openPort(Core.TRIM);
-  if (p === 'double') showPlaque('double', `${ICON.coin}×2`);
-  if (p === 'chest') openDaily();
-  if (p === 'gift') giftWindow(0);
-  if (p === 'reroll') openOrder(s.orders.findIndex((o, i) => o && i < s.slots));
-  if (p === 'ship') openDepot();
-}
-$('monetPanel').addEventListener('click', e => {
-  const prep = e.target.closest('[data-prep]'), day = e.target.closest('[data-mday]');
-  if (prep) return prepMonet(prep.dataset.prep);
-  if (e.target.closest('[data-mreset]')) Monet.resetCounts();
-  if (day) { Monet.setDay(Monet.day() + +day.dataset.mday); L(`тест: день игры для роликов — ${Monet.day() + 1}-й`); }
-  renderMonetPanel();
-});
-// 7 быстрых нажатий по номеру сборки — тест монетизации вкл / выкл (в Telegram адрес с ?monet=1 не открыть)
-let verTaps = [];
-$('sLogInfo').addEventListener('click', () => {
-  const now = Date.now();
-  verTaps = verTaps.filter(t => now - t < 700 * 7).concat(now);
-  if (verTaps.length < 7) return;
-  verTaps = [];
-  Monet.setTest(!Monet.on);
-  L(Monet.on ? 'тест монетизации включён' : 'тест монетизации выключен');
-  queuePopup(`<div class="sheet narrow"><div class="sh-title">Тест монетизации ${Monet.on ? 'включён' : 'выключен'}</div>` +
-    `<button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, 0, 'card', 'panel');
-  renderAll(); renderMonetPanel();
-});
-$('adPlaque').addEventListener('click', () => { const b = $('adPlaque'); clearTimeout(plqTimer); b.hidden = true; Monet.rewarded(b.dataset.ad); });
 function openCard(html) {
   queuePopup(html, 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
     if (adTap(e, el)) return;
@@ -2487,15 +2337,14 @@ function tasksSheet() {
   }).join('');
   const all = Core.dailyDone(s);
   const chest = d.claimed ? `<div class="daychest"><span class="dc-txt">Сундук дня получен. Новые задания завтра.</span></div>` :
-    `<div class="daychest${all ? ' can' : ''}${all && Monet.canShow('chest') ? ' ad' : ''}">${Art.thing('daily')}<span class="dc-txt">За все три задания — сундук дня: машины, детали, монеты</span>` +
-    (all ? withAd('chest', `<button class="btn ok" data-chest>Открыть</button>`, '×2') : '') + '</div>';
+    `<div class="daychest${all ? ' can' : ''}">${Art.thing('daily')}<span class="dc-txt">За все три задания — сундук дня: машины, детали, монеты</span>` +
+    (all ? `<button class="btn ok" data-chest>Открыть</button>` : '') + '</div>';
   return `<div class="sheet">${xbtn}<div class="sh-title">Задания на сегодня</div><div class="sh-sub">${ICON.clock}новые через ${hm(mid - Date.now())}</div>${rows}${chest}</div>`;
 }
 function openDaily() {
   if (!s.daily) return;
   if (!s.hintSeen.daily) { s.hintSeen.daily = 1; save(); }
-  queuePopup(tasksSheet(), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
-    if (adTap(e, el)) return;
+  queuePopup(tasksSheet(), 0, 'card', 'panel', el => el.addEventListener('click', e => {
     const take = e.target.closest('[data-take]');
     if (take) {
       const ev = Core.claimTask(s, +take.dataset.take);
@@ -2514,7 +2363,7 @@ function openDaily() {
       el.close();
       play(ev);
     }
-  })));
+  }));
 }
 $('cal').addEventListener('click', openDaily);
 
@@ -2549,20 +2398,19 @@ function depotSheet() {
   }).join('');
   const store = s.storeN ? `<div class="sh-title">Склад</div><div class="slots4">${slots}</div><div class="sh-txt">Перетащи машину на значок склада вверху — она подождёт здесь. Нажми на машину — вернётся на поле.</div>` : '';
   const ready = s.ship && now >= s.ship.at;
-  const ship = s.ship ? `<div class="shipbox${!ready && Monet.canShow('ship') ? ' ad' : ''}">${ICON.ship}<span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
-    (ready ? '' : withAd('ship', `<button class="btn gold" data-ship>Сейчас ${ICON.coin}${Core.shipPrice(s, now)}</button>`, ICON.ship)) + '</div>' : '';
+  const ship = s.ship ? `<div class="shipbox">${ICON.ship}<span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
+    (ready ? '' : `<button class="btn gold" data-ship>Сейчас ${ICON.coin}${Core.shipPrice(s, now)}</button>`) + '</div>' : '';
   return `<div class="sheet">${xbtn}${store}${ship}</div>`;
 }
 function openDepot() {
-  queuePopup(depotSheet(), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
-    if (adTap(e, el)) return;
+  queuePopup(depotSheet(), 0, 'card', 'panel', el => el.addEventListener('click', e => {
     const out = e.target.closest('[data-out]'), slot = e.target.closest('[data-slot]'), ship = e.target.closest('[data-ship]');
     const ev = out ? Core.unstore(s, +out.dataset.out) : slot ? Core.buyStore(s) : ship ? Core.arrive(s, Date.now(), true) : null;
     if (!ev) return;
     if (['poor', 'full', 'reject'].includes(ev[0]?.t)) { shake(out || slot || ship); sound('no'); if (ev[0].t === 'poor') shake($('coinPill')); return; }
     play(ev);
     if (ship) el.close(); else el.innerHTML = depotSheet();
-  })));
+  }));
 }
 $('depotBtn').addEventListener('click', openDepot);
 
@@ -2857,12 +2705,11 @@ function orderSheet(oi) {
   }).join('');
   return `<div class="sheet" data-order="${oi}">${xbtn}<div class="ohead2">${ava}<div class="sh-title">${KIND[o.kind]}</div></div>` +
     `<div class="obig">${tiles}</div><div class="sh-txt">Награда: ${reward}</div>` +
-    `<div class="obtns${price && Monet.canShow('reroll') ? ' adrow' : ''}">${m.any ? `<button class="btn ok" data-give>${ICON.check}Сдать, что есть</button>` : ''}` +
-    `<button class="btn light" data-refresh>${ICON.refresh}${price ? `${ICON.coin}${price}` : 'Заменить'}</button>${price ? adBtn('reroll', ICON.refresh, { order: oi }) : ''}</div></div>`;
+    `<div class="obtns">${m.any ? `<button class="btn ok" data-give>${ICON.check}Сдать, что есть</button>` : ''}` +
+    `<button class="btn light" data-refresh>${ICON.refresh}${price ? `${ICON.coin}${price}` : 'Заменить'}</button></div></div>`;
 }
 function openOrder(oi) {
-  queuePopup(orderSheet(oi), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
-    if (adTap(e, el)) return;
+  queuePopup(orderSheet(oi), 0, 'card', 'panel', el => el.addEventListener('click', e => {
     const now = Date.now();
     if (e.target.closest('[data-give]')) { el.close(); return play(Core.deliver(s, oi, now)); }
     if (e.target.closest('[data-refresh]')) {
@@ -2870,7 +2717,7 @@ function openOrder(oi) {
       if (ev[0]?.t === 'poor') { shake(e.target.closest('[data-refresh]')); shake($('coinPill')); sound('no'); return; }
       el.close(); play(ev);
     }
-  })));
+  }));
 }
 
 // ── Автосалон: вкладки зон, «+», листание пальцем ─────────────────────────────
@@ -2970,7 +2817,7 @@ $('sReset').addEventListener('click', () => {
   setView('field');
 });
 
-$('sLogSend').addEventListener('click', openLog);
+$('sLogSend').addEventListener('click', sendLog);
 let logClearTimer = 0;
 $('sLogClear').addEventListener('click', () => {          // как «Новая игра»: второе нажатие подтверждает
   const b = $('sLogClear');
@@ -3008,8 +2855,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { Co
 
 // Для проверки и снимков экрана: window.G.s — состояние, G.set(состояние) — подменить
 // Монетизация (задание 12): без ?monet=1 провайдера нет — Monet ничего не показывает
-Monet.attach({ s: () => s, day: dayIdx, today: todayKey, now: () => Date.now(), log: L, save,
-  reward: (place, ctx) => { const ev = Core.reward(s, place, Date.now(), ctx); if (ev[0].t !== 'reward') return false; play(ev); return true; } });
+Monet.attach({ s: () => s, day: dayIdx, today: todayKey, now: () => Date.now(), log: L,
+  reward: place => { const ev = Core.reward(s, place, Date.now()); if (ev[0].t !== 'reward') return false; play(ev); return true; } });
 window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
   Core, Art, play, setView, hidePop, openDaily, openHint, openPort, openCard, levelCard, starCard, fuelCard, coinCard, openDepot, eventSheet, openItem, explain, queuePopup, HINTS };
 
@@ -3029,7 +2876,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 12;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 9;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
