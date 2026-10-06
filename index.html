@@ -150,6 +150,18 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .order.k-big::before { width: 6px; }
 .order.k-showcase { --kc: var(--ink); background: #F6F4EF; }
 .order.k-event { --kc: #E9B949; background: #FBF3E0; }
+/* задание 17: охота за карточкой — золотая рамка и значок коллекции */
+.order.k-hunt { --kc: var(--gold); background: #FBF3E0; box-shadow: inset 0 0 0 2px var(--gold); }
+.order.k-hunt .ava { display: grid; place-items: center; background: var(--gold); color: #fff; }
+.order.k-hunt .ava .ic { width: 70%; height: 70%; }
+.stack .hunted { position: absolute; z-index: 2; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
+.stack .hunted .ic { width: 14px; height: 14px; }
+.colbar { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.colbar .xpbig { flex: 1; margin: 0; }
+.colbar .nextm { display: flex; align-items: center; gap: 2px; color: var(--ink-2); }
+.colbar .nextm .ic, .alt .ic { width: 18px; height: 18px; }
+.alt { display: inline-flex; align-items: center; gap: 2px; }
+.alt .car, .alt .thing { width: 22px; height: auto; position: static; }
 .rdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
 .needtool { position: absolute; z-index: 1; top: 1px; right: 1px; width: calc(var(--cell) * .4); height: calc(var(--cell) * .4); border-radius: 50%;
   background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px var(--ink), 0 1px 3px rgba(0,0,0,.25); }
@@ -724,6 +736,16 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 #monetPanel .mrow b { font-size: 15px; color: var(--ink); }
 #monetPanel .btn { height: 38px; padding: 0 12px; font-size: 14px; }
 #monetPanel .mday { display: flex; gap: 6px; }
+.shop .srow { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid #EEE; }
+.shop .srow.off { opacity: .55; }
+.shop .sic { width: 52px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.shop .sic .car, .shop .sic .ic { width: 40px; height: auto; position: static; }
+.shop .stt { flex: 1; display: flex; flex-direction: column; font-size: 13px; color: var(--ink-2); }
+.shop .stt b { font-size: 15px; color: var(--ink); }
+.shop .btn { height: 40px; padding: 0 14px; font-size: 15px; }
+.shop .why { min-width: 40px; text-align: center; font-weight: 800; color: var(--ink-3); display: flex; justify-content: center; }
+.shop .why .ic { width: 18px; height: 18px; }
+.btn small { margin-left: 4px; font-size: 12px; opacity: .8; }
 
 /* Подсказки: список карточек механик */
 .hints { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -869,11 +891,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=12"></script>
-<script src="core.js?v=12"></script>
-<script src="art.js?v=12"></script>
-<script src="salon.js?v=12"></script>
-<script src="monet.js?v=12"></script>
+<script src="tg.js?v=13"></script>
+<script src="core.js?v=13"></script>
+<script src="art.js?v=13"></script>
+<script src="salon.js?v=13"></script>
+<script src="monet.js?v=13"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -917,6 +939,7 @@ const ICON = {
   trophy: ic('<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
   chest: ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
   close: ic('<path d="M6 6l12 12M18 6 6 18"/>'),
+  piggy: ic('<path d="M5 12.5c0-3.3 3-5.5 7-5.5 2.2 0 4 .6 5.3 1.7L19.5 7v3.2c.6.6 1 1.3 1 2.1v1.4c0 .6-.4 1-1 1h-.9c-.6 1-1.5 1.8-2.6 2.3V19h-2.5v-1.5h-3V19H8v-2.1c-1.8-1-3-2.6-3-4.4z"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><path d="M10.5 7.4 11.3 6h2.4"/>'),
   video: ic('<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>'),
   play: ic('<path d="M5 12h12M13 7l5 5-5 5"/>'),
   share: ic('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8"/>'),
@@ -972,7 +995,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 12 от 05.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 13 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1107,7 +1130,9 @@ function logDrop(ev, from, to, was, card, depot, cancel) {
 const LOGEV = {
   orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
   refresh: e => `заказ ${e.order + 1} заменён${e.price ? ` за ${e.price} монет` : ' бесплатно'}`,
-  levelUp: e => `новый уровень игрока: ${e.level}`, kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
+  levelUp: e => `новый уровень игрока: ${e.level}`, milestone: e => `коллекция: этап ${e.n} карточек`,
+  alt: e => `награда: ${{ coins: 'монеты', stars: 'звёзды', charge: 'заряд Ателье', tank: 'бак в запас', key: 'ключ', chest: 'сундук машин', swap: 'замена заказа' }[e.kind]} ${e.n}`,
+  huntGone: () => 'охота за карточкой ушла (сутки)', grant: e => `тест: товар выдан — ${e.id}`, reserve: () => 'бак из запаса', kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
   tier: e => e.tier && `улучшил ${PORTNAME[e.line].toLowerCase()} до ступени ${e.tier}`, build: e => `салон: построил «${ITEM_NAME[e.item]}»`,
   fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', reward: e => `награда за ролик: ${Monet.NAME[e.place] || e.place}`, taskClaim: () => 'забрал награду задания дня',
   claim: () => 'открыл сундук дня', unstore: () => 'вернул машину со склада', prestige: () => 'престиж салона', zoneDone: () => 'зона салона готова',
@@ -1314,7 +1339,7 @@ function cellHTML(c, i, hl) {
     return `<div class="cell port${ev ? ' ev' : ''}${off ? ' off' : ''}" data-i="${i}" role="button" tabindex="0" aria-label="Гараж">${GARAGE}` +
       (off ? `<span class="timer"${ch === 0 ? ' data-charge' : ''}>${ch === 0 ? fmtCharge() : fmtWait()}</span>` : `<span class="port-car">${icon}</span>`) +
       (Core.portFuel(c.line) > 1 ? `<span class="cost2">${ICON.fuel}${cost}</span>` : '') + (up ? `<i class="upbadge" data-up="${c.line}">${ICON.up}</i>` : '') +
-      (ch > 0 ? `<i class="chg">${Array.from({ length: C.atelier.charges }, (_, k) => `<b class="${k < ch ? 'on' : ''}"></b>`).join('')}</i>` : '') + '</div>';
+      (ch > 0 ? `<i class="chg">${Array.from({ length: Core.maxCharges(s) }, (_, k) => `<b class="${k < ch ? 'on' : ''}"></b>`).join('')}</i>` : '') + '</div>';
   }
   if (c.k === 'slot') return `<div class="cell slot" data-i="${i}">${GARAGE}</div>`;     // место будущего гаража — бледный контур
   if (c.k === 'chest') return `<div class="cell chest" data-i="${i}" role="button" tabindex="0" aria-label="Сундук">${Art.thing(c.kind === 'box' ? 'boxOpen' : c.kind)}<span class="cnt">${c.cars.length}</span></div>`;
@@ -1344,6 +1369,13 @@ function renderBoard() {
   $('board').innerHTML = s.cells.map((c, i) => cellHTML(c, i, hl)).join('');
 }
 
+// Награда другого вида (задание 17): значок и сколько штук (как в Core.giveAlt); остаток стоимости — звёздами
+function altChip(type, value) {
+  const L = C.late, n = type === 'stars' ? Math.max(1, Math.round(value / L.starsPerCoins)) : type === 'coins' ? value :
+    Math.max(1, Math.min({ key: L.keyMax, swap: L.swapsMax, chest: 1 }[type] ?? 99, Math.floor(value / L.unit[type])));
+  return `<span class="alt">${ALT_IC[type]}${type === 'chest' ? '' : (type === 'stars' || type === 'coins' ? '' : '+') + n}</span>`;
+}
+const ALT_IC = { coins: ICON.coin, stars: ICON.star, charge: '⚡', tank: ICON.fuel, key: ICON.key, chest: ICON.chest, swap: ICON.refresh };
 function orderHTML(o, oi) {
   if (oi >= s.slots) {
     const next = oi === s.slots;
@@ -1357,9 +1389,10 @@ function orderHTML(o, oi) {
       `${Art.item(it.line, it.lvl, false, Math.max(0, it.r))}${badge(it.lvl)}${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}${ok ? `<i class="tick">${ICON.check}</i>` : ''}</span>`;
   }).join('');
   const price = Core.refreshPrice(s, Date.now());
-  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
+  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
+    o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
   const single = o.items.length === 1 && o.items[0].n === 1;
-  const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : ICON.coin + Core.orderValue(s, o);
+  const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
   return `<div class="order k-${o.kind}${single ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
     `<span class="ohead">${ava}<span class="oval">${val}</span>` +
     `<button class="ref" data-ref="${oi}" aria-label="Заменить заказ">${ICON.refresh}${price ? `<b>${price}</b>` : ''}</button></span>` +
@@ -1466,15 +1499,24 @@ function stackHTML(line, lvl) {
   const k = Core.key(line, lvl), m = s.seen[k] || 0, top = m ? bestRar(m) : 0, on = Core.rarOn(s), [brand, model] = Core.CARS[line][lvl - 1];
   const under = [...[3, 2, 1, 0].filter(r => r < top), ...[0, 1, 2, 3, 4].filter(r => r > top)].slice(0, 2);
   const edges = on && m ? under.map((r, q) => `<i class="edge${m & (1 << r) ? '' : ' no'}" style="--q:${q + 1};${rv(r)}"></i>`).join('') : '';
+  const hunted = s.orders.some((o, oi) => o?.kind === 'hunt' && oi < s.slots && o.items[0].line === line && o.items[0].lvl === lvl);   // охота ищет эту модель
   return `<button class="stack${m ? '' : ' unknown'}${s.fresh[k] ? ' fresh' : ''}" data-k="${k}"${m ? '' : ' disabled'} aria-label="${m ? nameOf(line, lvl) : 'Неизвестная машина'}">${edges}` +
+    (hunted ? `<i class="hunted">${ICON.cards}</i>` : '') +
     `<span class="scard${s.landRar?.[k] !== undefined ? ' land' : ''}" style="${rv(top)}">${badge(lvl)}` +
     `<span class="sc-car">${m ? Art.item(line, lvl, false, top, true) : Art.item(line, lvl, true, 0)}</span>` +
     (m ? `<span class="sc-name"><small>${brand}</small>${model}</span>${on ? rdots(m) : ''}` : '<b class="sc-q">?</b>') + '</span></button>';
 }
+// награда этапа коллекции картинками: бак, заряд, монеты, звёзды, трофей
+const milePics = rw => [rw.tank && ICON.fuel + rw.tank, rw.charge && Art.item(Core.TRIM, 2, true), rw.coins && ICON.coin + rw.coins, rw.stars && ICON.star + rw.stars,
+  rw.trophy && ICON.trophy].filter(Boolean).map(x => `<span class="alt">${x}</span>`).join('');
 function renderCollection() {
   const seen = Object.keys(s.seen).length, full = Object.values(s.seen).filter(m => m === 31).length;
   let h = `<div class="view-head">${ICON.cards}<span>${seen}/24</span>${full ? `<span class="bonus on" style="margin-left:auto">${full} ${plural(full, 'полная стопка', 'полные стопки', 'полных стопок')} · ${ICON.coin}+${full}%</span>` : ''}</div>`;
   const bonus = [ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'];
+  // этапы коллекции (задание 17): карточек из 120 и награда следующего этапа
+  const cc = Core.cardCount(s), nm = C.late.milestones[s.miles || 0];
+  h += `<div class="colbar">${ICON.cards}<span>${cc} / 120</span><div class="xpbig"><i style="width:${(cc / 120 * 100).toFixed(0)}%"></i></div>` +
+    (nm ? `<span class="nextm">${nm[0]}${ICON.play}${milePics(nm[1])}</span>` : '') + '</div>';
   [0, 1, 2].forEach(line => {
     const n = Core.CARS[line].filter((_, i) => s.seen[Core.key(line, i + 1)]).length;
     h += `<div class="line-head">${Art.item(line, 1, n === 0)}<span>${n}/8</span><span class="bonus${Core.lineDone(s, line) ? ' on' : ''}">${bonus[line]}</span></div>`;
@@ -1960,6 +2002,11 @@ function playFx(ev) {
         queuePopup(`<div class="sheet narrow"><div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(e.line, 1)}</div>` +
           `<div class="sh-title">Новый вид в гараже</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 80, 'card', 'panel');
         break;
+      case 'milestone':                    // этап коллекции (задание 17): окно с наградой и ✓
+        queuePopup(`<div class="sheet narrow"><div class="sh-pic">${ICON.cards}</div><div class="sh-title">Коллекция: ${e.n} карточек</div>` +
+          `<div class="obtns">${milePics(e.got)}</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 200, 'level', 'panel');
+        break;
+      case 'alt': later(() => floatText(Core.CONFIG.ports[0].cell, `${ALT_IC[e.kind]}+${e.n}`, 'fl-gold')); sound('coin'); break;
       case 'rarityOn': s.hintSeen.atelier = 1; explain('rarity', popDelay + 120); break;   // Ателье открыто — редкость появилась
       case 'lineDone': queuePopup(`<div class="big"><div class="reward">${Art.item(e.line, 8)}</div><div class="reward">${[ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'][e.line]}</div></div>`, popDelay + 60, 'level'); break;
       case 'levelUp': {
@@ -2040,8 +2087,9 @@ function portSheet(line) {
   // Ателье: заряды, время до следующего и «Заряд сейчас» за монеты (цена растёт с каждой покупкой за день)
   const now = Date.now(), ch = line === Core.TRIM ? Core.charges(s, now) : -1, cp = Core.chargePrice(s, todayKey());
   const btns = ch === 0 ? withAd('charge', chargeBtn(cp), '+1') : chargeBtn(cp);
-  const charge = ch < 0 ? '' : `<div class="daychest${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%;box-sizing:border-box"><span class="dc-txt">Заряды: <b>${ch} из ${C.atelier.charges}</b>` +
-    (ch < C.atelier.charges ? `<br>следующий через ${fmtCharge()}</span>` + btns : '</span>') + '</div>';
+  const charge = ch < 0 ? '' : `<div class="daychest${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%;box-sizing:border-box"><span class="dc-txt">Заряды: <b>${ch} из ${Core.maxCharges(s)}</b>` +
+    (ch < Core.maxCharges(s) ? `<br>следующий через ${fmtCharge()}</span>` + btns : '</span>') + '</div>' +
+    (line === Core.TRIM ? `<div class="obtns adrow">${buyBtn('part1', Art.item(Core.TRIM, 1))}${buyBtn('part2', Art.item(Core.TRIM, 2))}</div>` : '');
   return `<div class="sheet narrow" data-port="${line}">${xbtn}<div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(line, line === Core.TRIM ? 2 : 1)}</div>` +
     `<div class="sh-title">${PORTNAME[line]}</div><div class="sh-sub" style="justify-content:center">Ступень ${t}${of}</div>` + kindsRow(line) + charge +
     (rows.length ? `<table class="tbl">${rows.map(([l, x, y]) => `<tr><td>${l}</td><td style="color:var(--ink-3)">${x}</td><td>→ ${y}</td></tr>`).join('')}</table>` : '') + act + '</div>';
@@ -2052,8 +2100,9 @@ const kindsRow = line => line !== 0 ? '' : `<div class="kinds">${C.ports[0].kind
 const chargeBtn = cp => `<button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>⚡ ${ICON.coin}${cp}</button>`;
 function openPort(line) {
   rep.tier.done = true;
-  queuePopup(portSheet(line), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
+  queuePopup(portSheet(line), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', async e => {
     if (adTap(e, el)) return;
+    if (await buyTap(e, el, () => portSheet(line))) return;
     const cb = e.target.closest('[data-charge]');
     if (cb) {
       const ev = Core.buyCharge(s, Date.now(), todayKey());
@@ -2220,6 +2269,8 @@ const HINTS = [
   { id: 'port', t: 'Гараж и улучшения', lvl: 2, ic: () => ICON.up,
     txt: [`Нажми на гараж — выедет машина: легковая, с ${C.ports[0].kinds[1].level}-го уровня и внедорожник, с ${C.ports[0].kinds[2].level}-го и купе.`,
       'Долгое нажатие на гараж — его карточка: что даст улучшение и цена.', 'Точка на углу гаража — на улучшение хватает монет.'] },
+  { id: 'hunt', t: 'Охота за карточкой', open: () => Core.lateOn(s), lock: `Откроется на уровне ${C.late.fromLevel}`, ic: () => ICON.cards,
+    txt: ['Золотой заказ просит карточку, которой у тебя ещё нет.'] },
   { id: 'bubble', t: 'Пузырь', lvl: 2, ic: () => ICON.bubble,
     txt: ['После слияния иногда всплывает копия машины.', `Забери её за монеты, пока не лопнула: ${C.bubbleMs / 1000} с.`] },
   { id: 'salon', t: 'Салон', lvl: 2, ic: () => ICON.salon,
@@ -2347,13 +2398,19 @@ function starCard() {
     (b ? `<div class="sh-txt">Следующий предмет: <b>${ITEM_NAME[b.item]}</b> — <span class="chip star">${ICON.star}${b.price}</span></div>` : '') +
     `<button class="btn" data-go="salon">${ICON.salon}Салон</button></div>`;
 }
+// запас баков (магазин, задание 17; только в тесте): число запаса, «бак из запаса» (в любой момент), «5 баков» за ⭐
+function reserveRow(max) {
+  if (!Monet.on) return '';
+  const use = (s.reserve || 0) > 0 && s.fuel < max ? `<button class="btn ok" data-reserve aria-label="Бак из запаса">${ICON.fuel}${max}</button>` : '';
+  return `<div class="sh-txt">${ICON.fuel} запас: <b>${s.reserve || 0}</b></div><div class="obtns adrow">${use}${buyBtn('tanks5', ICON.fuel + '×5')}</div>`;
+}
 function fuelCard() {
   const now = Date.now(), max = Core.fuelMax(s), full = s.fuel >= max ? 0 : Core.fuelWaitMs(s, now) + (max - s.fuel - 1) * Core.regenMs(s);
   return `<div class="sheet narrow">${xbtn}<span class="bigic" style="color:var(--ink)">${ICON.fuel}</span><span class="bignum">${s.fuel}<span style="font-size:22px;color:var(--ink-3)"> / ${max}</span></span>` +
     `<div class="sh-title">Топливо</div><div class="sh-txt">1 топливо — одно нажатие гаража. +1 каждые ${Math.round(Core.regenMs(s) / 6000) / 10} мин.</div>` +
     `<div class="sh-txt">${full ? `Полный бак через <b>${hm(full)}</b>` : '<b>Бак полный</b>'}</div>` +
     (s.fuel < 1 ? withAd('fuel', `<button class="btn gold" data-fill>${ICON.fuel}${max} за ${ICON.coin}${C.fuelCoins}</button>`, `${ICON.fuel}${max}`) :
-      s.fuel < C.fuelBelow ? withAd('fuel', '', `${ICON.fuel}${max}`) : '') + '</div>';
+      s.fuel < C.fuelBelow ? withAd('fuel', '', `${ICON.fuel}${max}`) : '') + reserveRow(max) + '</div>';
 }
 function coinCard() {
   const b = Core.nextBuy(s), what = !b ? '' : b.t === 'slot' ? 'слот заказа' : b.t === 'tier' ? `улучшение ${b.line === Core.TRIM ? 'Ателье' : b.line === 0 ? 'гаража' : 'гаража ' + LINE_NAME[b.line]}` :
@@ -2364,8 +2421,10 @@ function coinCard() {
 }
 // Ролик с наградой рядом с кнопкой за монеты (задание 12): только с ?monet=1 и по правилам Monet (с 4-го дня, лимиты)
 // (с задания 16 — 8 мест; ctx — что нужно месту, например номер заказа для замены)
+// с «Без роликов» (задание 17) ролика нет — вместо значка видео подарок
+const adIcon = () => Monet.vip() ? ICON.gift : ICON.video;
 const adBtn = (place, label, ctx) => Monet.canShow(place) ?
-  `<button class="btn light" data-ad="${place}"${ctx ? ` data-ctx='${JSON.stringify(ctx)}'` : ''} aria-label="Ролик">${ICON.video}${label}</button>` : '';
+  `<button class="btn light" data-ad="${place}"${ctx ? ` data-ctx='${JSON.stringify(ctx)}'` : ''} aria-label="${Monet.vip() ? 'Награда' : 'Ролик'}">${adIcon()}${label}</button>` : '';
 function withAd(place, coinBtn, label, ctx) {
   const ad = adBtn(place, label, ctx);
   return ad ? `<div class="obtns adrow">${coinBtn}${ad}</div>` : coinBtn;
@@ -2383,7 +2442,7 @@ let plqTimer = 0;
 function showPlaque(place, html) {
   const b = $('adPlaque');
   if (!Monet.canShow(place)) return;
-  b.innerHTML = html + ICON.video;
+  b.innerHTML = html + adIcon();
   b.dataset.ad = place;
   b.style.bottom = (innerHeight - $('dock').getBoundingClientRect().top + 10) + 'px';
   b.hidden = false;
@@ -2392,6 +2451,39 @@ function showPlaque(place, html) {
   clearTimeout(plqTimer);
   plqTimer = setTimeout(() => { b.hidden = true; }, 6000);
 }
+// Магазин (задание 17, только в тесте монетизации): товар — картинка, название, ⭐ цена, «Купить»; нельзя — серый с причиной;
+// куплено навсегда — ✓. Копилка — сколько в ней монет и «Разбить»
+const SHOP_IC = { tanks5: ICON.fuel + '×5', part1: Art.item(Core.TRIM, 1), part2: Art.item(Core.TRIM, 2), starter: ICON.gift, vip: ICON.video,
+  piggy: ICON.piggy, atelier3: '⚡+1', tankplus: ICON.fuel + '+' + C.shop.items.tankplus.fuel };
+const WHY = { нет: '—', куплено: '✓', день: ICON.calendar, Ателье: ICON.lock, запас: ICON.fuel + '15', лимит: '3/3', место: ICON.grid, мало: '<100' };
+function shopRow(p) {
+  const g = Core.canGrant(s, p.id, Date.now(), Monet.day()), price = C.shop.items[p.id].price;
+  const pig = p.id === 'piggy' ? ` · в копилке ${s.shop?.piggy || 0}` : '';
+  const right = g.ok ? `<button class="btn gold" data-buy="${p.id}">${p.id === 'piggy' ? 'Разбить' : 'Купить'}</button>` :
+    g.why === 'куплено' ? `<i class="tick">${ICON.check}</i>` : `<span class="why">${WHY[g.why] || g.why}</span>`;
+  return `<div class="srow${g.ok ? '' : ' off'}" data-id="${p.id}"><span class="sic">${SHOP_IC[p.id]}</span><span class="stt"><b>${p.title}</b>⭐ ${price}${pig}</span>${right}</div>`;
+}
+const shopSheet = () => `<div class="sheet shop">${xbtn}<div class="sh-title">Магазин</div>${Monet.products.map(shopRow).join('')}<div class="set-note">тест, без денег</div></div>`;
+function openShop() {
+  if (!Monet.on) return;
+  queuePopup(shopSheet(), 0, 'card', 'panel', el => el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-buy]');
+    if (!b) return;
+    await Monet.buy(b.dataset.buy);
+    if (popupOpen === el) el.innerHTML = shopSheet();
+  }));
+}
+// контекстные кнопки товара (только в тесте и только когда товар можно купить)
+const buyBtn = (id, label) => Monet.on && Core.canGrant(s, id, Date.now(), Monet.day()).ok ?
+  `<button class="btn light" data-buy="${id}" aria-label="Купить">${label}<small>⭐${C.shop.items[id].price}</small></button>` : '';
+async function buyTap(e, el, again) {
+  const b = e.target.closest('[data-buy]');
+  if (!b) return false;
+  await Monet.buy(b.dataset.buy);
+  if (popupOpen === el) el.innerHTML = again();
+  return true;
+}
+
 // Подарок дня пришёл (в тесте монетизации): окно «Забрать» и «×2 за ролик»; «Забрать» — подарок и так на поле
 function giftWindow(delay) {
   queuePopup(`<div class="sheet narrow">${xbtn}<div class="sh-pic">${Art.thing('gift')}</div><div class="sh-title">Подарок дня</div>` +
@@ -2404,11 +2496,16 @@ function renderMonetPanel() {
   if (!Monet.on) { mp.innerHTML = ''; return; }
   const c = Monet.counts(), L = Monet.LIMIT, d = Monet.day();
   mp.innerHTML = '<div class="set-head">Тест монетизации</div>' +
+    `<button class="set" data-shop>${ICON.coin}<span>Магазин</span></button>` +
     Object.keys(L.place).map(p => `<div class="mrow"><span><b>${Monet.NAME[p]}</b>сегодня ${c.by[p] || 0} из ${L.place[p]}</span>` +
       `<button class="btn light" data-prep="${p}">Подготовить</button></div>`).join('') +
     `<div class="mrow"><span><b>Всего роликов</b>сегодня ${c.n} из ${L.perDay}</span><button class="btn light" data-mreset>Сбросить</button></div>` +
     `<div class="mrow"><span><b>День игры: ${d + 1}-й</b>${d < L.fromDay ? `роликов нет до ${L.fromDay + 1}-го` : 'ролики можно'}</span>` +
     `<span class="mday"><button class="btn light" data-mday="-1">−</button><button class="btn light" data-mday="1">+</button></span></div>` +
+    `<div class="mrow"><span><b>Покупки</b>запас ${s.reserve || 0}, копилка ${s.shop?.piggy || 0}</span><span class="mday">` +
+    `<button class="btn light" data-shopreset>Сбросить</button><button class="btn light" data-piggy>${ICON.coin}+100</button></span></div>` +
+    `<div class="mrow"><span><b>Поздняя игра</b>карточек ${Core.cardCount(s)}, этап ${s.miles || 0}</span><span class="mday">` +
+    `<button class="btn light" data-hunt>Охота</button><button class="btn light" data-mile>Этап</button></span></div>` +
     '<div class="set-note">тест, без денег</div>';
 }
 // «Подготовить»: привести игру в состояние, где место предлагает ролик (меняется только игра; в журнал — «тест: …»)
@@ -2424,7 +2521,7 @@ function prepMonet(p) {
   if (p === 'ship') s.ship = { at: now + 3600e3 };
   if (p === 'room') s.cells.forEach((c, i) => { if (!c) s.cells[i] = { k: 'car', line: 0, lvl: 1, r: 0 }; });
   save(); setView('field'); renderAll();
-  if (p === 'fuel') openCard(fuelCard());
+  if (p === 'fuel') openCard(fuelCard(), fuelCard);
   if (p === 'charge') openPort(Core.TRIM);
   if (p === 'double') showPlaque('double', `${ICON.coin}×2`);
   if (p === 'chest') openDaily();
@@ -2436,6 +2533,14 @@ $('monetPanel').addEventListener('click', e => {
   const prep = e.target.closest('[data-prep]'), day = e.target.closest('[data-mday]');
   if (prep) return prepMonet(prep.dataset.prep);
   if (e.target.closest('[data-mreset]')) Monet.resetCounts();
+  if (e.target.closest('[data-shop]')) return openShop();
+  if (e.target.closest('[data-shopreset]')) {        // покупки: запас, магазин, копилка, постоянные улучшения
+    s.reserve = 0; delete s.shop; if (s.atelier && s.atelier.n > C.atelier.charges) s.atelier.n = C.atelier.charges;
+    save(); L('тест: покупки сброшены');
+  }
+  if (e.target.closest('[data-piggy]')) { (s.shop ||= {}).piggy = Math.min(C.shop.items.piggy.max, (s.shop.piggy || 0) + 100); save(); L('тест: в копилку +100'); }
+  if (e.target.closest('[data-hunt]')) { L('тест: охота'); setView('field'); play(Core.testHunt(s, 0, Date.now())); renderAll(); }
+  if (e.target.closest('[data-mile]')) { L('тест: этап коллекции'); play(Core.testMilestone(s)); }
   if (day) { Monet.setDay(Monet.day() + +day.dataset.mday); L(`тест: день игры для роликов — ${Monet.day() + 1}-й`); }
   renderMonetPanel();
 });
@@ -2453,9 +2558,11 @@ $('sLogInfo').addEventListener('click', () => {
   renderAll(); renderMonetPanel();
 });
 $('adPlaque').addEventListener('click', () => { const b = $('adPlaque'); clearTimeout(plqTimer); b.hidden = true; Monet.rewarded(b.dataset.ad); });
-function openCard(html) {
-  queuePopup(html, 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
+function openCard(html, again) {
+  queuePopup(html, 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', async e => {
     if (adTap(e, el)) return;
+    if (e.target.closest('[data-reserve]')) { const ev = Core.useReserve(s); if (ev[0].t === 'reserve') { play(ev); bump($('fuelPill')); if (again) el.innerHTML = again(); } return; }
+    if (await buyTap(e, el, again || (() => html))) return;
     const go = e.target.closest('[data-go]');
     if (go) { el.close(); setView(go.dataset.go); }
     if (e.target.closest('[data-fill]')) { const ev = Core.buyFuel(s); if (ev[0].t === 'reject') { shake($('coinPill')); sound('no'); return; } el.close(); play(ev); }
@@ -2463,7 +2570,7 @@ function openCard(html) {
 }
 $('lvlBox').addEventListener('click', () => openCard(levelCard()));
 $('starPill').addEventListener('click', () => openCard(starCard()));
-$('fuelPill').addEventListener('click', () => openCard(fuelCard()));
+$('fuelPill').addEventListener('click', () => openCard(fuelCard(), fuelCard));
 $('coinPill').addEventListener('click', () => openCard(coinCard()));
 
 // ── Задания дня: строка, прогресс, награда и «Забрать»; внизу — сундук за все три ──
@@ -2475,13 +2582,15 @@ const TASK = {
   lvl: n => [Art.item(0, n), `Собери машину ${n}-го уровня`],
   repair: () => [ICON.wrench, 'Почини 1 машину'],
   rarity: () => [Art.item(Core.TRIM, 2), 'Подними редкость 1 машины'],
+  card: () => [ICON.cards, 'Получи новую карточку'],
 };
 function tasksSheet() {
   const d = s.daily, mid = new Date(); mid.setHours(24, 0, 0, 0);
   const rows = d.goals.map((g, k) => {
     const [ic, txt] = TASK[g.t](g.need), have = Math.min(g.have, g.need), ok = Core.goalDone(g);
-    const right = g.got ? `<i class="tick">${ICON.check}</i>` : ok ? `<button class="take" data-take="${k}">Забрать ${ICON.fuel}+${g.fuel}</button>` :
-      `<span class="chip fuel rw">${ICON.fuel}+${g.fuel}</span>`;
+    const rw = g.alt ? altChip(g.alt, C.late.taskValue) : `${ICON.fuel}+${g.fuel}`;     // после 15-го уровня — не только топливо
+    const right = g.got ? `<i class="tick">${ICON.check}</i>` : ok ? `<button class="take" data-take="${k}">Забрать ${rw}</button>` :
+      `<span class="chip fuel rw">${rw}</span>`;
     return `<div class="task${g.got ? ' got' : ''}"><span class="tic">${ic}</span><span class="tmid"><b>${txt}</b>` +
       `<span class="tbar"><span><i style="width:${(have / g.need * 100).toFixed(0)}%"></i></span>${have}/${g.need}</span></span>${right}</div>`;
   }).join('');
@@ -2845,11 +2954,14 @@ $('orders').addEventListener('click', e => {
   if (Core.match(s, s.orders[oi]).ready) return play(Core.deliver(s, oi, now));
   openOrder(oi);
 });
-const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события' };
+const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой' };
 function orderSheet(oi) {
   const o = s.orders[oi], m = Core.match(s, o), price = Core.refreshPrice(s, Date.now());
-  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
-  const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : `<span class="chip coin">${ICON.coin}${Core.orderValue(s, o)}</span>`;
+  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
+    o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
+  const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ? `<span class="chip">${altChip(o.reward, Core.orderValue(s, o))}</span>` +
+    (o.kind === 'hunt' ? ` <span class="chip">${ICON.star}+${C.late.hunt.stars[0] + C.late.hunt.stars[1] * o.items[0].lvl}</span>` : '') :   // охота: звёзды сверх награды
+    `<span class="chip coin">${ICON.coin}${Core.orderValue(s, o)}</span>`;
   const tiles = o.items.map((it, k) => {
     const left = it.n - it.got, have = m.cells[k].length;
     return `<span class="rtile${left === 0 ? ' done' : ''}" style="${rv(Math.max(0, it.r))}">${Art.item(it.line, it.lvl)}${badge(it.lvl)}` +
@@ -3009,7 +3121,10 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { Co
 // Для проверки и снимков экрана: window.G.s — состояние, G.set(состояние) — подменить
 // Монетизация (задание 12): без ?monet=1 провайдера нет — Monet ничего не показывает
 Monet.attach({ s: () => s, day: dayIdx, today: todayKey, now: () => Date.now(), log: L, save,
-  reward: (place, ctx) => { const ev = Core.reward(s, place, Date.now(), ctx); if (ev[0].t !== 'reward') return false; play(ev); return true; } });
+  reward: (place, ctx) => { const ev = Core.reward(s, place, Date.now(), ctx); if (ev[0].t !== 'reward') return false; play(ev); return true; },
+  // магазин (задание 17): товар выдают правила; тест вкл / выкл — копилка и запас баков в правилах
+  canGrant: (id, day) => Core.canGrant(s, id, Date.now(), day), grant: (id, day) => play(Core.grant(s, id, Date.now(), day)),
+  price: id => C.shop.items[id].price, setOn: on => Core.setMonetOn(on) });
 window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
   Core, Art, play, setView, hidePop, openDaily, openHint, openPort, openCard, levelCard, starCard, fuelCard, coinCard, openDepot, eventSheet, openItem, explain, queuePopup, HINTS };
 
@@ -3029,7 +3144,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 12;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 13;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

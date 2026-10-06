@@ -1,4 +1,4 @@
-// Монетизация (задания 12, 16): заглушки, выключены. Реклама по желанию игрока с наградой — через подменяемого провайдера
+// Монетизация (задания 12, 16, 17): заглушки, выключены. Реклама по желанию игрока с наградой и покупки за ⭐ — через подменяемого провайдера
 // (Monet.use). По умолчанию провайдер «нет»: всё отвечает ok:false, кнопок и плашек в игре нет.
 // Тест монетизации — ?monet=1 или 7 быстрых нажатий по номеру сборки в Настройках (флаг garazh.monet): тестовый «ролик» 3 с
 // и «покупка» ✓/✕, тестовая панель в Настройках. ?monet=1&day=N — для лимитов считать, что идёт N-й день игры.
@@ -12,6 +12,9 @@
   const NAME = { fuel: 'полный бак', charge: '+1 заряд Ателье', double: 'монеты крупного заказа ×2', chest: 'второй сундук дня',
     gift: 'подарок дня ×2', reroll: 'замена заказа', ship: 'корабль сейчас', room: '+2 клетки' };
   const NONE = { products: [], rewarded: async () => ({ ok: false }), buy: async () => ({ ok: false }) };
+  // товары (задание 17): названия на экране; цены и правила — CONFIG.shop и Core.canGrant / Core.grant
+  const PRODUCTS = [['tanks5', '5 баков'], ['part1', 'Деталь Ателье 1'], ['part2', 'Деталь Ателье 2'], ['starter', 'Стартовый набор'],
+    ['vip', 'Без роликов'], ['piggy', 'Копилка'], ['atelier3', 'Ещё заряд Ателье'], ['tankplus', 'Бак больше']].map(([id, title]) => ({ id, title }));
   const ls = {
     get: k => { try { return localStorage.getItem(k); } catch { return null; } },
     set: (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} },
@@ -21,13 +24,15 @@
   const Monet = {
     LIMIT, NAME, products: [],
     _test: {},                                       // для автопроверки: { next: 'fail' } — следующий ролик не досмотрен
-    use(p) { provider = p || NONE; Monet.products = provider.products || []; },
+    use(p) { provider = p || NONE; Monet.products = provider === NONE ? [] : PRODUCTS; game?.setOn?.(provider !== NONE); },
     get on() { return provider !== NONE; },
     // тест монетизации: включить / выключить (флаг в localStorage — и в Telegram, где адрес не поменять)
     setTest(on) { ls.set('garazh.monet', on ? '1' : null); Monet.use(on ? testProvider() : null); },
     // связь с игрой: s() — сохранение (счётчики — s.monet), day() — день игры с 0, today() — дата, now(), log(text), save(),
-    // reward(place, ctx) — выдать награду правилами игры (Core.reward), ответ — получилось ли
-    attach(g) { game = g; },
+    // reward(place, ctx) — выдать награду правилами игры (Core.reward), ответ — получилось ли; canGrant(id, day) / grant(id, day) —
+    // товар (Core.canGrant / Core.grant); setOn(on) — тест монетизации вкл / выкл (копилка, запас баков в правилах)
+    attach(g) { game = g; g.setOn?.(Monet.on); },
+    vip: () => !!game?.s().shop?.vip,               // «Без роликов» куплен: награда сразу, без ролика
     // день для лимитов: в тесте можно подменить (?day=N, панель); игра, её сохранение и дни событий не меняются
     day: () => testDay ?? game.day(),
     setDay(d) { testDay = Math.max(0, d); ls.set('garazh.monetDay', String(testDay)); },
@@ -40,16 +45,18 @@
     canShow(place) {
       if (provider === NONE || !game || busy || !NAME[place]) return false;
       const c = Monet.counts();
-      return Monet.day() >= LIMIT.fromDay && c.n < LIMIT.perDay && (c.by[place] || 0) < LIMIT.place[place] && game.now() - c.at >= LIMIT.gapMs;
+      if (c.n >= LIMIT.perDay || (c.by[place] || 0) >= LIMIT.place[place]) return false;
+      return Monet.vip() || Monet.day() >= LIMIT.fromDay && game.now() - c.at >= LIMIT.gapMs;   // с «Без роликов» — без паузы и первых 3 дней
     },
     resetCounts() { delete game.s().monet; game.save(); game.log('тест: счётчики роликов сброшены'); },
     offered(place) { game?.log(`ролик предложен: ${NAME[place] || place}`); },
     async rewarded(place, ctx) {
       if (!Monet.canShow(place)) return { ok: false };
       busy = true;
-      game.log(`ролик принят: ${NAME[place]}`);
+      const vip = Monet.vip();
+      game.log(vip ? `награда без ролика: ${NAME[place]}` : `ролик принят: ${NAME[place]}`);
       let r = { ok: false };
-      try { r = Monet._test.next === 'fail' ? (Monet._test.next = null, { ok: false }) : await provider.rewarded(place); } catch {}
+      try { r = vip ? { ok: true } : Monet._test.next === 'fail' ? (Monet._test.next = null, { ok: false }) : await provider.rewarded(place); } catch {}
       busy = false;
       if (!r?.ok) { game.log(`ролик не досмотрен: ${NAME[place]}`); return { ok: false }; }
       // условие места проверяют правила игры: пропало, пока шёл ролик, — награды нет и счётчик не растёт
@@ -57,19 +64,24 @@
       const c = Monet.counts();
       game.s().monet = { day: Monet.dayKey(), n: c.n + 1, at: game.now(), by: { ...c.by, [place]: (c.by[place] || 0) + 1 } };
       game.save();
-      game.log(`ролик досмотрен: ${NAME[place]}`);
+      if (!vip) game.log(`ролик досмотрен: ${NAME[place]}`);
       return { ok: true };
     },
+    // покупка (задание 17): можно ли выдать → подтверждение провайдера (✓ / ✕) → ещё раз «можно ли» → выдача.
+    // Выдать нельзя — покупка отменена, ничего не списано
     async buy(id) {
       const p = Monet.products.find(x => x.id === id);
-      if (!p || !game || busy) return { ok: false };
+      if (!p || !game || busy || !game.canGrant(id, Monet.day()).ok) return { ok: false };
       busy = true;
       game.log(`покупка начата: ${p.title}`);
       let r = { ok: false };
-      try { r = await provider.buy(p); } catch {}
+      try { r = Monet._test.next === 'fail' ? (Monet._test.next = null, { ok: false }) : await provider.buy({ ...p, price: game.price(id) }); } catch {}
       busy = false;
-      game.log(r?.ok ? `покупка оформлена: ${p.title}` : `покупка отменена: ${p.title}`);
-      return { ok: !!r?.ok && game.reward(p.reward) };
+      if (!r?.ok) { game.log(`покупка отменена: ${p.title}`); return { ok: false }; }
+      if (!game.canGrant(id, Monet.day()).ok) { game.log(`покупка отменена — выдать нельзя: ${p.title}`); return { ok: false }; }
+      game.grant(id, Monet.day());
+      game.log(`покупка оформлена: ${p.title}`);
+      return { ok: true };
     },
   };
 
@@ -87,7 +99,6 @@
     const ic = d => `<svg class="ic" viewBox="0 0 24 24">${d}</svg>`, X = ic('<path d="M6 6l12 12M18 6 6 18"/>'), OK = ic('<path d="m6 12.5 4 4 8-9"/>');
     const layer = html => { const el = document.createElement('div'); el.className = 'overlay monet'; el.innerHTML = html; document.body.appendChild(el); return el; };
     return {
-      products: [{ id: 'test-fuel', title: 'Полный бак', price: '1 ⭐', reward: 'fuel' }],
       rewarded: () => new Promise(done => {
         const el = layer(`<div class="m-ad"><small>Реклама · тест</small><b>3</b><button class="xbtn" data-close aria-label="Закрыть">${X}</button></div>`);
         const b = el.querySelector('b');
@@ -99,7 +110,7 @@
         el.addEventListener('click', e => { if (e.target.closest('[data-close]')) { clearInterval(t); el.remove(); done({ ok: watched }); } });
       }),
       buy: p => new Promise(done => {
-        const el = layer(`<div class="sheet narrow"><div class="sh-title">${p.title}</div><div class="sh-txt">${p.price} · тест, без денег</div>` +
+        const el = layer(`<div class="sheet narrow"><div class="sh-title">${p.title}</div><div class="sh-txt">⭐ ${p.price} · тест, без денег</div>` +
           `<div class="obtns"><button class="btn ok" data-yes aria-label="Купить">${OK}</button><button class="btn light" data-no aria-label="Отмена">${X}</button></div></div>`);
         el.addEventListener('click', e => {
           const yes = e.target.closest('[data-yes]');

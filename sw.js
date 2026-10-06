@@ -1,5 +1,5 @@
-// Офлайн-копия игры. Сборка 12 от 05.10.2026
-const CACHE = 'garazh-12-1791226519021', IMAGES = 'garazh-img';
+// Офлайн-копия игры. Сборка 13 от 06.10.2026
+const CACHE = 'garazh-13-1791240077548', IMAGES = 'garazh-img';
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./","index.html","core.js","tg.js","monet.js","art.js","salon.js","manifest.webmanifest","icon-192.png","assets/cars/cars.js","assets/fonts/onest-cyrillic.woff2","assets/fonts/onest-latin.woff2"]))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== IMAGES).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {
