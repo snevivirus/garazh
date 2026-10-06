@@ -26,7 +26,7 @@
   --bg: #F2F2F0;
   --tile: #FFFFFF;
   --well: #E6E6E2;
-  --ink: #1D1F22;
+  --ink: #14161F;
   --ink-2: #6B6D70;
   --ink-3: #A9AAA6;
   --dock: #1E2023;
@@ -34,18 +34,20 @@
   --ok-bg: #F1F7F3;
   --gold: #B88A2E;
   /* редкость: цвет значка и рамки, цифра на значке, градиент клетки в стиле B */
-  --r0: #D5D7DA; --ri0: #1D1F22; --ra0: #F7F8FA; --rb0: #D3D8DE;   /* обычная */
-  --r1: #4E9A63; --ri1: #FFFFFF; --ra1: #E2F3E6; --rb1: #8CCB9C;   /* необычная */
-  --r2: #2E6BD1; --ri2: #FFFFFF; --ra2: #DDE8FB; --rb2: #86A9EA;   /* редкая */
-  --r3: #7A4BC2; --ri3: #FFFFFF; --ra3: #ECE0F8; --rb3: #B08BDF;   /* эпическая */
-  --r4: #E07A22; --ri4: #FFFFFF; --ra4: #FDE8CF; --rb4: #F2A85E;   /* легендарная */
+  --r0: #B9BEC6; --ri0: #1D1F22; --ra0: #F7F8FA; --rb0: #D3D8DE;   /* обычная */
+  --r1: #3FA66B; --ri1: #FFFFFF; --ra1: #E2F3E6; --rb1: #8CCB9C;   /* необычная */
+  --r2: #3C7BEA; --ri2: #FFFFFF; --ra2: #DDE8FB; --rb2: #86A9EA;   /* редкая */
+  --r3: #8B5CE0; --ri3: #FFFFFF; --ra3: #ECE0F8; --rb3: #B08BDF;   /* эпическая */
+  --r4: #F28A2E; --ri4: #FFFFFF; --ra4: #FDE8CF; --rb4: #F2A85E;   /* легендарная */
   /* заливка клетки цветом редкости в стиле A — светлее, чем в B, но видна сразу */
   --fa0: #FFFFFF; --fb0: #F3F4F5; --fa1: #E3F5E7; --fb1: #A4DBB2; --fa2: #E1EBFC; --fb2: #9EBEF3;
   --fa3: #EFE4FA; --fb3: #C3A5EC; --fa4: #FFECD4; --fb4: #F4B474;
+  /* цифра уровня на заднем плане плитки (задания 20–21): обычная — тёмно-серая 17%, остальные — цвет редкости 45–50% */
+  --dc0: rgba(29,31,34,.17); --dc1: rgba(78,154,99,.5); --dc2: rgba(46,107,209,.45); --dc3: rgba(122,75,194,.45); --dc4: rgba(224,122,34,.5);
   --font: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --cell: 46px;
   /* Новый вид (задание 20, docs/ДИЗАЙН.md): один элемент — одно место, ничего поверх машины и чужого значка */
-  --bg-a: #F7F6F3; --bg-b: #EFEEEA;          /* фон экрана — мягкий вертикальный градиент */
+  --bg-a: #EEEFF1; --bg-b: #E2E3E7;          /* фон экрана — светло-серый градиент (задание 22) */
   --coin: #D1A23F;                           /* кружок монет в шапке (звёзды — --gold, топливо — --ink) */
   --r-card: 22px;                            /* плитки шапки, карточки */
   --r-row: 16px;                             /* строка заказа */
@@ -57,6 +59,20 @@
   --fs-reward: 26px;                         /* награда заказа (800); не меньше 20 px на экране при любом масштабе — см. .oval */
   --fs-title: 26px;                          /* заголовки */
   --fs-text: 15px;                           /* текст */
+  /* «Мягкий рельеф + неоновые капсулы» (задание 22, docs/ДИЗАЙН.md): выпуклые плитки и таблетки, вдавленные пустые клетки,
+     главное — тёмные капсулы с неоновой обводкой и свечением. Без backdrop-filter; свечение — только у капсул */
+  --raise: linear-gradient(145deg, #F1F2F4, #E3E4E8);                                         /* выпуклость: заливка */
+  --sh-out: -4px -4px 9px rgba(255,255,255,.95), 5px 5px 12px rgba(150,156,170,.55);          /* выпуклость: тени */
+  --sh-out-s: -3px -3px 7px rgba(255,255,255,.95), 4px 4px 10px rgba(150,156,170,.55);        /* то же, мельче */
+  --sh-in: inset 2px 2px 5px rgba(150,156,170,.55), inset -2px -2px 5px #fff;                 /* вдавленность */
+  --well2: #E0E1E5;                                                                           /* дно вдавленной клетки */
+  --navy: linear-gradient(160deg, #1C2030, #0D0F18);                                          /* неоновая капсула: тёмный фон */
+  --neon: #38B6FF; --neon-o: #FF9230; --neon-g: #E8B64A; --neon-ok: #1FD17F;                  /* неон: уровень, гараж, вкладка / серия / охота / готов */
+  --coin-ink: #D99A1E;                                                                        /* золото монет */
+  /* плитка машины (п. 6): плоская заливка грейда, рамка 1,5 px — та же заливка темнее на 18%, цифра — цвет грейда темнее на 22% */
+  --g0: #F4F5F7; --g1: #CBEFDA; --g2: #CCDCFB; --g3: #DCD0F8; --g4: #FDDCB9;
+  --gb0: #D9DCE1; --gb1: color-mix(in srgb, #CBEFDA 82%, #000); --gb2: color-mix(in srgb, #CCDCFB 82%, #000); --gb3: color-mix(in srgb, #DCD0F8 82%, #000); --gb4: color-mix(in srgb, #FDDCB9 82%, #000);
+  --gk0: #A5ABB6; --gk1: color-mix(in srgb, #3FA66B 78%, #1a1d28); --gk2: color-mix(in srgb, #3C7BEA 78%, #1a1d28); --gk3: color-mix(in srgb, #8B5CE0 78%, #1a1d28); --gk4: color-mix(in srgb, #F28A2E 78%, #1a1d28);
 }
 html, body { height: 100%; }
 body {
@@ -69,7 +85,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 /* увеличения экрана в игре нет: двойной тап не увеличивает нигде (поле, сцена, прокрутка — свои none / pan-y ниже) */
 html, body, #app, [role=button], .order, .hud, .dock, .overlay, .sheet { touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--r2); outline-offset: 2px; }
-.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+/* «дуотон» (задание 21): заливку получают только детали значка — d 14%, dg 22% (золотые); остальное — контур при любой заливке корня */
+.ic :not(.d):not(.dg):not([fill]) { fill: none; }
+.ic .d { fill: currentColor; fill-opacity: .14; }
+.ic .dg { fill: currentColor; fill-opacity: .22; }
 .car-img.mono, svg.mono { filter: brightness(0) invert(.82); opacity: .9; }
 /* Машины владельца по редкостям: холст 1,6 : 1, машина — 92% ширины, колёса на одной линии */
 .cell .car.v2 { left: 0; width: 100%; bottom: 2%; }
@@ -77,9 +97,9 @@ html, body, #app, [role=button], .order, .hud, .dock, .overlay, .sheet { touch-a
 
 #app {
   height: 100%; width: min(100%, 460px); margin: 0 auto; box-sizing: border-box;   /* ширину и отступ слева при масштабе задаёт fit() */
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 6px;
   /* --app-top / --app-bottom — отступы Telegram, поделённые на масштаб: после уменьшения игры они остаются настоящими */
-  padding: calc(8px + var(--app-top, env(safe-area-inset-top, 0px))) 12px calc(84px + var(--app-bottom, env(safe-area-inset-bottom, 0px)));   /* 84 = панель 76 + зазор; в fit() — PAD_T / PAD_B */
+  padding: calc(8px + var(--app-top, env(safe-area-inset-top, 0px))) 4px calc(66px + var(--app-bottom, env(safe-area-inset-bottom, 0px)));   /* 66 = панель 54 + 6 + зазор 6; в fit() — PAD_T / PAD_B; по краям 4 — поле крупнее (задание 22) */
   transform: scale(var(--k, 1)); transform-origin: 0 0;       /* совсем низкое окно — игра целиком меньше (и шире — на всю ширину экрана), а не обрезана */
 }
 /* Telegram: страница не прокручивается, не «резинится» и не сворачивается свайпом; старый Telegram (до 7.7) — запас 1 px */
@@ -87,36 +107,44 @@ html.tg, html.tg body { position: fixed; inset: 0; height: 100%; overflow: hidde
 html.tg-old body { position: static; overflow-y: scroll; scrollbar-width: none; }
 html.tg-old body::after { content: ""; display: block; height: 1px; }
 
-/* Шапка в два ряда (задание 20: 44 + 42 px, зазор 4) — крупно, читается с вытянутой руки.
-   1-й ряд: уровень с полосой опыта, задания дня, событие, склад. 2-й: звёзды, топливо, монеты — значок в цветном кружке слева
-   от числа. Любой счётчик — кнопка с карточкой. */
-.hud { display: flex; flex-direction: column; gap: 4px; flex: none; }
-.hrow { display: flex; align-items: center; gap: 6px; height: 44px; }
-.hrow + .hrow { height: 42px; }
+/* Шапка в два ряда (задание 22: 44 + 32 px). 1-й ряд: уровень — неоновое кольцо 46 px и вдавленная полоса опыта, чип серии
+   (оранжевая неоновая капсула, только когда серия идёт), задания дня, событие, склад. 2-й: звёзды, топливо, монеты — выпуклые
+   таблетки равной ширины. Любой счётчик — кнопка с карточкой. */
+.hud { display: flex; flex-direction: column; gap: 6px; flex: none; padding: 0 6px; }
+.hrow { display: flex; align-items: center; gap: 8px; height: 44px; }
+.hrow + .hrow { height: 32px; gap: 8px; }
 .pill, .hbtn {
-  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 0 12px 0 7px;
-  box-sizing: border-box; border-radius: var(--r-card); background: var(--tile); box-shadow: var(--sh-1); font-weight: 800; font-size: var(--fs-num); line-height: 1;
-  font-variant-numeric: tabular-nums; white-space: nowrap;
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 0 12px 0 10px;
+  box-sizing: border-box; border-radius: var(--r-pill); background: var(--raise); box-shadow: var(--sh-out-s); font-weight: 700; font-size: max(19px, calc(19.2px / var(--k, 1))); line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink);
 }
-.hud .ic { width: 26px; height: 26px; stroke-width: 1.8; }
+.hud .ic { width: 22px; height: 22px; }
 .pill { flex: 1 1 0; min-width: 0; }
-.pill > .ic { width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 50%; color: #fff; stroke-width: 2.1; fill: none; }
-#starPill > .ic { background: var(--gold); }
-#fuelPill > .ic { background: var(--ink); }
-#coinPill > .ic { background: var(--coin); }
-#coinPill .goalbar { position: absolute; left: 16px; right: 16px; bottom: 4px; height: 3px; border-radius: 2px; background: #ECEBE6; overflow: hidden; }
-#coinPill .goalbar i { display: block; height: 100%; background: var(--gold); }
-#fuelPill.empty { color: var(--ink-3); }
-#fuelPill.empty > .ic { background: var(--ink-3); }
-.lvlbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; height: 100%; padding: 0 14px 0 2px; box-sizing: border-box; border-radius: var(--r-card); background: var(--tile); box-shadow: var(--sh-1); }
-.lvl-n { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.xp { position: relative; flex: 1; min-width: 0; height: 12px; border-radius: 6px; background: #E6E5E0; overflow: hidden; }
-.xp i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #E4BE6A, var(--gold)); transition: width .4s ease; }
-.hbtn.sq { width: 44px; padding: 0; flex: none; }
+.pill > .ic { width: 20px; height: 20px; }
+#starPill > .ic, #coinPill > .ic { color: var(--coin-ink); }
+#fuelPill > .ic { color: var(--ink); }
+#coinPill .goalbar { position: absolute; left: 18px; right: 18px; bottom: 3px; height: 3px; border-radius: 2px; background: rgba(150,156,170,.3); overflow: hidden; }
+#coinPill .goalbar i { display: block; height: 100%; background: var(--coin-ink); }
+#fuelPill.empty { color: #8A8F9C; }
+#fuelPill.empty > .ic { color: #8A8F9C; }
+.lvlbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 100%; padding: 0; background: none; }
+.lvl-n { width: 46px; height: 46px; flex: none; border-radius: 50%; background: var(--navy); color: #7FD3FF; display: grid; place-items: center;
+  font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(56,182,255,.9);
+  box-shadow: 0 0 0 1.5px var(--neon), 0 0 14px rgba(56,182,255,.55), 4px 6px 12px rgba(150,156,170,.55); }
+.xp { position: relative; flex: 1; min-width: 0; height: 14px; padding: 3px; box-sizing: border-box; border-radius: 8px; background: #DADBE0;
+  box-shadow: inset 3px 3px 6px rgba(150,156,170,.6), inset -3px -3px 6px #fff; overflow: hidden; }
+.xp i { display: block; height: 100%; border-radius: 6px; background: var(--navy); box-shadow: 0 0 6px rgba(56,182,255,.7), 0 0 0 1px var(--neon); transition: width .4s ease; }
+.hbtn { height: 36px; }
+.hbtn.sq { width: 36px; padding: 0; flex: none; }
 .hbtn .ic { color: var(--ink); }
-#cal { padding: 0 11px 0 8px; flex: none; }
-#cal.ready { background: var(--ok); color: #fff; animation: breathe 1.6s ease-in-out infinite; }
-#cal.ready .ic { color: #fff; }
+#cal { padding: 0 13px 0 11px; flex: none; font-size: 17px; }
+#cal.ready { background: var(--navy); color: #8CF0BD; box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 12px rgba(31,209,127,.5); animation: breathe 1.6s ease-in-out infinite; }
+#cal.ready .ic { color: #8CF0BD; }
+/* серия ×1,5 (задание 22): чип в первой строке шапки — оранжевая неоновая капсула */
+#streak { display: flex; align-items: center; gap: 3px; flex: none; height: 32px; padding: 0 11px 0 8px; box-sizing: border-box; border-radius: 16px;
+  background: var(--navy); color: #FFB566; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 1.5px var(--neon-o), 0 0 12px rgba(255,146,48,.55), 3px 5px 10px rgba(150,156,170,.55); }
+#streak .ic { width: 16px; height: 16px; color: #FFB566; filter: drop-shadow(0 0 3px rgba(255,146,48,.8)); }
 @keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(62,122,87,.18); } }
 .hbadge {
   position: absolute; right: -4px; top: -5px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px;
@@ -135,23 +163,21 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0,0,0,.28);
 }
 
-/* Заказы (задание 20): строка — машины слева, крупная награда справа; четыре строки одной высоты в одну колонку.
-   Один элемент — одно место: плашки уровня, «×N» и галочка — рядом с картинкой, ничего не лежит поверх машины и награды.
-   Вид заказа — тоном строки (без аватаров); «↻» — в листе заказа. Над строками — полоска серии (место всегда есть, значок — когда серия идёт) */
-.orders-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
-.sbar { flex: none; height: 22px; display: flex; justify-content: flex-end; }
-.orders { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(4, minmax(32px, 1fr)); gap: 6px; }
+/* Заказы (задание 22): три карточки в ряд под полем, у большого пальца. Карточка выпуклая: сверху плитки машин (те же .pl, что на поле:
+   одна — до 44 px, две-три — до 36, не меньше 32), под ними крупная награда (≥ 19 px на экране). Готов — зелёная неоновая карточка
+   с галочкой в углу, охота — золотая неоновая; крупный, событие, витрина — тоном (событие и витрина — ещё значком в углу);
+   закрытый слот — вдавленная карточка, замок и цена. «↻» — в листе заказа */
+.orders-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.orders { --oh: 76px; flex: none; height: var(--oh); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .order {
-  position: relative; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 10px; min-width: 0; min-height: 0;
-  box-sizing: border-box; background: var(--tile); border-radius: var(--r-row); box-shadow: var(--sh-1); cursor: pointer; overflow: hidden;
+  position: relative; container-type: inline-size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 3px 1px; min-width: 0; min-height: 0; box-sizing: border-box; border-radius: 20px; background: var(--raise); box-shadow: var(--sh-out-s);
+  cursor: pointer; overflow: hidden; color: var(--ink);
 }
-.order.k-big { background: #FBF6EA; }
-.order.k-showcase { background: #F1F0EC; }
-.order.k-event { background: #F8EBC8; }
-/* задание 17: охота за карточкой — золотая рамка и значок коллекции в строке */
-.order.k-hunt { background: #FBF3E0; box-shadow: inset 0 0 0 2px var(--gold), var(--sh-1); }
-.okind { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
-.okind .ic { width: 15px; height: 15px; }
+.order.k-big { background: linear-gradient(145deg, #F6F0E2, #E8E0CF); }
+.order.k-showcase { background: linear-gradient(145deg, #F0F1F4, #DFE1E7); }
+.order.k-event { background: linear-gradient(145deg, #F8EDCF, #EADBB3); }
+.order.k-hunt { background: linear-gradient(160deg, #241E12, #120F08); color: #FFD27A; box-shadow: 0 0 0 1.5px var(--neon-g), 0 0 14px rgba(232,182,74,.5), 4px 6px 12px rgba(150,156,170,.55); }
 .stack .hunted { position: absolute; z-index: 2; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
 .stack .hunted .ic { width: 14px; height: 14px; }
 .colbar { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -169,50 +195,42 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .chg { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%); display: flex; gap: 2px; }
 .chg b { width: calc(var(--cell) * .1); height: calc(var(--cell) * .1); border-radius: 50%; background: rgba(255,255,255,.3); }
 .chg b.on { background: #F1C76B; }
-.k-event .oval .ic { color: #9A6A1E; fill: #F3D58C; }
-.order.ready { background: var(--ok-bg); box-shadow: inset 0 0 0 2px var(--ok), var(--sh-1); animation: readyPulse 1.6s ease-in-out infinite; }
-.order.over { box-shadow: inset 0 0 0 2px var(--ok), var(--sh-1); }
-@keyframes readyPulse { 50% { box-shadow: inset 0 0 0 2px var(--ok), 0 0 0 3px rgba(62,122,87,.2); } }   /* без сдвига: строка не выходит из ряда */
-.order.locked { justify-content: center; gap: 8px; background: #E9E9E5; box-shadow: none; color: var(--ink-3); }
+.k-event .oval .ic { color: #9A6A1E; }
+.order.ready { background: linear-gradient(160deg, #12261E, #0A130F); color: #8CF0BD; box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 14px rgba(31,209,127,.5), 4px 6px 12px rgba(150,156,170,.55); }
+.order.over { box-shadow: 0 0 0 2px var(--neon-ok), 0 0 14px rgba(31,209,127,.45); }
+.okmark { position: absolute; z-index: 3; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--neon-ok); color: #0A130F; box-shadow: 0 0 10px rgba(31,209,127,.8); }
+.okmark .ic { width: 13px; height: 13px; stroke-width: 3; }
+.omark { position: absolute; z-index: 3; top: 5px; left: 7px; display: grid; color: #9A6A1E; }
+.omark .ic { width: 15px; height: 15px; }
+.order.locked { justify-content: center; gap: 4px; background: var(--well2); box-shadow: var(--sh-in); color: #5E6370; }
 .order.locked > .ic { width: 22px; height: 22px; }
-.order.locked.can { background: #FFF; box-shadow: inset 0 0 0 1.5px var(--gold), var(--sh-1); color: var(--ink); }
-.oprice { display: flex; align-items: center; gap: 3px; font-weight: 800; font-size: 18px; color: var(--ink); }
-.oprice .ic { width: 18px; height: 18px; color: var(--gold); }
-/* машины заказа: картинка (сжимается, если строка узкая) и плашки рядом — уровень цвета нужной редкости (любая — серая),
-   «×N», «готово» — галочка в плашке */
-.wants { flex: 1 1 auto; min-width: 0; height: 100%; display: flex; align-items: center; gap: 10px; }
-.want { flex: 0 1 auto; min-width: 0; height: 100%; display: flex; align-items: center; gap: 3px; }
-.want .car { position: static; flex: 0 1 auto; display: block; min-width: 26px; width: auto; height: min(calc(100% - 6px), 34px); aspect-ratio: 1.6; object-fit: contain; }
-.want .lv, .want .cnt2, .want .tick { position: static; flex: none; height: 22px; min-width: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 7px; box-shadow: none;
-  display: grid; place-items: center; font-size: 14px; font-weight: 800; line-height: 1; }
-.want .lv { background: #E4E5E7; color: var(--ink); }
-.want.req .lv { background: var(--rc); color: var(--ri); }
-.want .cnt2 { display: flex; gap: 1px; font-size: 13px; }
-.want .cnt2.ok { background: var(--ok); }
-.want .tick { width: 22px; padding: 0; }
-.want .cnt2 .ic, .want .tick .ic { width: 13px; height: 13px; stroke-width: 2.8; }
+.oprice { display: flex; align-items: center; gap: 3px; font-weight: 700; font-size: 19px; color: #5E6370; font-variant-numeric: tabular-nums; }
+.oprice .ic { width: 20px; height: 20px; color: var(--coin-ink); }
+.order.locked.can .oprice { color: var(--ink); }
+/* плитки машин заказа — та же плитка .pl, меньше; «×N» — маленькая метка на плитке */
+.wants { display: flex; align-items: center; justify-content: center; gap: 2px; flex: none; }
+.want { --ts: min(36px, calc((100cqw - 4px) / 3)); flex: none; width: var(--ts); height: var(--ts); }   /* три плитки — во всю ширину карточки (узкий экран) */
+.order.single .want { --ts: min(44px, calc(var(--oh) - 32px)); }
 .want.done { opacity: .45; }
-/* награда — крупно справа: значок + число; на экране не меньше 20 px при любом масштабе (--k) */
-.oval { flex: none; margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: max(var(--fs-reward), calc(20.5px / var(--k, 1))); font-weight: 800;
-  letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.oval .ic { width: .92em; height: .92em; color: var(--gold); stroke-width: 2; flex: none; }
+.want .cnt2 { position: absolute; z-index: 3; right: 6%; bottom: 6%; height: 13px; min-width: 13px; padding: 0 3px; box-sizing: border-box; border-radius: 5px;
+  font-size: 10px; line-height: 13px; text-align: center; box-shadow: none; }
+.order.k-hunt .want, .order.ready .want { box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)), 0 2px 5px rgba(0,0,0,.28); }
+/* награда — крупно под плитками: на экране не меньше 19 px при любом масштабе */
+.oval { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: max(20px, calc(19.5px / var(--k, 1))); font-weight: 700;
+  letter-spacing: -.01em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.oval .ic { width: 1.05em; height: 1.05em; color: var(--coin-ink); flex: none; }
+.order.k-hunt .oval .ic { color: #FFD27A; }
+.order.ready .oval .ic { color: #F2C14E; }
 .oval .alt { gap: 2px; }
-.oval .alt .ic { width: .85em; height: .85em; }
-.oval .alt .car, .oval .alt .thing { width: 1.25em; }
-@media (max-width: 359px) {
-  .order { gap: 6px; padding: 0 9px 0 8px; }
-  .wants { gap: 6px; }
-  .want { gap: 2px; }
-  .want .lv, .want .cnt2, .want .tick { height: 19px; min-width: 19px; padding: 0 4px; font-size: 12px; border-radius: 6px; }
-  .want .tick { width: 19px; padding: 0; }
-  .oval { gap: 3px; }
-}
+.oval .alt .ic { width: 1.05em; height: 1.05em; }
+.oval .alt .car, .oval .alt .thing { width: 1.4em; }
 .cnt2 { position: absolute; right: -2px; bottom: 1px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: var(--ink); border-radius: 8px; padding: 1px 4px; line-height: 1.1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px #fff; }
 .obig { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
-.obig .rtile { --bs: 20px; max-width: none; width: 100%; aspect-ratio: 1.15; }
+.obig .rtile { --bs: 20px; max-width: none; width: 100%; aspect-ratio: 1; }
 .obig .rtile.done { opacity: .45; }
-.obig .rtile .car { left: 6%; width: 88%; bottom: 24%; }
-.obig .rtile .tick { width: 22px; height: 22px; top: 4px; right: 4px; }
+.obig .rtile .tick { width: 26px; height: 26px; top: 4px; right: 4px; }
+.obig .rtile .tick .ic { width: 18px; height: 18px; }
 .obig .rtile .cnt2 { right: 4px; bottom: 4px; font-size: 14px; }
 .obig .rtile .miss { position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; border-radius: 50%; background: #E3E3DE; }
 .ohead2 { display: flex; align-items: center; gap: 10px; }
@@ -221,8 +239,8 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .ohead2 .kic.k-hunt { background: var(--gold); }
 .ohead2 .kic.k-event { background: #E9B949; }
 .ohead2 .kic.k-showcase { color: #F1D9A8; }
-.ohead2 .sh-title { flex: 1; padding-right: 40px; font-size: 20px; }
-.obtns { display: flex; gap: 8px; justify-content: center; }
+.ohead2 .sh-title { flex: 1; padding-right: 44px; }
+.obtns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 /* Редкая машина на простой заказ: машина цвета своей редкости и два значка — «отдать» маленький, «оставить» крупный */
 .rare-ask .rtile { --bs: 26px; max-width: 150px; }
 .rare-ask .obtns { align-items: center; gap: 16px; }
@@ -231,37 +249,37 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .rare-ask .btn.keep .ic { width: 30px; height: 30px; stroke-width: 2.4; }
 .tick { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #fff; }
 .tick .ic { width: 70%; height: 70%; stroke-width: 2.6; }
-#streak {
-  display: flex; align-items: center; gap: 2px; height: 22px; padding: 0 8px 0 5px; box-sizing: border-box;
-  border-radius: var(--r-pill); background: #fff; color: var(--ink-3); font-size: 13px; font-weight: 800; box-shadow: var(--sh-1);
-}
-#streak .ic { width: 15px; height: 15px; }
-#streak.hot { background: #E07A22; color: #fff; }
 
-/* Поле */
+/* Поле (задание 22): клетки — вдавленные лунки, зазор 3 px */
 .board-wrap { flex: none; display: grid; place-items: start center; }
 .board {
   --bs: calc(var(--cell) * .42);
-  display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); gap: 4px;
+  display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); gap: 3px;
   touch-action: none;
 }
-.cell { position: relative; border-radius: 10px; background: var(--tile); }
+.cell { position: relative; border-radius: 30%; background: var(--well2); box-shadow: var(--sh-in); }
 .cell .car { position: absolute; z-index: 1; left: 3%; width: 94%; bottom: 18%; height: auto; pointer-events: none; }
 .cell .car.part { left: 14%; width: 72%; bottom: 16%; }
-/* Уровень на поле (задание 20) — крупная цифра на заднем плане клетки, под машиной; цвет — редкости (обычная — тёмно-серая).
-   Цвет редкости не только цифрой: рамка и заливка клетки остаются. Овальная подложка под машиной на поле больше не нужна */
-.board .lv {
-  z-index: 0; inset: 0; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none; overflow: hidden; pointer-events: none;
-  display: grid; place-items: start center; font-size: calc(var(--cell) * 1.02); line-height: .98; letter-spacing: -.06em; color: rgba(29,31,34,.17);
-}
-.board .r1 .lv { color: rgba(78,154,99,.5); }
-.board .r2 .lv { color: rgba(46,107,209,.45); }
-.board .r3 .lv { color: rgba(122,75,194,.45); }
-.board .r4 .lv { color: rgba(224,122,34,.5); }
+/* Плитка машины .pl (задание 22, п. 6) — одна на поле, в заказах и в окнах. Грейд — плоская заливка и тонкая рамка (без переливов
+   и блеска); уровень — цифра в левом верхнем углу (0,54 стороны, цвет грейда темнее), под машиной; машина приподнята к центру.
+   Объём «машина лежит в лунке»: внутренняя тень клетки, контактная тень-эллипс под машиной, лёгкий отрыв машины (drop-shadow —
+   по альфа-каналу, годится и для будущих вырезанных PNG). Без объёма — класс flat на <html> (для снимков «без объёма / с объёмом») */
+.pl { position: relative; container-type: inline-size; border-radius: 30%; overflow: hidden; background: var(--g, var(--g0));
+  box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)), inset 2px 2px 4px rgba(60,66,84,.22), inset -2px -2px 4px rgba(255,255,255,.7); }
+.pl .lv, .cell.bubble .lv { position: absolute; z-index: 0; left: 11cqw; top: 3cqw; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none;
+  display: block; font-size: 54cqw; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--gk, var(--gk0)); pointer-events: none;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8), 0 -1px 0 rgba(0,0,0,.08); }
+.cell.bubble { container-type: inline-size; }
+.pl .car, .pl .car.v2 { position: absolute; z-index: 2; left: 4%; width: 92%; bottom: 13%; height: auto; filter: drop-shadow(0 1.5px 1.5px rgba(40,46,60,.35)); pointer-events: none; }
+.pl .car.part { left: 16%; width: 68%; bottom: 13%; }
+.pl::after { content: ""; position: absolute; z-index: 1; left: 18%; right: 18%; bottom: 10%; height: 8%; border-radius: 50%; background: rgba(40,46,60,.28); filter: blur(3px); pointer-events: none; }
+html.flat .pl { box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)); }
+html.flat .pl::after { display: none; }
+html.flat .pl .car { filter: none; }
 .board .plate { display: none; }
 /* деталь Ателье — цвет редкости, которую она даёт (уровень 1 — серый): вне поля — рамка вокруг картинки, на поле — рамка клетки */
 svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #fff); box-shadow: 0 0 0 2px var(--tc); }
-.cell svg.trim, .bub svg.trim { background: none; box-shadow: none; }
+.cell svg.trim, .bub svg.trim, .pl svg.trim { background: none; box-shadow: none; }
 .cell .thing { position: absolute; left: 12%; width: 76%; bottom: 10%; height: auto; pointer-events: none; }
 .plate { position: absolute; left: 13%; right: 13%; bottom: 13%; height: 15%; border-radius: 50%; background: var(--rc); opacity: .45; }
 .plate.legend, .stripe.legend {
@@ -269,17 +287,13 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   background-size: 300% 100%; animation: shimmer 2.6s linear infinite;
 }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
-.cell.car { background: linear-gradient(160deg, var(--fa), var(--fb)); }
-.cell.car:not(.r0) { box-shadow: inset 0 0 0 1px var(--rc); }
-.cell.r4:not(.trim) { animation: glowL 1.6s ease-in-out infinite alternate; }
-@keyframes glowL { to { box-shadow: inset 0 0 0 1.5px var(--r4), 0 0 12px rgba(224,122,34,.55); } }
-.cell.wanted { box-shadow: inset 0 0 0 2px var(--ok); animation: glow 1.4s ease-in-out infinite alternate; }
+.cell.wanted { box-shadow: inset 0 0 0 2px var(--ok), inset 2px 2px 4px rgba(60,66,84,.22); animation: glow 1.4s ease-in-out infinite alternate; }
 @keyframes glow { to { box-shadow: inset 0 0 0 2px rgba(62,122,87,.45), 0 0 10px rgba(62,122,87,.3); } }
 .cell.lifted .car, .cell.lifted .thing { opacity: .25; }
 .cell.over { box-shadow: inset 0 0 0 2px var(--ink-3); }
 .cell.over.match { box-shadow: inset 0 0 0 2px var(--ok); background: var(--ok-bg); }
 .cell.broken .car { filter: grayscale(1) brightness(.9) contrast(.9); opacity: .8; }
-.cell.broken { background: #EFEFEC; cursor: pointer; }
+.cell.broken { background: #E9EAED; cursor: pointer; }
 .needcert {
   position: absolute; z-index: 1; top: 1px; right: 1px; width: calc(var(--cell) * .38); height: calc(var(--cell) * .38);
   border-radius: 50%; background: #F1F1EE; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #C4C4BF;
@@ -302,29 +316,29 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 @keyframes upRing { 0%, 12% { opacity: 0; transform: scale(.8); } 24% { opacity: .9; } 48%, 100% { opacity: 0; transform: scale(1.35); } }
 .chain { display: flex; align-items: center; justify-content: center; gap: 2px; flex-wrap: nowrap; }
 .chain svg.car { width: 46px; height: auto; }
-.chain > .ic { width: 12px; height: 12px; color: var(--ink-3); flex: none; }
+.chain > .ic { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
 .chain .car.last { width: 54px; }
 
-.cell.far { background: #E9E9E5; }
-.cell.lock, .cell.box { background: var(--well); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; }
-.cell.lock .ic { width: 34%; height: 34%; stroke-width: 2; opacity: .55; }
-.cell.lock.can .ic { margin-top: -18%; opacity: 1; width: 40%; height: 40%; }
-.cell.box { background: #E9E4DA; }
+.cell.far { background: #DCDDE1; }
+.cell.lock, .cell.box { background: var(--well2); color: #8A8F9C; display: grid; place-items: center; cursor: pointer; }
+.cell.lock .ic { width: 30%; height: 30%; margin-top: -22%; opacity: .85; }   /* замок: вдавленная клетка, значок и цена серым (задание 22) */
+.cell.box { background: var(--well2); }
 .cell.box .thing { left: 8%; width: 84%; bottom: 8%; }
 .cprice {
-  position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); display: flex; align-items: center; gap: 1px;
-  padding: 1px 5px 1px 3px; border-radius: 8px; background: #fff; font-size: 11px; font-weight: 800; color: var(--ink); white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%); display: flex; align-items: center; gap: 1px;
+  font-size: max(11px, calc(var(--cell) * .23)); font-weight: 700; color: #8A8F9C; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
-.cprice .ic { width: 11px !important; height: 11px !important; margin: 0 !important; color: var(--gold); }
-.cell.lock.can .cprice { background: var(--gold); color: #fff; }
-.cell.lock.can .cprice .ic { color: #fff; }
+.cprice .ic { width: 11px !important; height: 11px !important; margin: 0 !important; color: #8A8F9C; }
+.cell.lock.can .cprice, .cell.lock.can .cprice .ic { color: var(--ink); }   /* хватает монет — цена тёмная */
 .cell.peek, .cell.keyable { box-shadow: inset 0 0 0 1.5px var(--gold); }
 .cell.peek { animation: blink .5s ease-in-out 3 alternate; }
 @keyframes blink { to { box-shadow: inset 0 0 0 2.5px var(--gold), 0 0 10px rgba(184,138,46,.5); } }
 .cell.key { cursor: grab; }
 
-.cell.port { background: var(--ink); color: #E9E9E5; cursor: pointer; }
-.cell.port.off { background: #BDBDB8; }
+.cell.port { background: var(--navy); color: #7FD3FF; cursor: pointer;   /* гараж — голубая неоновая капсула (задание 22) */
+  box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.5), 3px 4px 8px rgba(150,156,170,.55); }
+.cell.port .garage, .cell.port .port-car { filter: drop-shadow(0 0 3px rgba(56,182,255,.7)); }
+.cell.port.off { background: linear-gradient(160deg, #2A2E3A, #1A1D26); color: #6B7A90; box-shadow: 0 0 0 1.5px rgba(56,182,255,.3), 3px 4px 8px rgba(150,156,170,.55); }
 .garage { position: absolute; inset: 6% 10% auto; width: 80%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .port-car { position: absolute; left: 14%; right: 14%; bottom: 15%; }
 .port-car .car { position: static; width: 100%; }
@@ -339,9 +353,10 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   background: #fff; color: var(--ink); font-size: 10px; font-weight: 700;
 }
 .cost2 .ic { width: 10px; height: 10px; }
-.cell.slot { background: transparent; box-shadow: inset 0 0 0 1.5px #DCDCD7; color: #D4D4CF; }
-.cell.port.ev { background: linear-gradient(160deg, #E9B949, #B9832A); color: #FFF6DF; }
-.cell.port.ev.off { background: #CDBF9E; }
+.cell.slot { background: var(--well2); box-shadow: var(--sh-in); color: #C9CBD1; }
+.cell.port.ev { background: var(--navy); color: #FFD27A; box-shadow: 0 0 0 1.5px var(--neon-g), 0 0 12px rgba(232,182,74,.5), 3px 4px 8px rgba(150,156,170,.55); }
+.cell.port.ev .garage, .cell.port.ev .port-car { filter: drop-shadow(0 0 3px rgba(232,182,74,.7)); }
+.cell.port.ev.off { background: linear-gradient(160deg, #2A2E3A, #1A1D26); color: #8C7A50; box-shadow: 0 0 0 1.5px rgba(232,182,74,.3); }
 .cell.chest { cursor: pointer; }
 .cnt {
   position: absolute; top: 2px; right: 3px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--ink);
@@ -376,7 +391,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   padding: 3px 11px 3px 10px; border-radius: 17px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.24), inset 0 0 0 1.5px #E9D8AE;
   font-size: 24px; font-weight: 800; line-height: 1.15; color: #8E6A1E; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.floater .ic { width: 22px; height: 22px; color: var(--gold); fill: #F3E3BD; stroke-width: 1.6; }
+.floater .ic { width: 22px; height: 22px; color: var(--gold); fill: #F3E3BD; }
 .floater.fl-big { font-size: 32px; padding: 4px 14px 4px 12px; border-radius: 22px; }
 .floater.fl-big .ic { width: 30px; height: 30px; }
 /* правильное слияние одной редкости — плашка цвета редкости: галочка, звёзды, множитель */
@@ -406,7 +421,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .ztab.on { background: var(--ink); color: #fff; }
 .ztab.locked { color: #C4C4BF; }
 .zstar { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--bg); }
-.zstar .ic { width: 12px; height: 12px; fill: #fff; stroke-width: 1.2; }
+.zstar .ic { width: 12px; height: 12px; fill: #fff; }
 .scene { display: flex; flex-direction: column; gap: 10px; flex: none; }
 .stage { position: relative; border-radius: 18px; overflow: hidden; background: var(--tile); touch-action: pan-y; }
 .stage > svg { display: block; width: 100%; height: auto; }
@@ -424,7 +439,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .zlock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
 .zlock .ic { width: 26px; height: 26px; }
 .zdone { position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
-.zdone .ic { width: 17px; height: 17px; fill: #fff; stroke-width: 1.2; }
+.zdone .ic { width: 17px; height: 17px; fill: #fff; }
 .zprog { display: flex; justify-content: center; gap: 6px; }
 .zprog i { width: 22px; height: 6px; border-radius: 3px; background: #DCDCD7; }
 .zprog i.on { background: var(--gold); }
@@ -437,7 +452,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   position: absolute; z-index: 4; inset: 14% 18%; border-radius: 20px; background: rgba(255,255,255,.96);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.18);
 }
-.poster > .ic { width: 46px; height: 46px; color: var(--gold); fill: #F3E3BD; stroke-width: 1.3; }
+.poster > .ic { width: 46px; height: 46px; color: var(--gold); fill: #F3E3BD; }
 .poster b { font-size: 26px; font-weight: 800; }
 
 /* Коллекция и настройки */
@@ -477,7 +492,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 /* Новая редкость — на весь экран: затемнение, карточка цвета редкости с сиянием от центра;
    у эпической и легендарной по краю бежит перелив и мерцают блёстки */
 .overlay.dim { background: rgba(18,20,24,.74); }
-.rcard { position: relative; isolation: isolate; width: min(calc(100vw - 24px), 440px); box-sizing: border-box; padding: 4px; border-radius: 30px; overflow: hidden; background: var(--rc); box-shadow: 0 0 70px var(--rb), 0 20px 50px rgba(0,0,0,.35); }
+.rcard { position: relative; isolation: isolate; max-height: calc(100vh - var(--tg-top, 0px) - 24px); width: min(calc(100vw - 24px), 440px, calc((100vh - var(--tg-top, 0px) - 24px) * .66)); box-sizing: border-box; padding: 4px; border-radius: 30px; overflow: hidden; background: var(--rc); box-shadow: 0 0 70px var(--rb), 0 20px 50px rgba(0,0,0,.35); }
 .rcard.r0 { background: #E3E5E8; box-shadow: 0 0 60px rgba(255,255,255,.35), 0 20px 50px rgba(0,0,0,.35); }
 .rcard.r3::before, .rcard.r4::before {
   content: ""; position: absolute; inset: -80%; z-index: -1;
@@ -559,6 +574,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .kind .car { width: 50px; height: auto; position: static; }
 .kind.off { color: var(--ink-3); }
 .logst { min-height: 20px; font-size: 15px; font-weight: 700; line-height: 1.3; }
+.set .dot { position: static; flex: none; box-shadow: none; }   /* новые подсказки — точка в строке «Подсказки» (задание 22) */
 .set {
   display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 14px;
   background: var(--tile); font-size: 16px; font-weight: 500; text-align: left;
@@ -573,58 +589,63 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .seg i { font-style: normal; width: 34px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--ink-2); }
 .seg i.on { background: var(--ink); color: #fff; }
 
-/* Нижняя панель (задание 20) — капсула 68 px: лёгкое «стекло», тонкая обводка; активная вкладка — графитовая таблетка
-   с белым значком и подписью, остальные — серые. Бейджи с белым кольцом читаются на обоих фонах */
+/* Нижняя панель (задание 22) — плавающая выпуклая таблетка 54 px, отступ от краёв 14 и снизу 6 (+ безопасный отступ); подписей
+   нет (названия — в aria-label); активная вкладка — голубая неоновая капсула. Бейджи с кольцом читаются на обоих фонах */
 .dock {
-  position: fixed; left: 50%; bottom: calc(8px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)) + var(--vgap, 0px)); z-index: 5;
+  position: fixed; left: 50%; bottom: calc(6px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)) + var(--vgap, 0px)); z-index: 5;
   transform: translateX(-50%) scale(var(--k, 1)); transform-origin: 50% 100%;
-  width: min(calc(100vw / var(--k, 1) - 20px), 440px); box-sizing: border-box; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
-  padding: 6px; border-radius: 34px; background: rgba(255,255,255,.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: var(--sh-2);
+  width: min(calc(100vw / var(--k, 1) - 28px), 440px); height: 54px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-around;
+  padding: 0 6px; border-radius: 27px; background: var(--raise); box-shadow: -4px -4px 10px rgba(255,255,255,.95), 6px 8px 18px rgba(150,156,170,.55);
 }
-.dock button { position: relative; height: 56px; border-radius: 28px; color: #8B8E93; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; }
-.dock button[aria-current="true"] { background: var(--ink); color: #fff; }
-.dock .ic { width: 27px; height: 27px; }
-.dock span { font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: -.01em; }
-.dot { position: absolute; top: 4px; left: calc(50% + 10px); width: 12px; height: 12px; border-radius: 6px; background: var(--r4); box-shadow: 0 0 0 2px #fff; }
-.dock button[aria-current="true"] .dot { box-shadow: 0 0 0 2px var(--ink); }
+.dock button { position: relative; width: max(52px, calc(48px / var(--k, 1))); height: max(44px, calc(44.5px / var(--k, 1))); border-radius: 23px; color: #6D7280; display: grid; place-items: center; min-width: 0; }   /* ≥ 44 px на экране при любом масштабе */
+.dock button[aria-current="true"] { width: max(56px, calc(52px / var(--k, 1))); height: max(46px, calc(46.5px / var(--k, 1))); background: var(--navy); color: #7FD3FF; box-shadow: 0 0 0 1.5px var(--neon), 0 0 14px rgba(56,182,255,.55); }
+.dock button[aria-current="true"] .ic { filter: drop-shadow(0 0 4px rgba(56,182,255,.9)); }
+.dock .ic { width: 24px; height: 24px; }
+.dot { position: absolute; top: 4px; left: calc(50% + 8px); width: 11px; height: 11px; border-radius: 6px; background: var(--r4); box-shadow: 0 0 0 2px #EEEFF1; }
+.dock button[aria-current="true"] .dot { box-shadow: 0 0 0 2px #0D0F18; }
 /* «Салон»: плашка с числом доступных покупок (престиж — стрелка), значок салона раз в 5 с покачивается */
-.dbadge { position: absolute; top: 2px; left: calc(50% + 8px); min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px;
-  background: var(--gold); color: #fff; font-size: 13px; font-weight: 800; font-style: normal; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; }
-.dock button[aria-current="true"] .dbadge { box-shadow: 0 0 0 2px var(--ink); }
+.dbadge { position: absolute; top: 0; left: calc(50% + 6px); min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px;
+  background: var(--coin-ink); color: #fff; font-size: 13px; font-weight: 800; font-style: normal; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px #EEEFF1; }
+.dock button[aria-current="true"] .dbadge { box-shadow: 0 0 0 2px #0D0F18; }
 .dbadge .ic { width: 13px; height: 13px; stroke-width: 2.8; }
 .dock button.can > .ic { transform-origin: 50% 85%; animation: swing 5s ease-in-out infinite; }
 @keyframes swing { 0%, 12%, 100% { transform: none; } 3% { transform: rotate(-11deg); } 6% { transform: rotate(9deg); } 9% { transform: rotate(-4deg); } }
 
-/* Всплывающая карточка и задания дня */
-.overlay {
-  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
-  background: rgba(242,242,240,.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+/* Окна (задание 21, docs/ДИЗАЙН.md «Окна»): один каркас. Окна, которые игрок открывает сам, — нижний лист (.as-sheet): прижат
+   к низу, на всю ширину (до 460), ручка, скругление сверху --r-sheet, прокрутка внутри. Уведомления и подтверждения — карточка
+   по центру (.big, .rar, .rcard, .card, окна тестового провайдера). Затемнение 38% + размытие 3 px. Уходящее окно — .overlay-out
+   (не ловит касания, его не находят проверки по .overlay) */
+.overlay, .overlay-out {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; box-sizing: border-box; padding-top: var(--tg-top, 0px);   /* окна — ниже шапки Telegram */
+  background: rgba(20,22,26,.38); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
+.overlay.as-sheet, .overlay-out.as-sheet { place-items: end center; }
+.overlay-out { pointer-events: none; }
 .big {
-  --bs: 32px; position: relative; width: min(300px, calc(100vw - 48px)); box-sizing: border-box; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px 22px 26px;
-  border-radius: 22px; background: var(--tile); box-shadow: 0 14px 40px rgba(0,0,0,.12);
+  --bs: 32px; position: relative; width: min(320px, calc(100vw - 40px)); box-sizing: border-box; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 22px 26px;
+  border-radius: var(--r-sheet); background: var(--tile); box-shadow: var(--sh-2);
 }
 .big .new { position: absolute; top: 14px; left: 16px; padding: 4px 10px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; }
-.big-car { position: relative; width: 100%; margin-top: 18px; }
+.big-car { position: relative; z-index: 1; width: 100%; margin-top: 18px; }
 .big-car .car { position: relative; display: block; width: 100%; height: auto; }
 .big-car .plate { bottom: -4%; height: 16%; left: 6%; right: 6%; }
 .big-brand { margin-top: 10px; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .big-model { font-size: 28px; font-weight: 700; line-height: 1.1; text-align: center; text-wrap: balance; }
-.big .lv { top: 12px; left: auto; right: 14px; }
+/* «Новая машина»: уровень — крупная цифра за машиной, цвет редкости (как на поле) */
+.big .lv { z-index: 0; top: 34px; left: 0; right: 0; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none;
+  display: grid; place-items: center; font-size: 150px; line-height: 1; letter-spacing: -.06em; color: var(--dc, var(--dc0)); pointer-events: none; }
 .big .stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--rc); }
 .lvl-big { width: 96px; height: 96px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 44px; font-weight: 700; }
 .reward { display: flex; align-items: center; justify-content: center; gap: 6px; height: 64px; margin-top: 8px; color: var(--ink); font-size: 22px; font-weight: 700; }
-.reward .ic { width: 44px; height: 44px; stroke-width: 1.4; }
+.reward .ic { width: 44px; height: 44px; }
 .reward .car { width: 120px; height: auto; }
 .reward .thing { width: 64px; height: auto; }
 /* Новая механика — редкость: одна машина в пяти цветах, сколько монет даёт каждая, и удачное слияние */
-.rar { --bs: 16px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 14px 18px; border-radius: 22px; background: var(--tile); box-shadow: 0 14px 40px rgba(0,0,0,.12); }
+.rar { --bs: 16px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 14px 18px; border-radius: var(--r-sheet); background: var(--tile); box-shadow: 0 14px 40px rgba(0,0,0,.12); }
 .rar-row { display: flex; align-items: flex-end; justify-content: center; gap: 5px; width: 100%; }
 .rcol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
-.rtile { position: relative; width: 100%; aspect-ratio: 1; max-width: 58px; border-radius: 10px; background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: inset 0 0 0 1px var(--rc); }
-.rtile .car { position: absolute; left: 4%; width: 92%; bottom: 20%; height: auto; }
-.rtile .lv { top: 1px; left: 1px; }
+.rtile { display: block; width: 100%; aspect-ratio: 1; max-width: 58px; }   /* плитка машины в окне — .pl (задание 22) */
 .rmul { display: flex; align-items: center; gap: 1px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .rmul .ic { width: 12px; height: 12px; color: var(--gold); }
 .rar-luck { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: #F4F4F1; font-weight: 800; font-size: 15px; }
@@ -634,41 +655,57 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .rar-luck .upx .ic { width: 70%; height: 70%; stroke-width: 2.4; }
 .okbtn { width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
 .okbtn .ic { width: 28px; height: 28px; stroke-width: 2.6; }
-.xbtn { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; background: #F1F1EE; color: var(--ink-2); display: grid; place-items: center; }
+.xbtn { position: absolute; z-index: 2; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; background: var(--raise); box-shadow: var(--sh-out-s); color: var(--ink-2); display: grid; place-items: center; }
 .xbtn .ic { width: 18px; height: 18px; stroke-width: 2.4; }
 /* Листы: задания, событие, склад, карточки счётчиков, подсказок и салона. Текст — 1–3 короткие строки */
 .sheet {
-  --bs: 18px; position: relative; width: min(360px, calc(100vw - 24px)); max-height: calc(100vh - 40px); overflow-y: auto; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: 10px; padding: 18px 16px 18px; border-radius: 24px; background: var(--tile);
-  box-shadow: 0 14px 40px rgba(0,0,0,.14); overscroll-behavior: contain;
+  --bs: 18px; position: relative; width: min(340px, calc(100vw - 32px)); max-height: calc(100% - 60px); overflow-y: auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 12px; padding: 24px 18px 22px; border-radius: var(--r-sheet); background: linear-gradient(160deg, #F3F4F6, #E8E9ED);   /* задание 22: светлый рельеф */
+  box-shadow: var(--sh-2); overscroll-behavior: contain;
 }
-.sheet.narrow { width: min(320px, calc(100vw - 32px)); align-items: center; text-align: center; }
-.sh-title { font-size: 22px; font-weight: 800; line-height: 1.15; padding-right: 40px; }
-.sheet.narrow .sh-title { padding: 0 30px; }
+.as-sheet > .sheet {
+  width: 100%; max-width: 460px; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+  padding: 30px 18px calc(22px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)));
+}
+.as-sheet > .sheet > .xbtn { position: sticky; top: 0; flex: none; align-self: flex-end; margin: -16px -4px -34px 0; }   /* «✕» не уезжает с прокруткой */
+.as-sheet > .sheet::before { content: ""; position: absolute; top: 9px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: #DAD9D4; }
+.sheet.narrow { align-items: center; text-align: center; }
+.sh-title { font-size: var(--fs-title); font-weight: 800; line-height: 1.15; letter-spacing: -.02em; padding-right: 44px; }
+.sheet.narrow .sh-title { padding: 0 40px; }
 .sh-sub { display: flex; align-items: center; gap: 5px; margin-top: -6px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
-.sh-sub .ic { width: 16px; height: 16px; }
+.sh-sub .ic { width: 18px; height: 18px; }
 .sh-txt { font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--ink); }
 .sh-txt b { font-weight: 800; }
 .sh-foot { font-size: 12px; font-weight: 500; color: var(--ink-3); }
 .sh-pic { width: 100%; min-height: 70px; display: grid; place-items: center; border-radius: 16px; background: #F4F4F1; padding: 10px 0; box-sizing: border-box; overflow: hidden; }
 .sh-pic .car { width: 96px; height: auto; display: block; }
 .sh-pic svg.thing { width: 64px; height: auto; }
+.sh-pic > .ic { width: 44px; height: 44px; }
 .bigic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: #F4F4F1; color: var(--gold); }
 .bigic .ic { width: 36px; height: 36px; fill: #F3E3BD; }
 .bignum { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .xpbig { width: 100%; height: 16px; border-radius: 8px; background: #E6E5E0; overflow: hidden; }
 .xpbig i { display: block; height: 100%; background: linear-gradient(90deg, #E4BE6A, var(--gold)); }
+/* Кнопки (задание 21): основная — графитовая таблетка 52 px, «взять / ок» — зелёная, вторичная — светло-серая,
+   за ⭐ / монеты — графитовая с золотым значком, отключённая — серая */
 .btn {
-  display: flex; align-items: center; justify-content: center; gap: 6px; height: 52px; padding: 0 22px; border-radius: 26px;
-  background: var(--ink); color: #fff; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; justify-content: center; gap: 6px; height: 52px; padding: 0 22px; border-radius: var(--r-pill); box-sizing: border-box;
+  background: var(--ink); color: #fff; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .btn .ic { width: 22px; height: 22px; }
-.btn.gold .ic { color: #F3D58C; fill: rgba(243,213,140,.35); }
-.btn.off { background: #E3E3DE; color: var(--ink-3); }
-.btn.light { background: #F1F1EE; color: var(--ink); }
-.btn.ok { background: var(--ok); }
-.chip { display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 9px 0 6px; border-radius: 14px; background: #F4F4F1; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.chip .ic { width: 18px; height: 18px; }
+/* задание 22: основная кнопка — голубая неоновая капсула, «взять / ок» — зелёная, вторичная — выпуклая, отключённая — вдавленная */
+.btn { background: var(--navy); color: #EAF6FF; box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.4); }
+.btn.gold .ic { color: #F3D58C; }
+.btn.off { background: var(--well2); color: #6B7080; box-shadow: var(--sh-in); }
+.btn.light { background: var(--raise); color: var(--ink); box-shadow: var(--sh-out-s); }
+.btn.ok { background: linear-gradient(160deg, #12261E, #0A130F); color: #8CF0BD; box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 12px rgba(31,209,127,.4); }
+/* чипы наград: значок 22 + число 20 (крупно, как у заказов), в ряд с переносом */
+.chip { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px 0 9px; border-radius: 18px; background: var(--raise); box-shadow: var(--sh-out-s); font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip .ic { width: 22px; height: 22px; }
+/* цена за ⭐ (Stars Telegram) и монеты: значок 22 + число 20 */
+.price { display: inline-flex; align-items: center; gap: 3px; font-size: 20px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.price .ic { width: 22px; height: 22px; color: #E8A317; }
+.price small { margin-left: 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .chip.fuel .ic { color: var(--ink); }
 .chip.coin .ic, .chip.star .ic { color: var(--gold); }
 .chip.star .ic { fill: #F3E3BD; }
@@ -680,22 +717,27 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .tbl tr:first-child td { border-top: 0; }
 .tbl .rtile { width: 40px; display: block; }
 
+/* Строка-карточка (задание 21): белая, рамка 1 px, радиус 20, слева плитка значка 44 px — задания дня, магазин, заряды Ателье,
+   корабль, сундук дня */
+.card-row { position: relative; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 12px; box-sizing: border-box;
+  border-radius: 20px; background: var(--raise); box-shadow: var(--sh-out-s); text-align: left; }   /* задание 22: выпуклая */
+.card-row > .tic { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 14px; background: var(--well2); box-shadow: var(--sh-in); color: var(--ink); }
+.card-row > .tic .ic { width: 26px; height: 26px; }
+.card-row > .tic .car, .card-row > .tic .thing { width: 40px; height: auto; position: static; }
+.card-row .dc-txt, .card-row .stt { flex: 1; min-width: 0; }
 /* Задания дня */
-.task { --bs: 18px; position: relative; display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 10px; box-sizing: border-box; border-radius: 16px; background: #F4F4F1; }
-.task > .tic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 12px; background: #fff; color: var(--ink); }
-.task > .tic .ic { width: 26px; height: 26px; }
-.task > .tic .car { width: 38px; height: auto; }
+.task { --bs: 18px; }
 .tmid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.tmid b { font-size: 16px; font-weight: 800; line-height: 1.15; }
+.tmid b { font-size: 17px; font-weight: 800; line-height: 1.15; }
 .tbar { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.tbar span { flex: 1; height: 8px; border-radius: 4px; background: #E3E3DE; overflow: hidden; }
+.tbar span { flex: 1; height: 7px; border-radius: 4px; background: #ECEBE6; overflow: hidden; }
 .tbar span i { display: block; height: 100%; background: var(--r1); }
-.task .take { height: 44px; padding: 0 12px; border-radius: 22px; background: var(--ok); color: #fff; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 3px; animation: beckon 1.4s ease-in-out infinite; flex: none; }
-.task .take .ic { width: 18px; height: 18px; }
+.task .take { height: 44px; padding: 0 12px; border-radius: 22px; background: linear-gradient(160deg, #12261E, #0A130F); color: #8CF0BD; box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 10px rgba(31,209,127,.4); font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 3px; animation: beckon 1.4s ease-in-out infinite; flex: none; }
+.task .take .ic { width: 22px; height: 22px; }
 .task.got { opacity: .55; }
 .task .rw { flex: none; }
 .task .tick { position: static; width: 26px; height: 26px; flex: none; }
-.daychest { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: #EEF2F6; }
+.daychest { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 22px; background: linear-gradient(135deg, #EEF2F7, #E4EBF3); text-align: left; }
 .daychest .thing { width: 72px; height: auto; flex: none; }
 .daychest .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
 .daychest.can { background: var(--ok-bg); box-shadow: inset 0 0 0 1.5px var(--ok); }
@@ -730,14 +772,14 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 
 /* Склад и причал */
 .slots4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.sslot { --bs: 16px; position: relative; aspect-ratio: 1; border-radius: 12px; background: #F4F4F1; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px #E3E3DE; }
-.sslot.car { background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: none; cursor: pointer; }
-.sslot .car { position: absolute; left: 4%; width: 92%; bottom: 20%; height: auto; }
-.sslot .lv { top: 2px; left: 2px; }
-.sslot.lock { background: #E9E9E5; box-shadow: none; flex-direction: column; color: var(--ink-3); }
+.sslot { --bs: 16px; position: relative; aspect-ratio: 1; border-radius: 30%; display: grid; place-items: center; }
+.sslot:not(.pl) { background: var(--well2); box-shadow: var(--sh-in); }   /* пустое место склада — вдавленное */
+.sslot.car { cursor: pointer; }   /* машина на складе — плитка .pl */
+.sslot.lock { flex-direction: column; color: #5E6370; }
 .sslot.lock .ic { width: 22px; height: 22px; }
-.sslot.lock .cprice { bottom: 6px; }
-.shipbox { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: #EEF2F6; }
+.sslot.lock .cprice { bottom: 6px; font-size: 15px; }
+.sslot.lock .cprice .ic { width: 18px !important; height: 18px !important; }
+.shipbox { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 22px; background: linear-gradient(135deg, #EEF2F7, #E4EBF3); }
 .shipbox > .ic { width: 40px; height: 40px; color: #3D5A79; flex: none; }
 .shipbox .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
 .shipbox .btn { height: 46px; padding: 0 14px; font-size: 16px; flex: none; }
@@ -751,13 +793,12 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 #monetPanel .mrow b { font-size: 15px; color: var(--ink); }
 #monetPanel .btn { height: 38px; padding: 0 12px; font-size: 14px; }
 #monetPanel .mday { display: flex; gap: 6px; }
-.shop .srow { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid #EEE; }
 .shop .srow.off { opacity: .55; }
-.shop .sic { width: 52px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
-.shop .sic .car, .shop .sic .ic { width: 40px; height: auto; position: static; }
-.shop .stt { flex: 1; display: flex; flex-direction: column; font-size: 13px; color: var(--ink-2); }
-.shop .stt b { font-size: 15px; color: var(--ink); }
-.shop .btn { height: 40px; padding: 0 14px; font-size: 15px; }
+.shop .sic { width: auto; min-width: 44px; padding: 0 4px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 2px; font-weight: 800; font-size: 15px; }
+.shop .sic .car, .shop .sic .ic { width: 30px; height: auto; position: static; }
+.shop .stt { display: flex; flex-direction: column; gap: 2px; }
+.shop .stt b { font-size: 17px; color: var(--ink); }
+.shop .btn { height: 44px; padding: 0 16px; font-size: 17px; flex: none; }
 .shop .why { min-width: 40px; text-align: center; font-weight: 800; color: var(--ink-3); display: flex; justify-content: center; }
 .shop .why .ic { width: 18px; height: 18px; }
 .btn small { margin-left: 4px; font-size: 12px; opacity: .8; }
@@ -793,6 +834,8 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .bonuses ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; }
 .bonuses li { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); min-width: 0; text-align: left; }
 .bonuses li .ic { width: 16px; height: 16px; flex: none; color: var(--ok); }
+.sheet .bonuses li { font-size: 15px; }
+.sheet .bonuses li .ic { width: 18px; height: 18px; }   /* в окне (зона готова) — значки ≥ 18, экран Салона не трогаем */
 .bonuses .none { font-size: 14px; font-weight: 600; color: var(--ink-3); }
 .bgroup { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; padding: 4px 0; border-top: 1px solid #EFEFEB; }
 .bgline { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-2); min-width: 0; }
@@ -846,6 +889,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <header class="hud">
     <div class="hrow">
       <button class="lvlbox" id="lvlBox" aria-label="Уровень"><b class="lvl-n" id="lvlN">1</b><span class="xp"><i id="xpBar"></i></span></button>
+      <span id="streak" hidden></span>
       <button class="hbtn" id="cal" aria-label="Задания дня" hidden></button>
       <button class="hbtn sq" id="evBtn" aria-label="Событие недели" hidden></button>
       <button class="hbtn sq" id="depotBtn" aria-label="Склад и причал" hidden></button>
@@ -858,8 +902,8 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   </header>
 
   <section id="field" style="display:contents">
-    <div class="orders-wrap"><div class="sbar"><span id="streak" hidden></span></div><div class="orders" id="orders"></div></div>
     <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+    <div class="orders-wrap"><div class="orders" id="orders"></div></div>
   </section>
 
   <section class="view" id="salon" hidden>
@@ -876,6 +920,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 
   <section class="view" id="settings" hidden>
     <div class="set-list">
+      <button class="set" id="sHelp"></button>
       <button class="set" id="sSound" role="switch" aria-checked="false"></button>
       <button class="set" id="sFill"></button>
       <button class="set" id="sSpeed" role="switch" aria-checked="false"></button>
@@ -891,11 +936,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 
 <button class="adplq" id="adPlaque" hidden></button>
 <nav class="dock" id="dock">
-  <button data-view="salon"></button>
-  <button data-view="field" aria-current="true"></button>
-  <button data-view="cars"></button>
-  <button data-view="help"></button>
-  <button data-view="settings"></button>
+  <button data-view="salon" aria-label="Салон"></button>
+  <button data-view="field" aria-label="Поле" aria-current="true"></button>
+  <button data-shop aria-label="Магазин"></button>
+  <button data-view="cars" aria-label="Коллекция"></button>
+  <button data-view="settings" aria-label="Настройки"></button>
 </nav>
 
 <button class="bubble-pop" id="popBub" hidden></button>
@@ -906,11 +951,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=15"></script>
-<script src="core.js?v=15"></script>
-<script src="art.js?v=15"></script>
-<script src="salon.js?v=15"></script>
-<script src="monet.js?v=15"></script>
+<script src="tg.js?v=17"></script>
+<script src="core.js?v=17"></script>
+<script src="art.js?v=17"></script>
+<script src="salon.js?v=17"></script>
+<script src="monet.js?v=17"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -919,53 +964,58 @@ const SAVE_KEY = 'garazh.v3';
 
 // ── Иконки: тонкие линии ───────────────────────────────────────────────────
 const ic = d => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+// Значки (задание 21, docs/ДИЗАЙН.md «Значки»): сетка 24, линия 1,9, скруглённые концы; «дуотон» — контур currentColor и заливка
+// деталей тем же цветом: class="d" — 14%, class="dg" (золотые: монета, звезда, молния) — 22%. Формы — по листу макет-22/значки.png
 const ICON = {
-  fuel: ic('<path d="M6 8.2 9.2 5H17a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M11 5V3.5h3V5M9.6 11.6l4.8 4.8M14.4 11.6l-4.8 4.8"/>'),
-  coin: ic('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/>'),
-  star: ic('<path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>'),
-  check: ic('<path d="m6 12.5 4 4 8-9"/>'),
+  fuel: ic('<rect class="d" x="4.5" y="3.5" width="9.5" height="17" rx="2.8"/><path d="M7.6 8.2h3.3M14 9.5h2.4a1.7 1.7 0 0 1 1.7 1.7v4.6a1.5 1.5 0 0 0 3 0V9l-2.4-2.6"/>'),
+  coin: ic('<circle class="dg" cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'),
+  star: ic('<path class="dg" d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>'),
+  bolt: ic('<path class="dg" d="M13.4 3 5.8 13.2H11L10 21l7.9-10.5h-5.3z"/>'),          // заряд Ателье (вместо эмодзи)
+  tgstar: ic('<path d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z" fill="currentColor"/>'),   // ⭐ Stars Telegram — цена покупки (сплошная, не звезда игры)
+  check: ic('<path d="M5.5 12.5 9.7 16.7 18.5 7.5"/>'),
   plus: ic('<path d="M12 5v14M5 12h14"/>'),
-  lock: ic('<rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8.5a3.5 3.5 0 0 1 7 0V11"/>'),
-  field: ic('<rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/>'),
-  cards: ic('<rect x="5" y="7.5" width="11" height="13" rx="2"/><path d="M8.5 4.5H17a2 2 0 0 1 2 2V17"/>'),
-  sliders: ic('<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>'),
-  salon: ic('<path d="M4 10.5h16V20H4z"/><path d="M3 10.5 5 4h14l2 6.5M9 20v-5.5h6V20"/>'),
-  sound: ic('<path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
-  clock: ic('<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>'),
-  reset: ic('<path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 5v4h-4"/>'),
+  lock: ic('<rect class="d" x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8.4 10.5V8a3.6 3.6 0 0 1 7.2 0v2.5"/>'),
+  field: ic('<rect class="d" x="4" y="4" width="6.5" height="6.5" rx="2"/><rect class="d" x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect class="d" x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect class="d" x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'),
+  cards: ic('<rect class="d" x="7" y="7" width="12" height="13" rx="3"/><path d="M5 16V6a2.5 2.5 0 0 1 2.5-2.5H16"/>'),
+  sliders: ic('<path d="M4 8h8.8M17.2 8H20M4 16h2.8M11.2 16H20"/><circle class="d" cx="15" cy="8" r="2.2"/><circle class="d" cx="9" cy="16" r="2.2"/>'),
+  salon: ic('<path class="d" d="M4.5 9.5h15v10h-15z"/><path d="M4 9.5 5.6 4.5h12.8L20 9.5M9 19.5v-5h6v5"/>'),
+  sound: ic('<path class="d" d="M5 9.5h3l4.5-3.8v12.6L8 14.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
+  clock: ic('<circle class="d" cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  reset: ic('<path d="M19 12a7 7 0 1 1-2-4.9"/><path d="M19 4.5V9h-4.5"/>'),
   refresh: ic('<path d="M19 12a7 7 0 0 1-12.2 4.7M5 12a7 7 0 0 1 12.2-4.7"/><path d="M17.5 3.5v4h-4M6.5 20.5v-4h4"/>'),
-  wrench: ic('<path d="M15 4a4.5 4.5 0 0 0-4.3 5.9L4.6 16a1.9 1.9 0 0 0 2.7 2.7l6.1-6.1A4.5 4.5 0 0 0 19.5 8l-2.7 2.7-2.4-.6-.6-2.4L16.5 5A4.5 4.5 0 0 0 15 4z"/>'),
-  grid: ic('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/>'),
+  wrench: ic('<path class="d" d="M15 4a4.5 4.5 0 0 0-4.3 5.9L4.6 16a1.9 1.9 0 0 0 2.7 2.7l6.1-6.1A4.5 4.5 0 0 0 19.5 8l-2.7 2.7-2.4-.6-.6-2.4L16.5 5A4.5 4.5 0 0 0 15 4z"/>'),
+  grid: ic('<rect class="d" x="4" y="4" width="16" height="16" rx="3"/><path d="M4 12h16M12 4v16"/>'),
   arrow: ic('<path d="M5 12h13M13 7l5 5-5 5"/>'),
   up: ic('<path d="M12 19V6M6.5 11 12 5.5l5.5 5.5"/>'),
-  calendar: ic('<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><path d="m9 15 2 2 4-4"/>'),
-  flame: ic('<path d="M12 21c3.6 0 6-2.4 6-5.6 0-3.4-2.6-5.4-3.6-8.4-.4 1.8-1.4 3-2.6 3.4.2-2.6-.8-5.2-3-7 .2 3.4-2.8 5.6-2.8 9.8C6 18.6 8.4 21 12 21z"/>'),
-  mergeIn: ic('<path d="M3 12h6M6.5 9 9.5 12l-3 3M21 12h-6M17.5 9 14.5 12l3 3"/>'),
-  card: ic('<rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M4 9h16"/>'),
-  gift: ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11M12 9c-1.5-4-6-4-5-1 .4 1.4 3 1 5 1zM12 9c1.5-4 6-4 5-1-.4 1.4-3 1-5 1z"/>'),
-  key: ic('<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15 12v2"/>'),
-  bubble: ic('<circle cx="12" cy="12" r="8"/><path d="M8.5 9.5a4.5 4.5 0 0 1 3-2"/>'),
-  crate: ic('<rect x="4" y="6" width="16" height="13" rx="1.5"/><path d="M4 12.5h16M5 18 19 7"/>'),
+  calendar: ic('<rect class="d" x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M8 3v4M16 3v4M8.4 14.6l2.4 2.4 4.6-4.8"/>'),
+  flame: ic('<path class="d" d="M12.5 2.8c.6 3-1.4 4.6-3 6.5-1.3 1.5-2.4 3.1-2.4 5.3a5 5 0 0 0 10 0c0-2-1-3.4-2-4.5 0 1.5-.7 2.4-1.6 2.7.4-3-.5-6.4-1-10z"/>'),
+  mergeIn: ic('<path d="M3 12h6M6.5 9l3 3-3 3M21 12h-6M17.5 9l-3 3 3 3"/>'),
+  card: ic('<rect class="d" x="3.5" y="5" width="17" height="14" rx="3"/><path d="M3.5 9.5h17"/>'),
+  gift: ic('<rect class="d" x="4" y="9.5" width="16" height="10.5" rx="2"/><path d="M3.5 9.5h17M12 9.5V20M12 9.5c-1.5-4-6-4-5-1 .4 1.4 3 1 5 1zM12 9.5c1.5-4 6-4 5-1-.4 1.4-3 1-5 1z"/>'),
+  key: ic('<circle class="d" cx="8" cy="12" r="4"/><path d="M12 12h8.5M17.5 12v3M14.5 12v2"/>'),
+  bubble: ic('<circle class="d" cx="12" cy="12" r="8.5"/><path d="M8.5 9.5a4.5 4.5 0 0 1 3-2"/>'),
+  crate: ic('<rect class="d" x="4" y="6" width="16" height="13.5" rx="2"/><path d="M4 12.5h16M6 18.5 18 7"/>'),
   merge: ic('<path d="M5 6l5 6-5 6M19 6l-5 6 5 6"/>'),
-  help: ic('<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><circle cx="12" cy="16.9" r=".5" fill="currentColor"/>'),
-  flag: ic('<path d="M6 21V4M6 4.5c4-2 7 2 12 0v9c-5 2-8-2-12 0"/>'),
-  token: ic('<circle cx="12" cy="12" r="8"/><path d="m12 7.6 1.4 2.8 3 .4-2.2 2.1.5 3-2.7-1.4-2.7 1.4.5-3-2.2-2.1 3-.4z"/>'),
-  ship: ic('<path d="M3.5 15.5h17l-2.6 4.2H6.1z"/><path d="M6 15.5V11h12v4.5M9 11V7.5h6V11M12 7.5V4.5"/>'),
-  trophy: ic('<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
-  chest: ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
-  close: ic('<path d="M6 6l12 12M18 6 6 18"/>'),
-  piggy: ic('<path d="M5 12.5c0-3.3 3-5.5 7-5.5 2.2 0 4 .6 5.3 1.7L19.5 7v3.2c.6.6 1 1.3 1 2.1v1.4c0 .6-.4 1-1 1h-.9c-.6 1-1.5 1.8-2.6 2.3V19h-2.5v-1.5h-3V19H8v-2.1c-1.8-1-3-2.6-3-4.4z"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><path d="M10.5 7.4 11.3 6h2.4"/>'),
-  video: ic('<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>'),
+  help: ic('<circle class="d" cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 4 2c-.9.6-1.6 1.1-1.6 2.2M12 16.8v.1"/>'),
+  flag: ic('<path class="d" d="M6 4.5c4-2 7 2 12 0v9c-5 2-8-2-12 0z"/><path d="M6 21V4"/>'),
+  token: ic('<circle class="d" cx="12" cy="12" r="8.5"/><path d="m12 7.6 1.4 2.8 3 .4-2.2 2.1.5 3-2.7-1.4-2.7 1.4.5-3-2.2-2.1 3-.4z"/>'),
+  ship: ic('<path class="d" d="M3.5 15.5h17l-2.6 4.2H6.1z"/><path d="M6 15.5V11h12v4.5M9 11V7.5h6V11M12 7.5v-3"/>'),
+  trophy: ic('<path class="d" d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
+  chest: ic('<rect class="d" x="4" y="9" width="16" height="11" rx="2"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
+  close: ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'),
+  piggy: ic('<path class="d" d="M5 12.5c0-3.3 3-5.5 7-5.5 2.2 0 4 .6 5.3 1.7L19.5 7v3.2c.6.6 1 1.3 1 2.1v1.4c0 .6-.4 1-1 1h-.9c-.6 1-1.5 1.8-2.6 2.3V19h-2.5v-1.5h-3V19H8v-2.1c-1.8-1-3-2.6-3-4.4z"/><path d="M15.9 11h.1M10.5 7.4 11.3 6h2.4"/>'),
+  video: ic('<rect class="d" x="3.5" y="6" width="17" height="12" rx="3"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>'),
   play: ic('<path d="M5 12h12M13 7l5 5-5 5"/>'),
   share: ic('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8"/>'),
-  copy: ic('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
+  bag: ic('<path class="d" d="M5 8.5h14l-1.1 10.6a2 2 0 0 1-2 1.9H8.1a2 2 0 0 1-2-1.9z"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/>'),   // задание 22: «Магазин» в нижней панели
+  copy: ic('<rect class="d" x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
 };
 const ZICON = {
-  box: ic('<path d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
+  box: ic('<path class="d" d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
   workshop: ICON.wrench,
-  wash: ic('<path d="M12 3.5c3.5 4.2 6 7.4 6 10.5a6 6 0 0 1-12 0c0-3.1 2.5-6.3 6-10.5z"/>'),
-  showroom: ic('<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.7L12 21l-2.2-6.3L3.5 12l6.3-2.7z"/>'),
-  depot: ic('<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>'),
+  wash: ic('<path class="d" d="M12 3.5c3.5 4.2 6 7.4 6 10.5a6 6 0 0 1-12 0c0-3.1 2.5-6.3 6-10.5z"/>'),
+  showroom: ic('<path class="d" d="M12 3l2.2 6.3L20.5 12l-6.3 2.7L12 21l-2.2-6.3L3.5 12l6.3-2.7z"/>'),
+  depot: ic('<path class="d" d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>'),
 };
 const GARAGE = '<svg class="garage" viewBox="0 0 48 30" aria-hidden="true"><path d="M6 13 24 4l18 9M10 11v17M38 11v17M14 16h20M14 20.5h20"/></svg>';
 const GARAGE_IC = ZICON.depot;
@@ -975,7 +1025,7 @@ const EVNAME = { retro: 'Ретро-неделя', trucks: 'Неделя гру�
 const xbtn = `<button class="xbtn" data-close aria-label="Закрыть">${ICON.close}</button>`;
 const fmtN = n => n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1).replace('.', ',') + 'к' : String(n);
 
-const rv = r => `--rc:var(--r${r});--ri:var(--ri${r});--ra:var(--ra${r});--rb:var(--rb${r});--fa:var(--fa${r});--fb:var(--fb${r})`;
+const rv = r => `--rc:var(--r${r});--ri:var(--ri${r});--ra:var(--ra${r});--rb:var(--rb${r});--fa:var(--fa${r});--fb:var(--fb${r});--dc:var(--dc${r});--g:var(--g${r});--gb:var(--gb${r});--gk:var(--gk${r})`;
 const badge = lvl => `<b class="lv">${lvl}</b>`;
 // овал-подложка под машиной; у картинок владельца своя тень — им не нужен
 const withPlate = (r, car) => (car.includes('car-img v2') ? '' : `<i class="plate${r === 4 ? ' legend' : ''}"></i>`) + car;
@@ -1010,7 +1060,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 15 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 17 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1035,6 +1085,9 @@ const what = c => !c ? 'пусто' : c.k === 'key' ? 'ключ' : c.k !== 'car'
 L(`запуск: ${BUILD}; экран ${screen.width}×${screen.height}, окно ${innerWidth}×${innerHeight}; ` +
   `${TG.on ? `в Telegram${TG.mock ? ' (имитация ?tg=1)' : ''}` : matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'с экрана «Домой»' : 'в браузере'}; ` +
   `${saved ? `продолжение, уровень ${s.level}` : 'новая игра'}; ${navigator.userAgent}`);
+// задание 22: заказов три — у старого сохранения с открытым 4-м слотом слот убран, цена возвращена (Core.migrate)
+const noteRefund = () => { if (s.slot4Refund) { L(`слот 4 убран: возврат ${s.slot4Refund}`); delete s.slot4Refund; save(); } };
+noteRefund();
 addEventListener('error', e => { LOG.sum.err++; L(`ОШИБКА: ${e.message} (${String(e.filename).split('/').pop()}:${e.lineno})`); });
 addEventListener('unhandledrejection', e => { LOG.sum.err++; L(`ОШИБКА: ${e.reason?.message || e.reason}`); });
 addEventListener('pagehide', () => { logSaveNow(); TG.cloudFlush(); });
@@ -1275,7 +1328,9 @@ const upLines = () => PORTS.filter(upOK);
 const portCell = line => C.ports.find(p => p.line === line).cell;
 
 const canPrestige = () => Core.salonDone(s) && s.stars >= Core.prestigePrice(s);
-const DOCK = [[ICON.salon, 'Салон'], [ICON.field, 'Поле'], [ICON.cards, 'Коллекция'], [ICON.help, 'Подсказки'], [ICON.sliders, 'Настройки']];
+// нижняя панель (задание 22): 5 пунктов, подписей нет (название — в aria-label); «Магазин» открывает лист магазина и вкладкой не становится,
+// «Подсказки» — строкой в Настройках
+const DOCK = [[ICON.salon, 'Салон'], [ICON.field, 'Поле'], [ICON.bag, 'Магазин'], [ICON.cards, 'Коллекция'], [ICON.sliders, 'Настройки']];
 function renderHud() {
   Art.setTheme(s.ev?.theme);
   $('lvlN').textContent = s.level;
@@ -1304,19 +1359,18 @@ function renderHud() {
     s.storeN ? `<i class="hbadge">${s.store.length}/${s.storeN}</i>` : '');
   // «Салон»: плашка с числом покупок (престиж — стрелка); Коллекция и Подсказки — плашка поменьше без числа.
   // Меню перерисовывается, только когда изменилось, — иначе покачивание сбрасывалось бы каждую секунду
-  const n = buyN(), prest = canPrestige(), dots = [false, false, Object.keys(s.fresh).length > 0, freshHints().length > 0, false];
+  const n = buyN(), prest = canPrestige(), dots = [false, false, false, Object.keys(s.fresh).length > 0, freshHints().length > 0];
   const dk = $('dock').children;
   DOCK.forEach(([icon, label], k) => {
-    const h = icon + `<span>${label}</span>` + (k === 0 && (n || prest) ? `<i class="dbadge">${n || ICON.up}</i>` : dots[k] ? '<i class="dot"></i>' : '');
-    if (dk[k]._h !== h) { dk[k]._h = h; dk[k].innerHTML = h; }
+    const h = icon + (k === 0 && (n || prest) ? `<i class="dbadge">${n || ICON.up}</i>` : dots[k] ? '<i class="dot"></i>' : '');
+    if (dk[k]._h !== h) { dk[k]._h = h; dk[k].innerHTML = h; dk[k].setAttribute('aria-label', label); }
   });
   dk[0].classList.toggle('can', !!(n || prest));
   signals(n + (prest ? 1 : 0));
   const st = $('streak'), hot = s.streak.n >= C.streakNeed && Date.now() - s.streak.at <= C.streakGapMs;
-  const alive = s.streak.n > 0 && Date.now() - s.streak.at <= C.streakGapMs;
-  st.hidden = !alive;
+  st.hidden = !hot;                     // задание 22: чип серии — только когда серия даёт ×1,5
   st.className = hot ? 'hot' : '';
-  st.innerHTML = ICON.flame + (hot ? `×${C.streakMult}` : `${s.streak.n}`);
+  st.innerHTML = ICON.flame + `×${String(C.streakMult).replace('.', ',')}`;
 }
 
 function wanted() {
@@ -1343,7 +1397,7 @@ function cellHTML(c, i, hl) {
       (i === goalCell ? '<i class="goalmark"></i>' : '');
     // сломанная машина: значок нужного инструмента (перетащить его на машину)
     const fix = c.broken ? `<i class="needtool">${Art.item(P, Core.toolFor(c.lvl))}</i>` : '';
-    return `<div class="cell car r${r}${trim ? ' trim' : ''}${hl.has(i) ? ' wanted' : ''}${c.broken ? ' broken' : ''}" data-i="${i}" style="${rv(r)}">` +
+    return `<div class="cell car pl r${r}${trim ? ' trim' : ''}${hl.has(i) ? ' wanted' : ''}${c.broken ? ' broken' : ''}" data-i="${i}" style="${rv(r)}">` +
       `${withPlate(r, Art.item(c.line, c.lvl, false, trim ? 0 : r))}${badge(c.lvl)}${cert}${fix}</div>`;
   }
   if (c.k === 'key') return `<div class="cell key" data-i="${i}" aria-label="Ключ">${Art.thing('key')}</div>`;
@@ -1369,7 +1423,7 @@ function cellHTML(c, i, hl) {
   if (c.k === 'box' && nearBoxes.has(i)) return `<div class="cell box${keyOnField ? ' keyable' : ''}" data-i="${i}" role="button" aria-label="Ящик">${Art.thing('box')}</div>`;
   if (c.k === 'lock' && Core.canOpen(s, i)) {     // цена — только когда на клетку хватает монет
     const price = Core.cellPrice(s), can = s.coins >= price;
-    return `<div class="cell lock${can ? ' can' : ''}" data-i="${i}" role="button" aria-label="Открыть клетку за ${price}">${ICON.lock}${can ? `<span class="cprice">${ICON.coin}${price}</span>` : ''}</div>`;
+    return `<div class="cell lock${can ? ' can' : ''}" data-i="${i}" role="button" aria-label="Открыть клетку за ${price}">${ICON.lock}<span class="cprice">${price}</span></div>`;
   }
   return `<div class="cell far" data-i="${i}"></div>`;
 }
@@ -1392,11 +1446,11 @@ function altChip(type, value) {
     Math.max(1, Math.min({ key: L.keyMax, swap: L.swapsMax, chest: 1 }[type] ?? 99, Math.floor(value / L.unit[type])));
   return `<span class="alt">${ALT_IC[type]}${type === 'chest' ? '' : (type === 'stars' || type === 'coins' ? '' : '+') + n}</span>`;
 }
-const ALT_IC = { coins: ICON.coin, stars: ICON.star, charge: '⚡', tank: ICON.fuel, key: ICON.key, chest: ICON.chest, swap: ICON.refresh };
+const ALT_IC = { coins: ICON.coin, stars: ICON.star, charge: ICON.bolt, tank: ICON.fuel, key: ICON.key, chest: ICON.chest, swap: ICON.refresh };
 // охота (задание 18): заряд Ателье всегда, сверх награды другого вида (заряды полны — звёзды, это решает Core при сдаче)
 const huntChip = o => o.kind === 'hunt' ? `<span class="alt">${ALT_IC.charge}+${C.late.hunt.charge}</span>` : '';
-// Строка заказа (задание 20): машины со «знаками» слева, крупная награда справа; вид — тоном строки, у охоты — значок коллекции.
-// Плашки рядом с картинкой: уровень (цвет нужной редкости, любая — серая), «×N», «готово» — галочка в плашке («×N» и «готово» — одна)
+// Карточка заказа (задание 22): сверху плитки машин — та же плитка .pl, что на поле (грейд нужной редкости, цифра уровня в углу,
+// «×N» — меткой на плитке), под ними крупная награда. Готов — галочка в углу карточки; событие и витрина — значок в углу
 function orderHTML(o, oi) {
   if (oi >= s.slots) {
     const next = oi === s.slots;
@@ -1404,15 +1458,16 @@ function orderHTML(o, oi) {
       `${ICON.lock}${next ? `<span class="oprice">${ICON.coin}${C.slotPrices[oi]}</span>` : ''}</div>`;
   }
   const m = Core.match(s, o);
-  const items = o.items.map((it, k) => {
-    const left = it.n - it.got, ok = left === 0 || m.cells[k].length >= left;
-    const mark = left > 1 ? `<i class="cnt2${ok ? ' ok' : ''}">${ok ? ICON.check : ''}×${left}</i>` : ok ? `<i class="tick">${ICON.check}</i>` : '';
-    return `<span class="want${left === 0 ? ' done' : ''}${it.r >= 0 ? ' req' : ''}" style="${rv(Math.max(0, it.r))}">` +
-      `${Art.item(it.line, it.lvl, false, Math.max(0, it.r))}${badge(it.lvl)}${mark}</span>`;
+  const items = o.items.map(it => {
+    const left = it.n - it.got, r = Math.max(0, it.r);
+    return `<span class="want pl${left === 0 ? ' done' : ''}${it.r >= 0 ? ' req' : ''}" style="${rv(r)}">` +
+      `${Art.item(it.line, it.lvl, false, r)}${badge(it.lvl)}${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}</span>`;
   }).join('');
   const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? huntChip(o) + altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
-  return `<div class="order k-${o.kind}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
-    (o.kind === 'hunt' ? `<span class="okind">${ICON.cards}</span>` : '') + `<span class="wants">${items}</span><span class="oval">${val}</span></div>`;
+  const mark = { event: ICON.flag, showcase: ZICON.showroom }[o.kind];
+  return `<div class="order k-${o.kind}${o.items.length === 1 ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
+    (mark ? `<i class="omark">${mark}</i>` : '') + (m.ready ? `<i class="okmark">${ICON.check}</i>` : '') +
+    `<span class="wants">${items}</span><span class="oval">${val}</span></div>`;
 }
 function renderOrders() {
   $('orders').innerHTML = s.orders.map(orderHTML).join('');
@@ -1566,7 +1621,7 @@ function showRarCard(line, lvl, r, delay) {
     anim(el.querySelector('.rc-flash'), [{ opacity: .95, transform: 'scale(.2)' }, { opacity: 0, transform: 'scale(2.2)' }], { duration: 520, easing: 'ease-out' });
     anim(el.querySelector('.rc-car .art'), [{ opacity: 0, transform: 'scale(.7)', filter: 'brightness(2.2)' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)' });
     el.beforeClose = () => {            // карточка улетает в значок коллекции
-      const car = el.querySelector('.rc-car .car'), dockBtn = $('dock').children[2];
+      const car = el.querySelector('.rc-car .car'), dockBtn = $('dock').children[3];   // Коллекция
       if (car) flyEl(car.outerHTML, 'fly-card', center(car), center(dockBtn), car.getBoundingClientRect().width, 460, 0, .12, .6);
       setTimeout(() => { pop(dockBtn.querySelector('.dot') || dockBtn); buzz(10); }, RM.matches ? 0 : 440);
     };
@@ -1684,12 +1739,13 @@ function openItem(zi, item) {
 // Законченная зона: что она дала
 function zoneDoneCard(zi) {
   const z = C.salon[zi];
-  return `<div class="sheet narrow">${xbtn}<div class="ipic">${SALON.scene(zi, s.salon[z.id] || {}, {})}</div><div class="sh-title">${ZDONE[zi]}</div>` +
+  return `<div class="sheet narrow card">${xbtn}<div class="ipic">${SALON.scene(zi, s.salon[z.id] || {}, {})}</div><div class="sh-title">${ZDONE[zi]}</div>` +
     `<div class="bonuses" style="padding:0;width:100%"><ul style="grid-template-columns:1fr">${z.fx.map(fx => `<li>${ICON.check}<span>${fxText(fx)}</span></li>`).join('')}</ul></div>` +
     `<button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`;
 }
 
 function renderSettings() {
+  $('sHelp').innerHTML = ICON.help + '<span>Подсказки</span>' + (freshHints().length ? '<i class="dot"></i>' : '') + ICON.arrow;   // задание 22: вход в подсказки — здесь
   $('sSound').innerHTML = ICON.sound + '<span>Звук</span><i class="sw"></i>';
   $('sSound').setAttribute('aria-checked', String(!!s.sound));
   $('sFill').innerHTML = ICON.fuel + '<span>Полный бак</span>';
@@ -1720,27 +1776,30 @@ function renderAll() {
 // зовётся и по его событиям. Окно ниже, чем нужно полю с клеткой 30 px и ряду заказов 64 px, — вся игра целиком
 // уменьшается (масштаб), чтобы ничего не обрезалось: поле важнее заказов
 let fitH = 0, fitK = 1, fitIns = '';
-// Раскладка главного экрана (задание 20). Сверху вниз: шапка, полоска серии, четыре строки заказов (≥ 32 px), поле 7 × 9.
-// Клетка — по ширине экрана (не больше 64), но так, чтобы всё влезло по высоте. Не влезает: клетка уменьшается до 44 px, потом
-// вся игра (--k) до 0,92, потом клетка до 40 и масштаб сколько нужно — заказы не прячутся никогда.
-// Отступы Telegram (вырез, кнопки) не уменьшаются: --app-top / --app-bottom делятся на масштаб
-const PAD_T = 8, PAD_B = 84, SBAR = 22 + 4, ROWS = 4 * 32 + 3 * 6, BOARD_GAPS = 8 * 4;
+// Раскладка главного экрана (задание 22, вариант C). Сверху вниз: шапка, поле 7 × 9 (зазор 3), три карточки заказов (76 px; если клетка
+// выходит меньше 48 — 68 px), плавающая панель. Клетка — по ширине экрана (не больше 64), но так, чтобы всё влезло по высоте.
+// Не влезает: клетка уменьшается до 44 px, потом вся игра (--k) до 0,92, потом клетка до 40 и масштаб сколько нужно — заказы не прячутся.
+// Уменьшенная игра — на всю ширину экрана. Отступы Telegram (вырез, кнопки) не уменьшаются: --app-top / --app-bottom делятся на масштаб
+const PAD_T = 8, PAD_B = 66, PAD_X = 4, BOARD_GAP = 3;
 function fit() {
   const app = $('app'), root = document.documentElement.style;
   if (!app.clientWidth) return;
   const vh = TG.on ? TG.height() : innerHeight, hud = app.querySelector('.hud').offsetHeight, ins = TG.on ? TG.insets() : null;
   const cs = getComputedStyle(app), gap = parseFloat(cs.rowGap) || 0, vw = innerWidth;
-  // высота без отступов Telegram и постоянная часть (CSS-пиксели при масштабе 1): отступы, шапка, два зазора, серия, строки, зазоры поля
+  // высота без отступов Telegram и постоянная часть (CSS-пиксели при масштабе 1): отступы, шапка, два зазора, карточки заказов, зазоры поля
   const V = ins ? vh - ins.top - ins.bottom : vh;
   const pads = ins ? PAD_T + PAD_B : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  const F = pads + hud + 2 * gap + SBAR + ROWS + BOARD_GAPS;
-  // ширина игры при масштабе k — на весь экран (не шире 460), клетка по ширине: 7 клеток, 6 зазоров по 4, отступы по 12
-  const wOf = k => Math.min(460, vw / k), cwOf = k => Math.min(64, Math.floor((wOf(k) - 24 - 6 * 4) / 7));
-  let k = 1, cell = Math.min(cwOf(1), Math.floor((V - F) / 9));
+  let oh = 76;
+  const F = () => pads + hud + 2 * gap + oh + 8 * BOARD_GAP;
+  // ширина игры при масштабе k — на весь экран (не шире 460), клетка по ширине: 7 клеток, 6 зазоров, края
+  const wOf = k => Math.min(460, vw / k), cwOf = k => Math.min(64, Math.floor((wOf(k) - 2 * PAD_X - 6 * BOARD_GAP) / 7));
+  if (Math.floor((V - F()) / 9) < 48) oh = 68;
+  let k = 1, cell = Math.min(cwOf(1), Math.floor((V - F()) / 9));
   if (cell < Math.min(cwOf(1), 44)) {
-    k = Math.min(1, V / (F + 9 * 44)); cell = Math.min(cwOf(k), 44);
-    if (k < .92) { cell = Math.max(40, Math.floor((V / .92 - F) / 9)); k = Math.min(1, V / (F + 9 * cell)); cell = Math.min(cwOf(k), cell); }
+    k = Math.min(1, V / (F() + 9 * 44)); cell = Math.min(cwOf(k), 44);
+    if (k < .92) { cell = Math.max(40, Math.floor((V / .92 - F()) / 9)); k = Math.min(1, V / (F() + 9 * cell)); cell = Math.min(cwOf(k), cell); }
   }
+  $('orders').style.setProperty('--oh', oh + 'px');
   k = Math.floor(k * 1000) / 1000;
   root.setProperty('--k', k);
   root.setProperty('--cell', cell + 'px');
@@ -1914,7 +1973,7 @@ function playFx(ev) {
       });
         sound(e.t === 'rarUp' ? 'lucky' : 'build'); buzz([15, 30, 15]); break;
       case 'noCharge': shake(cellEl(e.at)); sound('no');
-        showPop(e.at, `${ICON.clock}<b>${fmtCharge()}</b><span style="margin:0 4px;color:var(--ink-3)">или</span>⚡${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.chargePrice(s, todayKey())}</b>`,
+        showPop(e.at, `${ICON.clock}<b>${fmtCharge()}</b><span style="margin:0 4px;color:var(--ink-3)">или</span>${ICON.bolt}${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.chargePrice(s, todayKey())}</b>`,
           () => Core.buyCharge(s, Date.now(), todayKey()));
         break;
       case 'chargeBuy': later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); bump($('coinPill')); sound('unlock'); break;
@@ -1937,13 +1996,13 @@ function playFx(ev) {
       case 'ship': later(() => { flash(e.at, '#3D5A79'); pop(cellEl(e.at)); }); sound('unlock'); break;
       case 'evStart': setTimeout(() => bump($('evBtn')), 400); explain('event', popDelay); break;
       case 'evEnd':
-        queuePopup(`<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.flag}</span><div class="sh-title">${EVNAME[e.theme]} закончилась</div>` +
+        queuePopup(`<div class="sheet narrow card">${xbtn}<span class="bigic">${ICON.flag}</span><div class="sh-title">${EVNAME[e.theme]} закончилась</div>` +
           `<div class="sh-txt">Ступень <b>${e.step} из ${C.event.track.length}</b>. Награды остаются у тебя.</div><button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay, 'level', 'tap');
         break;
       case 'evStep': {
         const [ic, n] = rewardIcon(e.reward);
         setTimeout(() => { floatText($('evBtn'), `${ICON.flag}${e.k + 1}<span class="mul">${ic}${n}</span>`, 'fl-gold'); bump($('evBtn')); }, popDelay);
-        if (e.reward[0] === 'trophy') queuePopup(`<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.trophy}</span><div class="sh-title">Трофей: ${EVNAME[s.ev.theme]}</div>` +
+        if (e.reward[0] === 'trophy') queuePopup(`<div class="sheet narrow card">${xbtn}<span class="bigic">${ICON.trophy}</span><div class="sh-title">Трофей: ${EVNAME[s.ev.theme]}</div>` +
           `<div class="sh-txt">Навсегда +${Math.round(C.event.trophyPct * 100)}% монет за заказы. Трофей — в коллекции.</div><button class="okbtn" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 400, 'level', 'tap');
         break;
       }
@@ -2021,11 +2080,11 @@ function playFx(ev) {
       }
       case 'kind':
         later(() => { flash(e.at, '#3E7A57', true); pop(cellEl(e.at)); });
-        queuePopup(`<div class="sheet narrow"><div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(e.line, 1)}</div>` +
+        queuePopup(`<div class="sheet narrow card"><div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(e.line, 1)}</div>` +
           `<div class="sh-title">Новый вид в гараже</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 80, 'card', 'panel');
         break;
       case 'milestone':                    // этап коллекции (задание 17): окно с наградой и ✓
-        queuePopup(`<div class="sheet narrow"><div class="sh-pic">${ICON.cards}</div><div class="sh-title">Коллекция: ${e.n} карточек</div>` +
+        queuePopup(`<div class="sheet narrow card"><div class="sh-pic">${ICON.cards}</div><div class="sh-title">Коллекция: ${e.n} карточек</div>` +
           `<div class="obtns">${milePics(e.got)}</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 200, 'level', 'panel');
         break;
       case 'alt': later(() => floatText(Core.CONFIG.ports[0].cell, `${ALT_IC[e.kind]}+${e.n}`, 'fl-gold')); sound('coin'); break;
@@ -2109,7 +2168,7 @@ function portSheet(line) {
   // Ателье: заряды, время до следующего и «Заряд сейчас» за монеты (цена растёт с каждой покупкой за день)
   const now = Date.now(), ch = line === Core.TRIM ? Core.charges(s, now) : -1, cp = Core.chargePrice(s, todayKey());
   const btns = ch === 0 ? withAd('charge', chargeBtn(cp), '+1') : chargeBtn(cp);
-  const charge = ch < 0 ? '' : `<div class="daychest${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%;box-sizing:border-box"><span class="dc-txt">Заряды: <b>${ch} из ${Core.maxCharges(s)}</b>` +
+  const charge = ch < 0 ? '' : `<div class="card-row${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%"><span class="tic">${ICON.bolt}</span><span class="dc-txt">Заряды: <b>${ch} из ${Core.maxCharges(s)}</b>` +
     (ch < Core.maxCharges(s) ? `<br>следующий через ${fmtCharge()}</span>` + btns : '</span>') + '</div>' +
     (line === Core.TRIM ? `<div class="obtns adrow">${buyBtn('part1', Art.item(Core.TRIM, 1))}${buyBtn('part2', Art.item(Core.TRIM, 2))}</div>` : '');
   return `<div class="sheet narrow" data-port="${line}">${xbtn}<div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(line, line === Core.TRIM ? 2 : 1)}</div>` +
@@ -2119,7 +2178,7 @@ function portSheet(line) {
 // основной гараж: какие виды машин выдаёт — открытые картинкой 1-го уровня, закрытые замком
 const kindsRow = line => line !== 0 ? '' : `<div class="kinds">${C.ports[0].kinds.map(k => Core.carLines(s).includes(k.line) ?
   `<span class="kind">${Art.item(k.line, 1)}</span>` : `<span class="kind off">${ICON.lock}</span>`).join('')}</div>`;
-const chargeBtn = cp => `<button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>⚡ ${ICON.coin}${cp}</button>`;
+const chargeBtn = cp => `<button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>${ICON.bolt}${ICON.coin}${cp}</button>`;
 function openPort(line) {
   rep.tier.done = true;
   queuePopup(portSheet(line), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', async e => {
@@ -2168,7 +2227,7 @@ function askRare(e) {
   const c = s.cells[e.at];
   let gave = false;
   hop(cellEl(e.at)); sound('no');
-  queuePopup(`<div class="sheet narrow rare-ask"><span class="rtile" style="${rv(e.r)}">${Art.item(c.line, c.lvl, false, e.r)}${badge(c.lvl)}</span>` +
+  queuePopup(`<div class="sheet narrow card rare-ask"><span class="rtile pl" style="${rv(e.r)}">${Art.item(c.line, c.lvl, false, e.r)}${badge(c.lvl)}</span>` +
     `<div class="obtns"><button class="btn ok" data-give aria-label="Отдать">${ICON.check}</button>` +
     `<button class="btn light keep" data-close aria-label="Оставить">${ICON.close}</button></div></div>`, 0, 'card', 'panel', el => {
     el.beforeClose = () => L(gave ? 'редкая машина: отдал' : 'редкая машина: оставил');
@@ -2218,6 +2277,9 @@ function pump() {
   const el = document.createElement('div');
   el.className = 'overlay' + (opt.cls ? ' ' + opt.cls : '');
   el.innerHTML = html;
+  // каркас (задание 21): окно, которое открыл игрок, — нижний лист; уведомление и подтверждение — карточка по центру
+  const card = !!el.firstElementChild?.matches('.big, .rar, .rcard, .card, .mscreen');
+  el.classList.add(card ? 'as-card' : 'as-sheet');
   document.body.appendChild(el);
   popupOpen = el;
   const [cat, name] = popName(el);
@@ -2226,14 +2288,21 @@ function pump() {
   L(`окно: ${name}${opt.auto ? '' : ' (открыл сам)'}`);
   hideFinger();
   sound(snd);
-  anim(el.firstElementChild, [{ transform: 'scale(.85)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  // появление: лист выезжает снизу 220 мс, карточка — 0,96 → 1 и прозрачность 180 мс (без анимации при «уменьшить движение»)
+  const inFrames = card ? [{ transform: 'scale(.96)', opacity: 0 }, { transform: 'none', opacity: 1 }] : [{ transform: 'translateY(100%)' }, { transform: 'none' }];
+  anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: card ? 180 : 220, easing: 'ease-out' });
+  anim(el.firstElementChild, inFrames, { duration: card ? 180 : 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
   const close = how => {
     if (popupOpen !== el) return;
     popupOpen = null;
     acted++;
     L(`закрыто «${el.logName}» через ${fs1((Date.now() - shownAt) / 1000)} с${how === 'само' ? ', само' : ''}`);
     el.beforeClose?.();
-    el.remove();
+    // уходит зеркально за 160 мс и сразу перестаёт быть окном: .overlay-out не ловит касаний, проверки по .overlay его не видят
+    el.classList.replace('overlay', 'overlay-out');
+    anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
+    const out = anim(el.firstElementChild, [...inFrames].reverse(), { duration: 160, easing: 'ease-in', fill: 'forwards' });
+    if (out) out.onfinish = () => el.remove(); else el.remove();
     lastInput = Date.now();
     setTimeout(pump, 120);
   };
@@ -2263,7 +2332,7 @@ function bigCard(line, lvl, r, isNew) {
 }
 
 // ── Подсказки: карточки всех механик. Встретил механику — карточка открылась (новая — с точкой) ──
-const tileR = (line, lvl, r = 0, cls = '') => `<span class="rtile${cls}" style="${rv(r)}">${Art.item(line, lvl, false, r)}${badge(lvl)}</span>`;
+const tileR = (line, lvl, r = 0, cls = '') => `<span class="rtile pl${cls}" style="${rv(r)}">${Art.item(line, lvl, false, r)}${badge(lvl)}</span>`;
 const RNAME = ['Обычная', 'Необычная', 'Редкая', 'Эпическая', 'Легендарная'];
 const RHOW = ['из гаража', 'краска или гараж', 'диски', 'обвес', 'эмблема мастера'];
 const plural = (n, a, b, c) => { const k = n % 100 > 10 && n % 100 < 20 ? 2 : [2, 0, 1, 1, 1, 2][Math.min(n % 10, 5)]; return [a, b, c][k]; };
@@ -2300,7 +2369,7 @@ const HINTS = [
   { id: 'daily', t: 'Задания дня', open: () => s.n.orders > 0, lock: 'Откроется после первого заказа', ic: () => ICON.calendar,
     pic: () => `<div class="rule">${Art.thing('daily')}</div>`,
     txt: ['Три задания каждый день, за каждое — топливо.', 'За все три — сундук дня.'] },
-  { id: 'rarity', t: 'Редкость', open: () => Core.rarOn(s), lock: 'Откроется с Ателье', ic: () => `<span class="rtile" style="${rv(2)};width:40px">${Art.item(0, 2, false, 2)}</span>`,
+  { id: 'rarity', t: 'Редкость', open: () => Core.rarOn(s), lock: 'Откроется с Ателье', ic: () => `<span class="rtile pl" style="${rv(2)};width:40px">${Art.item(0, 2, false, 2)}</span>`,
     table: () => `<table class="tbl">${[0, 1, 2, 3, 4].map(r => `<tr><td>${tileR(0, rarLvl(), r)}</td><td>${RNAME[r]}</td>` +
       `<td style="font-weight:600;color:var(--ink-2);font-size:12px">${RHOW[r]}</td><td>${ICON.coin}×${String(C.rarityCoins[r]).replace('.', ',')}</td></tr>`).join('')}</table>`,
     txt: ['Главный путь к редкости — детали Ателье: перетащи деталь на машину.', `<div class="rule">${tileR(0, 3, 1)}+${tileR(0, 3, 2)}${ICON.play}${tileR(0, 4, 1)}</div>Разные редкости → младшая.`, `Удачное слияние (${Math.round(C.luckyChance * 100)}%) поднимает редкость.`] },
@@ -2476,18 +2545,20 @@ function showPlaque(place, html) {
 // Магазин (задание 17, только в тесте монетизации): товар — картинка, название, ⭐ цена, «Купить»; нельзя — серый с причиной;
 // куплено навсегда — ✓. Копилка — сколько в ней монет и «Разбить»
 const SHOP_IC = { tanks5: ICON.fuel + '×5', part1: Art.item(Core.TRIM, 1), part2: Art.item(Core.TRIM, 2), starter: ICON.gift, vip: ICON.video,
-  piggy: ICON.piggy, atelier3: '⚡+1', tankplus: ICON.fuel + '+' + C.shop.items.tankplus.fuel };
-const WHY = { нет: '—', куплено: '✓', день: ICON.calendar, Ателье: ICON.lock, запас: ICON.fuel + '15', лимит: '3/3', место: ICON.grid, мало: '<100' };
+  piggy: ICON.piggy, atelier3: ICON.bolt + '+1', tankplus: ICON.fuel + '+' + C.shop.items.tankplus.fuel };
+const WHY = { нет: '—', куплено: ICON.check, день: ICON.calendar, Ателье: ICON.lock, запас: ICON.fuel + '15', лимит: '3/3', место: ICON.grid, мало: '<100' };
 function shopRow(p) {
   const g = Core.canGrant(s, p.id, Date.now(), Monet.day()), price = C.shop.items[p.id].price;
   const pig = p.id === 'piggy' ? ` · в копилке ${s.shop?.piggy || 0}` : '';
-  const right = g.ok ? `<button class="btn gold" data-buy="${p.id}">${p.id === 'piggy' ? 'Разбить' : 'Купить'}</button>` :
+  const right = g.ok ? `<button class="btn gold${Monet.on ? '' : ' off'}" data-buy="${p.id}"${Monet.on ? '' : ' disabled'}>${p.id === 'piggy' ? 'Разбить' : 'Купить'}</button>` :
     g.why === 'куплено' ? `<i class="tick">${ICON.check}</i>` : `<span class="why">${WHY[g.why] || g.why}</span>`;
-  return `<div class="srow${g.ok ? '' : ' off'}" data-id="${p.id}"><span class="sic">${SHOP_IC[p.id]}</span><span class="stt"><b>${p.title}</b>⭐ ${price}${pig}</span>${right}</div>`;
+  return `<div class="srow card-row${g.ok ? '' : ' off'}" data-id="${p.id}"><span class="tic sic">${SHOP_IC[p.id]}</span><span class="stt"><b>${p.title}</b>` +
+    `<span class="price">${ICON.tgstar}${price}${pig ? `<small>${pig}</small>` : ''}</span></span>${right}</div>`;
 }
-const shopSheet = () => `<div class="sheet shop">${xbtn}<div class="sh-title">Магазин</div>${Monet.products.map(shopRow).join('')}<div class="set-note">тест, без денег</div></div>`;
+const shopSheet = () => `<div class="sheet shop">${xbtn}<div class="sh-title">Магазин</div>${Monet.LIST.map(shopRow).join('')}` +
+  `<div class="set-note">${Monet.on ? 'тест, без денег' : 'покупки пока выключены'}</div></div>`;
+// задание 22: магазин открывается из панели всегда; без теста монетизации кнопки «Купить» выключены
 function openShop() {
-  if (!Monet.on) return;
   queuePopup(shopSheet(), 0, 'card', 'panel', el => el.addEventListener('click', async e => {
     const b = e.target.closest('[data-buy]');
     if (!b) return;
@@ -2497,7 +2568,7 @@ function openShop() {
 }
 // контекстные кнопки товара (только в тесте и только когда товар можно купить)
 const buyBtn = (id, label) => Monet.on && Core.canGrant(s, id, Date.now(), Monet.day()).ok ?
-  `<button class="btn light" data-buy="${id}" aria-label="Купить">${label}<small>⭐${C.shop.items[id].price}</small></button>` : '';
+  `<button class="btn light" data-buy="${id}" aria-label="Купить">${label}<span class="price">${ICON.tgstar}${C.shop.items[id].price}</span></button>` : '';
 async function buyTap(e, el, again) {
   const b = e.target.closest('[data-buy]');
   if (!b) return false;
@@ -2508,7 +2579,7 @@ async function buyTap(e, el, again) {
 
 // Подарок дня пришёл (в тесте монетизации): окно «Забрать» и «×2 за ролик»; «Забрать» — подарок и так на поле
 function giftWindow(delay) {
-  queuePopup(`<div class="sheet narrow">${xbtn}<div class="sh-pic">${Art.thing('gift')}</div><div class="sh-title">Подарок дня</div>` +
+  queuePopup(`<div class="sheet narrow card">${xbtn}<div class="sh-pic">${Art.thing('gift')}</div><div class="sh-title">Подарок дня</div>` +
     withAd('gift', `<button class="btn ok" data-close>Забрать</button>`, '×2') + '</div>', delay, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => adTap(e, el))));
 }
 // Тестовая панель (только в тесте монетизации): по месту — «сегодня n из N» и «Подготовить», сброс счётчиков, день игры для лимитов
@@ -2575,7 +2646,7 @@ $('sLogInfo').addEventListener('click', () => {
   verTaps = [];
   Monet.setTest(!Monet.on);
   L(Monet.on ? 'тест монетизации включён' : 'тест монетизации выключен');
-  queuePopup(`<div class="sheet narrow"><div class="sh-title">Тест монетизации ${Monet.on ? 'включён' : 'выключен'}</div>` +
+  queuePopup(`<div class="sheet narrow card"><div class="sh-title">Тест монетизации ${Monet.on ? 'включён' : 'выключен'}</div>` +
     `<button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, 0, 'card', 'panel');
   renderAll(); renderMonetPanel();
 });
@@ -2613,7 +2684,7 @@ function tasksSheet() {
     const rw = g.alt ? altChip(g.alt, C.late.taskValue) : `${ICON.fuel}+${g.fuel}`;     // после 15-го уровня — не только топливо
     const right = g.got ? `<i class="tick">${ICON.check}</i>` : ok ? `<button class="take" data-take="${k}">Забрать ${rw}</button>` :
       `<span class="chip fuel rw">${rw}</span>`;
-    return `<div class="task${g.got ? ' got' : ''}"><span class="tic">${ic}</span><span class="tmid"><b>${txt}</b>` +
+    return `<div class="task card-row${g.got ? ' got' : ''}"><span class="tic">${ic}</span><span class="tmid"><b>${txt}</b>` +
       `<span class="tbar"><span><i style="width:${(have / g.need * 100).toFixed(0)}%"></i></span>${have}/${g.need}</span></span>${right}</div>`;
   }).join('');
   const all = Core.dailyDone(s);
@@ -2674,13 +2745,13 @@ $('evBtn').addEventListener('click', () => { if (Core.evActive(s)) queuePopup(ev
 function depotSheet() {
   const now = Date.now(), slots = [0, 1, 2, 3].map(k => {
     const c = s.store[k];
-    if (c) return `<button class="sslot car" data-out="${k}" style="${rv(c.r || 0)}" aria-label="Вернуть на поле">${Art.item(c.line, c.lvl)}${badge(c.lvl)}</button>`;
+    if (c) return `<button class="sslot car pl" data-out="${k}" style="${rv(c.r || 0)}" aria-label="Вернуть на поле">${Art.item(c.line, c.lvl)}${badge(c.lvl)}</button>`;
     if (k < s.storeN) return '<span class="sslot"></span>';
     return k === s.storeN && s.storeN ? `<button class="sslot lock" data-slot aria-label="Купить место">${ICON.lock}<span class="cprice">${ICON.coin}${C.storePrices[k]}</span></button>` : `<span class="sslot lock">${ICON.lock}</span>`;
   }).join('');
   const store = s.storeN ? `<div class="sh-title">Склад</div><div class="slots4">${slots}</div><div class="sh-txt">Перетащи машину на значок склада вверху — она подождёт здесь. Нажми на машину — вернётся на поле.</div>` : '';
   const ready = s.ship && now >= s.ship.at;
-  const ship = s.ship ? `<div class="shipbox${!ready && Monet.canShow('ship') ? ' ad' : ''}">${ICON.ship}<span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
+  const ship = s.ship ? `<div class="shipbox card-row${!ready && Monet.canShow('ship') ? ' ad' : ''}"><span class="tic">${ICON.ship}</span><span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
     (ready ? '' : withAd('ship', `<button class="btn gold" data-ship>Сейчас ${ICON.coin}${Core.shipPrice(s, now)}</button>`, ICON.ship)) + '</div>' : '';
   return `<div class="sheet">${xbtn}${store}${ship}</div>`;
 }
@@ -2981,7 +3052,7 @@ function orderSheet(oi) {
     `<span class="chip coin">${ICON.coin}${Core.orderValue(s, o)}</span>`;
   const tiles = o.items.map((it, k) => {
     const left = it.n - it.got, have = m.cells[k].length;
-    return `<span class="rtile${left === 0 ? ' done' : ''}" style="${rv(Math.max(0, it.r))}">${Art.item(it.line, it.lvl)}${badge(it.lvl)}` +
+    return `<span class="rtile pl${left === 0 ? ' done' : ''}" style="${rv(Math.max(0, it.r))}">${Art.item(it.line, it.lvl)}${badge(it.lvl)}` +
       `${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}${left === 0 || have >= left ? `<i class="tick">${ICON.check}</i>` : '<i class="miss"></i>'}</span>`;
   }).join('');
   return `<div class="sheet" data-order="${oi}">${xbtn}<div class="ohead2">${ava}<div class="sh-title">${KIND[o.kind]}</div></div>` +
@@ -3057,7 +3128,7 @@ function setView(v) {
   hidePop();
   $('field').style.display = v === 'field' ? 'contents' : 'none';
   ['salon', 'cars', 'help', 'settings'].forEach(id => { $(id).hidden = v !== id; });
-  [...$('dock').children].forEach(b => b.setAttribute('aria-current', String(b.dataset.view === v)));
+  [...$('dock').children].forEach(b => b.setAttribute('aria-current', String(b.dataset.view === v || (v === 'help' && b.dataset.view === 'settings'))));   // подсказки — из Настроек
   renderAll();
   if (v === 'field') {
     fit();
@@ -3065,7 +3136,7 @@ function setView(v) {
     pendingFx = [];
   }
 }
-$('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); });
+$('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.hasAttribute('data-shop')) { L('магазин из панели'); openShop(); } else setView(b.dataset.view); });
 $('help').addEventListener('click', e => { const b = e.target.closest('.hcard[data-h]'); if (b) openHint(b.dataset.h); });
 $('cars').addEventListener('click', e => {
   const b = e.target.closest('.stack');
@@ -3073,6 +3144,7 @@ $('cars').addEventListener('click', e => {
   const [line, lvl] = b.dataset.k.split('-').map(Number);
   openModel(line, lvl);
 });
+$('sHelp').addEventListener('click', () => setView('help'));
 $('sSound').addEventListener('click', () => { s.sound = !s.sound; save(); renderSettings(); sound('coin'); });
 $('sFill').addEventListener('click', () => { s.fuel = Core.fuelMax(s); s.fuelAt = Date.now(); save(); renderAll(); bump($('fuelPill')); });
 $('sSpeed').addEventListener('click', () => { Core.setSpeed(s, Date.now(), s.speed === 10 ? 1 : 10); save(); renderSettings(); });
@@ -3142,7 +3214,7 @@ Monet.attach({ s: () => s, day: dayIdx, today: todayKey, now: () => Date.now(), 
   // магазин (задание 17): товар выдают правила; тест вкл / выкл — копилка и запас баков в правилах
   canGrant: (id, day) => Core.canGrant(s, id, Date.now(), day), grant: (id, day) => play(Core.grant(s, id, Date.now(), day)),
   price: id => C.shop.items[id].price, setOn: on => Core.setMonetOn(on) });
-window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
+window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); noteRefund(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
   Core, Art, play, setView, hidePop, openDaily, openHint, openPort, openCard, levelCard, starCard, fuelCard, coinCard, openDepot, eventSheet, openItem, explain, queuePopup, HINTS };
 
 Art.loadRasters(renderAll);
@@ -3161,7 +3233,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 15;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 17;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

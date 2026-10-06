@@ -23,6 +23,7 @@
 
   const Monet = {
     LIMIT, NAME, products: [],
+    LIST: PRODUCTS,                                  // все товары — для витрины магазина (задание 22: открыт и без теста)
     _test: {},                                       // для автопроверки: { next: 'fail' } — следующий ролик не досмотрен
     use(p) { provider = p || NONE; Monet.products = provider === NONE ? [] : PRODUCTS; game?.setOn?.(provider !== NONE); },
     get on() { return provider !== NONE; },
@@ -91,12 +92,14 @@
     if (!document.getElementById('monetCss')) {
       const css = document.createElement('style');
       css.id = 'monetCss';
-      css.textContent = '.monet{z-index:50}.monet .m-ad{position:relative;width:min(300px,calc(100vw - 48px));aspect-ratio:9/14;border-radius:22px;' +
+      css.textContent = '.monet{z-index:50}.monet .m-ad{position:relative;width:min(300px,calc(100vw - 48px),calc((100vh - var(--tg-top,0px) - 40px) * .64));aspect-ratio:9/14;border-radius:30px;' +
         'background:#202329;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}' +
         '.monet .m-ad b{font-size:64px;line-height:1}.monet .m-ad b .ic{width:64px;height:64px}.monet .m-ad small{opacity:.7}';
       document.head.appendChild(css);
     }
-    const ic = d => `<svg class="ic" viewBox="0 0 24 24">${d}</svg>`, X = ic('<path d="M6 6l12 12M18 6 6 18"/>'), OK = ic('<path d="m6 12.5 4 4 8-9"/>');
+    const ic = d => `<svg class="ic" viewBox="0 0 24 24">${d}</svg>`, X = ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'), OK = ic('<path d="M5.5 12.5 9.7 16.7 18.5 7.5"/>');
+    // ⭐ Stars Telegram — тот же значок, что ICON.tgstar в игре (сплошная звезда)
+    const TG_STAR = ic('<path d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z" fill="currentColor"/>');
     const layer = html => { const el = document.createElement('div'); el.className = 'overlay monet'; el.innerHTML = html; document.body.appendChild(el); return el; };
     return {
       rewarded: () => new Promise(done => {
@@ -110,7 +113,7 @@
         el.addEventListener('click', e => { if (e.target.closest('[data-close]')) { clearInterval(t); el.remove(); done({ ok: watched }); } });
       }),
       buy: p => new Promise(done => {
-        const el = layer(`<div class="sheet narrow"><div class="sh-title">${p.title}</div><div class="sh-txt">⭐ ${p.price} · тест, без денег</div>` +
+        const el = layer(`<div class="sheet narrow card"><div class="sh-title">${p.title}</div><div class="sh-txt"><span class="price">${TG_STAR}${p.price}</span> · тест, без денег</div>` +
           `<div class="obtns"><button class="btn ok" data-yes aria-label="Купить">${OK}</button><button class="btn light" data-no aria-label="Отмена">${X}</button></div></div>`);
         el.addEventListener('click', e => {
           const yes = e.target.closest('[data-yes]');

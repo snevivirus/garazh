@@ -73,7 +73,9 @@ const CONFIG = {
 
   // Монеты — только за заказы. Стоимость предмета = 2^(уровень−1) машин 1-го уровня, деталь — вдвое
   partUnits: 2,
-  slotPrices: [0, 25, 120, 300],      // 1-й слот заказа открыт; 2-й, 3-й, 4-й — за монеты
+  slotPrices: [0, 25, 120],           // 1-й слот заказа открыт; 2-й и 3-й — за монеты (задание 22: заказов три, 4-го слота нет)
+  slot4Refund: 300,                   // задание 22: старое сохранение с открытым 4-м слотом — его цена возвращается
+  orderCoinMult: 1.06,                // задание 22: общий множитель монет за заказы — три заказа вместо четырёх, заработок в день в допуске ±5% (подобрано ботом)
   // Уровни предметов у всех видов одни и те же: на 2–3 ниже лучшей машины линейки (не ниже 2-го).
   // Крупный отличается числом машин и множителем: ≈ 3–5× монет быстрого и ≈ 1,7× монет на единицу топлива.
   kinds: {                            // вид заказа: сколько предметов, монет за единицу стоимости
@@ -401,7 +403,7 @@ function newGame(now, seed) {
     fuel: C.fuelMax, fuelAt: now, speed: 1,
     coins: 0, stars: 0, starsTotal: 0, xp: 0, level: 1,
     tiers: [0, 0, 0, 0, 0, 0], taps: [0, 0, 0, 0, 0, 0],
-    slots: 1, orders: [null, null, null, null],
+    slots: 1, orders: [null, null, null],
     salon: {}, seen: {}, top: [1, 0, 0, 0, 0, 0],
     n: { spawns: 0, merges: 0, mixed: 0, lucky: 0, orders: 0, orderSeq: 0, replaced: 0, keys: 0, boxes: 0, repairs: 0, bought: 0, rarUps: 0 },
     v: 8,
@@ -458,6 +460,11 @@ function migrate(s) {
     });
   }
   s.v = 8;
+  // задание 22: заказов три. Открытый 4-й слот убирается, его цена возвращается (игра пишет в журнал по s.slot4Refund);
+  // заказ из 4-го слота пропадает без награды и без штрафа
+  const nSlots = C.slotPrices.length;
+  if (s.slots > nSlots) { s.coins += C.slot4Refund; s.slot4Refund = C.slot4Refund; s.slots = nSlots; }
+  if (s.orders.length > nSlots) s.orders = s.orders.slice(0, nSlots);
   // задание 17: этапы коллекции, пройденные до обновления, отмечаются без наград задним числом
   s.miles ??= C.late.milestones.filter(([n]) => cardCount(s) >= n).length;
   s.store ??= []; s.storeN ??= 0; s.ship ??= null; s.ev ??= null; s.prestige ??= 0; s.trophies ??= {};
@@ -1019,7 +1026,7 @@ const itemCoins = (s, it, r = 0) => units(it.line, it.lvl) * C.rarityCoins[r] * 
 // Надбавка к монетам заказов: пост мойки, престиж салона, трофеи событий
 const fullStacks = s => Object.values(s.seen).filter(m => m === 31).length;
 const bonusPct = s => (fxHas(s, 'coins') ? C.washBonus : 0) + s.prestige * C.prestige.pct + Object.keys(s.trophies).length * C.event.trophyPct + fullStacks(s) * C.stackPct;
-const orderMult = (s, o) => o.kind === 'event' ? 0 : C.kinds[o.kind].mult * (1 + bonusPct(s));
+const orderMult = (s, o) => o.kind === 'event' ? 0 : C.kinds[o.kind].mult * C.orderCoinMult * (1 + bonusPct(s));
 const orderValue = (s, o) => Math.round(o.items.reduce((a, it) => a + itemCoins(s, it, Math.max(0, it.r)) * it.n, 0) * orderMult(s, o));
 const orderTokens = o => o.kind !== 'event' ? 0 : Math.round(o.items.reduce((a, it) => a + units(it.line, it.lvl) * it.n, 0) * C.event.tokensPerUnit);
 // Подходит руками (перетащил на карточку): редкость не ниже нужной. Более редкую игра отдаёт только после подтверждения
@@ -1119,13 +1126,13 @@ function refreshOrder(s, oi, now) {
 }
 
 function buySlot(s, i, now) {
-  if (i !== s.slots || i > 3) return [{ t: 'reject' }];
+  if (i !== s.slots || i >= C.slotPrices.length) return [{ t: 'reject' }];
   if (s.coins < C.slotPrices[i]) return [{ t: 'poor', slot: i }];
   s.coins -= C.slotPrices[i];
   return openSlot(s, now);
 }
 function openSlot(s, now) {
-  if (s.slots >= 4) return [];
+  if (s.slots >= C.slotPrices.length) return [];
   const i = s.slots++;
   s.orders[i] = makeOrder(s, i, now);
   return [{ t: 'slot', i }];
@@ -1134,7 +1141,7 @@ function openSlot(s, now) {
 // Следующая понятная покупка за монеты: слот, ступень порта, клетка поля или ячейка склада (самая дешёвая)
 function nextBuy(s) {
   const opts = [];
-  if (s.slots < 4) opts.push({ t: 'slot', i: s.slots, price: C.slotPrices[s.slots] });
+  if (s.slots < C.slotPrices.length) opts.push({ t: 'slot', i: s.slots, price: C.slotPrices[s.slots] });
   C.ports.forEach(({ line }) => { if (portOpen(s, line) && s.tiers[line] < maxTier(s, line)) opts.push({ t: 'tier', line, price: tierPrice(s.tiers[line], line) }); });
   const cells = buyableCells(s).sort((a, b) => dist2(a, C.ports[0].cell) - dist2(b, C.ports[0].cell));
   if (cells.length) opts.push({ t: 'cell', i: cells[0], price: cellPrice(s) });
