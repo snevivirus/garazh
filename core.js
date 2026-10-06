@@ -156,7 +156,8 @@ const CONFIG = {
   // Поздняя игра (задание 17): с 15-го уровня — охота за карточками, награды «не только монеты», этапы коллекции
   late: {
     fromLevel: 15, maxHunt: 1, huntChance: 0.15, huntMs: 24 * 3600e3, huntGapMs: 12 * 3600e3,   // охота живёт сутки; после выполненной — пауза 12 ч
-    hunt: { stars: [3, 1] },          // охота: сверх награды — 3 звезды + 1 за уровень машины
+    hunt: { stars: [3, 1], charge: 1 },   // охота: сверх награды — 3 звезды + 1 за уровень машины и заряд Ателье (задание 18; при максимуме — звёзды)
+    huntFromRar: 4,                   // охота — только после первой карточки этой редкости (оранжевой; задание 18: не забирает фиолетовые до неё)
     // вид награды и вес; монетная цена штуки (сколько монет «стоит» одна штука; остаток стоимости — звёздами)
     rewards: { coins: 3, stars: 3, charge: 2, tank: 2, key: 1, chest: 1, swap: 1 },
     unit: { charge: 40, tank: 30, key: 25, swap: 15, chest: 60 },
@@ -873,7 +874,7 @@ function makeOrder(s, slot, now) {
     !s.orders.some((o, i) => o && i !== slot && i < s.slots && o.kind === 'event');
   let kind = C.firstOrders[seq] ? 'quick' : evOrder ? 'event' : pickKind(s, slot);
   // охотничий заказ (задание 17): с 15-го уровня при Ателье, один на все слоты, просит карточку, которой ещё нет
-  if (!C.firstOrders[seq] && !evOrder && lateOn(s) && now >= (s.huntAfter || 0) &&
+  if (!C.firstOrders[seq] && !evOrder && lateOn(s) && hasRar(s, C.late.huntFromRar) && now >= (s.huntAfter || 0) &&
     !s.orders.some((o, i) => o && i !== slot && i < s.slots && o.kind === 'hunt') && rand(s) < C.late.huntChance) {
     const h = huntOrder(s, seq, now);
     if (h) return h;
@@ -935,6 +936,7 @@ const setMonetOn = v => { monetOn = !!v; };
 const popc = m => { let n = 0; for (; m; m >>= 1) n += m & 1; return n; };
 const cardCount = s => Object.values(s.seen).reduce((a, m) => a + popc(m), 0);      // карточки коллекции (из 120)
 const lateOn = s => s.level >= C.late.fromLevel && rarOn(s);
+const hasRar = (s, r) => Object.values(s.seen).some(m => m & (1 << r));   // была ли карточка этой редкости
 // Карточки, которые может попросить охота: модель открытого вида не выше «лучшая − 1» и 6-го уровня, редкость — не выше
 // найденной + 1 (оранжевую — только после фиолетовой) и на ступень выше той, что у этой модели уже есть (стопка достраивается
 // по одной ступени — так охоту можно выполнить за сутки); сначала — модели, где в стопке уже ≥ 2 редкостей
@@ -960,7 +962,7 @@ function huntOrder(s, id, now) {
   const t = pool[Math.floor(rand(s) * pool.length)], card = `${t.line}-${t.lvl}-${t.r}`;
   s.hunt = { last: card, rep: s.hunt?.last === card ? (s.hunt.rep || 0) + 1 : 0 };
   return { id, kind: 'hunt', items: [{ line: t.line, lvl: t.lvl, r: t.r, n: 1, got: 0 }], face: Math.floor(rand(s) * 2 ** 31), born: now, acc: 0,
-    until: now + C.late.huntMs, reward: pickAlt(s, ['coins']) };
+    until: now + C.late.huntMs, reward: pickAlt(s, ['coins', 'charge']) };   // заряд охота даёт и так (задание 18)
 }
 // для тестовой панели: охота в слот (без уровня, шанса и паузы) и следующий этап коллекции (как будто карточек хватает)
 function testHunt(s, slot, now) { const h = huntOrder(s, s.n.orderSeq++, now); if (h) s.orders[slot] = h; return h ? [{ t: 'hunt', order: slot }] : [{ t: 'reject' }]; }
@@ -1080,8 +1082,12 @@ function completeOrder(s, oi, now) {
     pct: o.kind === 'event' ? 0 : Math.round(bonusPct(s) * 100), units: o.items.reduce((a, it) => a + units(it.line, it.lvl) * it.n, 0) }];
   if (o.kind === 'event') ev.push(...addTokens(s, orderTokens(o), now));
   if (o.reward) giveAlt(s, o.reward, value, C.ports[0].cell, ev, now);
-  if (o.kind === 'hunt') {                          // охота: звёзды сверх награды; следующая — не раньше чем через huntGapMs
-    const [a, b] = C.late.hunt.stars; addStars(s, a + b * o.items[0].lvl, C.ports[0].cell, ev);
+  if (o.kind === 'hunt') {                          // охота: заряд Ателье и звёзды сверх награды; следующая — не раньше чем через huntGapMs
+    const [a, b] = C.late.hunt.stars, n0 = ev.length;
+    giveAlt(s, 'charge', C.late.hunt.charge * C.late.unit.charge, C.ports[0].cell, ev, now);   // заряды полны — звёзды по late.unit
+    const got = ev.slice(n0).find(e => e.t === 'alt');
+    ev.push({ t: 'huntPrize', charge: got.kind === 'charge' ? got.n : 0, stars: got.kind === 'stars' ? got.n : 0, bonus: a + b * o.items[0].lvl });
+    addStars(s, a + b * o.items[0].lvl, C.ports[0].cell, ev);
     s.n.hunts = (s.n.hunts || 0) + 1; s.huntAfter = now + C.late.huntGapMs;
   }
   s.orders[oi] = makeOrder(s, oi, now);
@@ -1441,7 +1447,7 @@ const Core = {
   CONFIG, CARS, EVENT_CARS, PARTS, EV, TRIM, PART_NAMES, TRIM_NAMES, N, key, maxLvl, units, xpNeed, rand, around, isPart, rarOn,
   toolFor, trimFor, needItem, itemFits, itemHint,
   closed, openCount, portFuel, tapCost, freeTap, portOpen, portOf, carLines, pickLine, zoneIdx, fuelMax, regenMs, lineDone, fxHas, fxSum, fxOf,
-  setMonetOn, cardCount, huntTargets, testHunt, testMilestone, lateOn, pickAlt, giveAlt, canGrant, grant, useReserve, maxCharges, dayOf,
+  setMonetOn, cardCount, huntTargets, testHunt, testMilestone, lateOn, hasRar, pickAlt, giveAlt, canGrant, grant, useReserve, maxCharges, dayOf,
   newGame, migrate, tick, charges, chargeWaitMs, chargePrice, buyCharge, reward, fuelWaitMs, setSpeed, buyFuel, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
   dailyGift, claimDaily, dailyDone, goalDone, claimTask, taskReady,
   move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, exact, orderValue, orderTokens, bonusPct,

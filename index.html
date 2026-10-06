@@ -891,11 +891,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=13"></script>
-<script src="core.js?v=13"></script>
-<script src="art.js?v=13"></script>
-<script src="salon.js?v=13"></script>
-<script src="monet.js?v=13"></script>
+<script src="tg.js?v=14"></script>
+<script src="core.js?v=14"></script>
+<script src="art.js?v=14"></script>
+<script src="salon.js?v=14"></script>
+<script src="monet.js?v=14"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -995,7 +995,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 13 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 14 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1128,11 +1128,12 @@ function logDrop(ev, from, to, was, card, depot, cancel) {
 }
 // После каждого хода: заказы, уровень, покупки; заказ, который стал готов
 const LOGEV = {
-  orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
+  orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : e.alt ? 'награда не монетами' : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
   refresh: e => `заказ ${e.order + 1} заменён${e.price ? ` за ${e.price} монет` : ' бесплатно'}`,
   levelUp: e => `новый уровень игрока: ${e.level}`, milestone: e => `коллекция: этап ${e.n} карточек`,
   alt: e => `награда: ${{ coins: 'монеты', stars: 'звёзды', charge: 'заряд Ателье', tank: 'бак в запас', key: 'ключ', chest: 'сундук машин', swap: 'замена заказа' }[e.kind]} ${e.n}`,
-  huntGone: () => 'охота за карточкой ушла (сутки)', grant: e => `тест: товар выдан — ${e.id}`, reserve: () => 'бак из запаса', kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
+  huntGone: () => 'охота за карточкой ушла (сутки)',
+  huntPrize: e => `награда охоты: ${e.charge ? `заряд Ателье +${e.charge}` : `звёзды вместо заряда +${e.stars} (заряды полны)`}, звёзды +${e.bonus}`, grant: e => `тест: товар выдан — ${e.id}`, reserve: () => 'бак из запаса', kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
   tier: e => e.tier && `улучшил ${PORTNAME[e.line].toLowerCase()} до ступени ${e.tier}`, build: e => `салон: построил «${ITEM_NAME[e.item]}»`,
   fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', reward: e => `награда за ролик: ${Monet.NAME[e.place] || e.place}`, taskClaim: () => 'забрал награду задания дня',
   claim: () => 'открыл сундук дня', unstore: () => 'вернул машину со склада', prestige: () => 'престиж салона', zoneDone: () => 'зона салона готова',
@@ -1376,6 +1377,8 @@ function altChip(type, value) {
   return `<span class="alt">${ALT_IC[type]}${type === 'chest' ? '' : (type === 'stars' || type === 'coins' ? '' : '+') + n}</span>`;
 }
 const ALT_IC = { coins: ICON.coin, stars: ICON.star, charge: '⚡', tank: ICON.fuel, key: ICON.key, chest: ICON.chest, swap: ICON.refresh };
+// охота (задание 18): заряд Ателье всегда, сверх награды другого вида (заряды полны — звёзды, это решает Core при сдаче)
+const huntChip = o => o.kind === 'hunt' ? `<span class="alt">${ALT_IC.charge}+${C.late.hunt.charge}</span>` : '';
 function orderHTML(o, oi) {
   if (oi >= s.slots) {
     const next = oi === s.slots;
@@ -1392,7 +1395,7 @@ function orderHTML(o, oi) {
   const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
     o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
   const single = o.items.length === 1 && o.items[0].n === 1;
-  const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
+  const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? huntChip(o) + altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
   return `<div class="order k-${o.kind}${single ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
     `<span class="ohead">${ava}<span class="oval">${val}</span>` +
     `<button class="ref" data-ref="${oi}" aria-label="Заменить заказ">${ICON.refresh}${price ? `<b>${price}</b>` : ''}</button></span>` +
@@ -1972,12 +1975,14 @@ function playFx(ev) {
       }
       case 'orderDone': {
         const card = orderEl(e.order), [cx, cy] = center(card), evo = e.kind === 'event', [hx, hy] = center($(evo ? 'evBtn' : 'coinPill'));
-        for (let k = 0; k < 5; k++) flyEl(evo ? ICON.token : ICON.coin, 'coin', [cx + (k - 2) * 8, cy], [hx - (evo ? 0 : 14), hy], 0, 420, 330 + k * 45);
+        const alt = !evo && e.alt;      // награда не монетами (задание 17): без летящих монет и «+0», вместо них — значок награды
+        if (!alt) for (let k = 0; k < 5; k++) flyEl(evo ? ICON.token : ICON.coin, 'coin', [cx + (k - 2) * 8, cy], [hx - (evo ? 0 : 14), hy], 0, 420, 330 + k * 45);
         anim(card, [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 380, fill: 'backwards', easing: 'ease-out' });
         if (evo) floatText(card, `+${e.tokens}${ICON.token}`, 'fl-big fl-gold');
+        else if (alt) floatText(card, huntChip(e) + altChip(e.alt, e.value), 'fl-big fl-gold');
         else floatText(card, `+${e.coins}${ICON.coin}` + (e.streak ? `<span class="mul">${mulTxt(C.streakMult)}${ICON.flame}</span>` : ''), 'fl-big fl-gold');
         // салон работает на игрока: рядом с монетами мелькает значок салона и надбавка
-        if (!evo && e.pct > 0) setTimeout(() => { const r = card.getBoundingClientRect(); floatText({ getBoundingClientRect: () => ({ left: r.left, top: r.top + r.height * .75, width: r.width, height: 0 }) }, `${ICON.salon}+${e.pct}%`, 'fl-salon'); }, 260);
+        if (!evo && !alt && e.pct > 0) setTimeout(() => { const r = card.getBoundingClientRect(); floatText({ getBoundingClientRect: () => ({ left: r.left, top: r.top + r.height * .75, width: r.width, height: 0 }) }, `${ICON.salon}+${e.pct}%`, 'fl-salon'); }, 260);
         if (e.streak) bump($('streak'));
         setTimeout(() => sound('coin'), 700);
         if (s.n.orders === 1) setTimeout(() => { if (!$('cal').hidden) { hop($('cal')); setTimeout(() => hop($('cal')), 350); } }, 900);   // первое задание дня
@@ -2959,7 +2964,8 @@ function orderSheet(oi) {
   const o = s.orders[oi], m = Core.match(s, o), price = Core.refreshPrice(s, Date.now());
   const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
     o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
-  const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ? `<span class="chip">${altChip(o.reward, Core.orderValue(s, o))}</span>` +
+  const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ?
+    (o.kind === 'hunt' ? `<span class="chip">${huntChip(o)}</span> ` : '') + `<span class="chip">${altChip(o.reward, Core.orderValue(s, o))}</span>` +
     (o.kind === 'hunt' ? ` <span class="chip">${ICON.star}+${C.late.hunt.stars[0] + C.late.hunt.stars[1] * o.items[0].lvl}</span>` : '') :   // охота: звёзды сверх награды
     `<span class="chip coin">${ICON.coin}${Core.orderValue(s, o)}</span>`;
   const tiles = o.items.map((it, k) => {
@@ -3144,7 +3150,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 13;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 14;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
