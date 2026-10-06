@@ -193,27 +193,6 @@ const THING = {
 };
 const thingSVG = kind => `<svg class="thing" viewBox="0 0 48 40" aria-hidden="true">${THING[kind]}</svg>`;
 
-// ── Клиент: аватар из простых фигур, стабильный для заказа ──────────────────
-function avatarSVG(seed, rand) {
-  const r = { rng: seed }, pick = arr => arr[Math.floor(rand(r) * arr.length)];
-  const bg = pick(['#E3E7EA', '#ECE5DC', '#E1E8E0', '#E8E2EA', '#E5E8EE', '#EEE8DA']);
-  const skin = pick(['#F2D5BC', '#E3B58F', '#C88E64', '#8E5C3F', '#F6DECA']);
-  const hair = pick(['#2A2421', '#5B3B27', '#9C6338', '#D2AD66', '#8C8C8A', '#1E1E21']);
-  const cloth = pick(['#3D5A79', '#7B4F3F', '#4E6A51', '#5D4E77', '#2E3135', '#9A6A3A', '#6E7F8D']);
-  const style = Math.floor(rand(r) * 5), glasses = rand(r) < .25, beard = rand(r) < .5;
-  const back = style === 1 ? `<path d="M11 19c0-6 4-10 9-10s9 4 9 10v9H11z" fill="${hair}"/>` : '';
-  let front = '';
-  if (style < 3) front = `<path d="M12.3 18.5c0-5.2 3.4-8.4 7.7-8.4s7.7 3.2 7.7 8.4c-1.6-2.6-4.6-3.9-7.7-3.9s-6.1 1.3-7.7 3.9z" fill="${hair}"/>`;
-  if (style === 2) front += `<circle cx="20" cy="8.8" r="3.4" fill="${hair}"/>`;
-  if (style === 3 && beard) front = `<path d="M14.2 21.5c.8 3.6 3 5.6 5.8 5.6s5-2 5.8-5.6c-1.8 1-3.8 1.5-5.8 1.5s-4-.5-5.8-1.5z" fill="${hair}"/>`;
-  if (style === 4) front = `<path d="M12 17.4c0-5.4 3.6-8.8 8-8.8s8 3.4 8 8.8z" fill="${cloth}"/><rect x="11.5" y="15.6" width="17" height="2.6" rx="1.3" fill="rgba(0,0,0,.22)"/>`;
-  const eyes = '<circle cx="17.2" cy="19.8" r=".85" fill="#2A2C30"/><circle cx="22.8" cy="19.8" r=".85" fill="#2A2C30"/>';
-  const gl = glasses ? '<g fill="none" stroke="#2A2C30" stroke-width=".9"><circle cx="17.2" cy="19.8" r="2.4"/><circle cx="22.8" cy="19.8" r="2.4"/><path d="M19.6 19.8h.8"/></g>' : '';
-  return `<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="${bg}"/>${back}` +
-    `<path d="M5 41c1.2-8.6 7.4-12.6 15-12.6S33.8 32.4 35 41z" fill="${cloth}"/><rect x="17.4" y="24" width="5.2" height="6" rx="2" fill="${skin}"/>` +
-    `<circle cx="20" cy="19" r="7.6" fill="${skin}"/>${front}${eyes}${gl}</svg>`;
-}
-
 // ── Сборка: машина или деталь как <svg>, с растровой подменой ───────────────
 const PARTS = 3, TRIM = 5, cache = {};
 // Машины владельца по редкостям (prototype/tools/cars-import.js): <марка-модель>-<1..5>.webp (256 px) и -640.webp, список — cars.js.
@@ -299,7 +278,8 @@ function item(line, lvl, mono = false, r = 0, big = false) {
   const put = h => url === null || url === exactUrl(line, lvl, r || 0, big) ? (cache[k] = h) : h;
   if (url === '') mono = true;
   else if (url) return put(`<img class="car car-img v2${mono ? ' mono' : ''}" src="${url}" alt="" draggable="false">`);
-  if (line === TRIM) return put(`<svg class="car part${mono ? ' mono' : ''}" viewBox="0 0 64 40" aria-hidden="true">${TRIM_ART[lvl - 1]}</svg>`);
+  // деталь Ателье (задание 20): цвет редкости, которую она даёт (2-я — зелёная … 5-я — оранжевая; 1-я — серая), --tc для рамки
+  if (line === TRIM) return put(`<svg class="car part${mono ? ' mono' : ` trim" style="--tc:var(--r${lvl - 1})`}" viewBox="0 0 64 40" aria-hidden="true">${TRIM_ART[lvl - 1]}</svg>`);
   if (line === PARTS) return put(`<svg class="car part" viewBox="0 0 64 40" aria-hidden="true">${PART_ART[lvl - 1]}</svg>`);
   const { vb, inner } = carBody(artOf(line, lvl), line, mono);
   return put(`<svg class="car" viewBox="${vb.join(' ')}" aria-hidden="true">${inner}</svg>`);
@@ -322,6 +302,6 @@ function nestedAny(line, lvl, cx, groundY, width) {
   return `<image href="${url}" x="${f(cx - width / 2)}" y="${f(groundY - h * .88)}" width="${f(width)}" height="${f(h)}"/>`;
 }
 
-window.Art = { item, preload, nested: nestedAny, thing: thingSVG, avatar: avatarSVG, certMini, loadRasters,
+window.Art = { item, preload, nested: nestedAny, thing: thingSVG, certMini, loadRasters,
   setTheme(v) { theme = EVENT_ART[v] ? v : 'retro'; } };
 })();

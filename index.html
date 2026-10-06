@@ -44,10 +44,23 @@
   --fa3: #EFE4FA; --fb3: #C3A5EC; --fa4: #FFECD4; --fb4: #F4B474;
   --font: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --cell: 46px;
+  /* Новый вид (задание 20, docs/ДИЗАЙН.md): один элемент — одно место, ничего поверх машины и чужого значка */
+  --bg-a: #F7F6F3; --bg-b: #EFEEEA;          /* фон экрана — мягкий вертикальный градиент */
+  --coin: #D1A23F;                           /* кружок монет в шапке (звёзды — --gold, топливо — --ink) */
+  --r-card: 22px;                            /* плитки шапки, карточки */
+  --r-row: 16px;                             /* строка заказа */
+  --r-sheet: 30px;                           /* листы окон (задание 21) */
+  --r-pill: 999px;                           /* кнопки-таблетки */
+  --sh-1: 0 1px 2px rgba(20,22,26,.05), 0 6px 16px -8px rgba(20,22,26,.18);   /* тонкая тень: плитки, строки */
+  --sh-2: 0 8px 30px rgba(20,22,26,.16), 0 0 0 1px rgba(20,22,26,.05);         /* нижняя панель, листы */
+  --fs-num: 24px;                            /* числа шапки (800) */
+  --fs-reward: 26px;                         /* награда заказа (800); не меньше 20 px на экране при любом масштабе — см. .oval */
+  --fs-title: 26px;                          /* заголовки */
+  --fs-text: 15px;                           /* текст */
 }
 html, body { height: 100%; }
 body {
-  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+  margin: 0; background: linear-gradient(180deg, var(--bg-a), var(--bg-b)) fixed var(--bg); color: var(--ink); font-family: var(--font);
   overflow: hidden; overscroll-behavior: none;
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
 }
@@ -63,38 +76,43 @@ html, body, #app, [role=button], .order, .hud, .dock, .overlay, .sheet { touch-a
 .bub .car.v2 { left: 8%; width: 84%; bottom: 22%; }
 
 #app {
-  height: 100%; max-width: 460px; margin: 0 auto; box-sizing: border-box;
+  height: 100%; width: min(100%, 460px); margin: 0 auto; box-sizing: border-box;   /* ширину и отступ слева при масштабе задаёт fit() */
   display: flex; flex-direction: column; gap: 8px;
   /* --app-top / --app-bottom — отступы Telegram, поделённые на масштаб: после уменьшения игры они остаются настоящими */
-  padding: calc(8px + var(--app-top, env(safe-area-inset-top, 0px))) 12px calc(94px + var(--app-bottom, env(safe-area-inset-bottom, 0px)));
-  transform: scale(var(--k, 1)); transform-origin: 50% 0;     /* совсем низкое окно — игра целиком меньше, а не обрезана */
+  padding: calc(8px + var(--app-top, env(safe-area-inset-top, 0px))) 12px calc(84px + var(--app-bottom, env(safe-area-inset-bottom, 0px)));   /* 84 = панель 76 + зазор; в fit() — PAD_T / PAD_B */
+  transform: scale(var(--k, 1)); transform-origin: 0 0;       /* совсем низкое окно — игра целиком меньше (и шире — на всю ширину экрана), а не обрезана */
 }
 /* Telegram: страница не прокручивается, не «резинится» и не сворачивается свайпом; старый Telegram (до 7.7) — запас 1 px */
 html.tg, html.tg body { position: fixed; inset: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 html.tg-old body { position: static; overflow-y: scroll; scrollbar-width: none; }
 html.tg-old body::after { content: ""; display: block; height: 1px; }
 
-/* Шапка в два ряда — крупно, читается с вытянутой руки.
-   1-й ряд: уровень с полосой опыта, задания дня, событие, склад. 2-й: звёзды, топливо, монеты. Любой счётчик — кнопка с карточкой. */
-.hud { display: flex; flex-direction: column; gap: 6px; flex: none; }
-.hrow { display: flex; align-items: center; gap: 6px; height: 48px; }
+/* Шапка в два ряда (задание 20: 44 + 42 px, зазор 4) — крупно, читается с вытянутой руки.
+   1-й ряд: уровень с полосой опыта, задания дня, событие, склад. 2-й: звёзды, топливо, монеты — значок в цветном кружке слева
+   от числа. Любой счётчик — кнопка с карточкой. */
+.hud { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.hrow { display: flex; align-items: center; gap: 6px; height: 44px; }
+.hrow + .hrow { height: 42px; }
 .pill, .hbtn {
-  position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; height: 48px; padding: 0 12px 0 9px;
-  box-sizing: border-box; border-radius: 16px; background: var(--tile); font-weight: 800; font-size: 23px; line-height: 1;
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 0 12px 0 7px;
+  box-sizing: border-box; border-radius: var(--r-card); background: var(--tile); box-shadow: var(--sh-1); font-weight: 800; font-size: var(--fs-num); line-height: 1;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.hud .ic { width: 27px; height: 27px; stroke-width: 1.8; }
+.hud .ic { width: 26px; height: 26px; stroke-width: 1.8; }
 .pill { flex: 1 1 0; min-width: 0; }
-#starPill .ic { color: var(--gold); fill: #F3E3BD; }
-#coinPill > .ic { color: var(--gold); }
-#coinPill .goalbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; border-radius: 2px; background: #ECEBE6; overflow: hidden; }
+.pill > .ic { width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 50%; color: #fff; stroke-width: 2.1; fill: none; }
+#starPill > .ic { background: var(--gold); }
+#fuelPill > .ic { background: var(--ink); }
+#coinPill > .ic { background: var(--coin); }
+#coinPill .goalbar { position: absolute; left: 16px; right: 16px; bottom: 4px; height: 3px; border-radius: 2px; background: #ECEBE6; overflow: hidden; }
 #coinPill .goalbar i { display: block; height: 100%; background: var(--gold); }
 #fuelPill.empty { color: var(--ink-3); }
-.lvlbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; height: 48px; padding: 0 14px 0 2px; box-sizing: border-box; border-radius: 24px; background: var(--tile); }
-.lvl-n { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+#fuelPill.empty > .ic { background: var(--ink-3); }
+.lvlbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; height: 100%; padding: 0 14px 0 2px; box-sizing: border-box; border-radius: var(--r-card); background: var(--tile); box-shadow: var(--sh-1); }
+.lvl-n { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .xp { position: relative; flex: 1; min-width: 0; height: 12px; border-radius: 6px; background: #E6E5E0; overflow: hidden; }
 .xp i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #E4BE6A, var(--gold)); transition: width .4s ease; }
-.hbtn.sq { width: 48px; padding: 0; flex: none; }
+.hbtn.sq { width: 44px; padding: 0; flex: none; }
 .hbtn .ic { color: var(--ink); }
 #cal { padding: 0 11px 0 8px; flex: none; }
 #cal.ready { background: var(--ok); color: #fff; animation: breathe 1.6s ease-in-out infinite; }
@@ -117,43 +135,23 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0,0,0,.28);
 }
 
-/* Заказы: 4 слота, все видны сразу. Высокий экран — сетка 2 × 2; низкий — компактно, 4 в один ряд:
-   только машины, «×N», «готов» и маленькая плашка награды (аватар и «↻» — в листе заказа) */
-.orders-wrap { position: relative; flex: 1 1 auto; min-height: 64px; display: flex; flex-direction: column; }
-.orders { flex: 1; display: grid; gap: 8px; min-height: 0; }
-.orders.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }
-.orders.compact { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.orders.compact .order { padding: 15px 3px 3px 6px; gap: 0; }
-.orders.compact .order::before { width: 3px; }
-.orders.compact .ava, .orders.compact .ref { display: none; }
-.orders.compact .ohead { position: absolute; top: 2px; right: 4px; }
-.orders.compact .oval { font-size: 11px; }
-.orders.compact .oval .ic { width: 11px; height: 11px; }
-.orders.compact .wants { flex-wrap: wrap; justify-content: center; align-content: center; gap: 2px; }
-.orders.compact .want { --bs: 13px; flex: 0 0 calc(50% - 1px); min-width: 0; max-width: none; padding: 5px 0 1px; }
-.orders.compact .want:only-child { flex-basis: 100%; }
-.orders.compact .order.single .want { padding: 4px 0 0; }
-.orders.compact .order.single .want .car { width: 92%; min-width: 0; }
-.orders.compact .order.locked { padding: 4px; gap: 2px; }
-/* компактный ряд, но карточки высокие (≥ 110 px) — машины столбиком, крупнее */
-.orders.compact.tall .wants { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
-.orders.compact.tall .want { flex: 1 1 0; min-height: 0; padding: 4px 0 0; }
-.orders.compact.tall .want .car, .orders.compact.tall .order.single .want .car { width: auto; max-width: 100%; height: 100%; margin: 0 auto; }
+/* Заказы (задание 20): строка — машины слева, крупная награда справа; четыре строки одной высоты в одну колонку.
+   Один элемент — одно место: плашки уровня, «×N» и галочка — рядом с картинкой, ничего не лежит поверх машины и награды.
+   Вид заказа — тоном строки (без аватаров); «↻» — в листе заказа. Над строками — полоска серии (место всегда есть, значок — когда серия идёт) */
+.orders-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+.sbar { flex: none; height: 22px; display: flex; justify-content: flex-end; }
+.orders { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(4, minmax(32px, 1fr)); gap: 6px; }
 .order {
-  position: relative; display: flex; flex-direction: column; gap: 4px; padding: 7px 8px 6px 11px; min-width: 0; min-height: 0;
-  box-sizing: border-box; background: var(--tile); border-radius: 14px; scroll-snap-align: start; cursor: pointer; overflow: hidden;
+  position: relative; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 10px; min-width: 0; min-height: 0;
+  box-sizing: border-box; background: var(--tile); border-radius: var(--r-row); box-shadow: var(--sh-1); cursor: pointer; overflow: hidden;
 }
-.order::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--kc); }
-.order.k-quick { --kc: #A3ACB6; }
-.order.k-normal { --kc: #5C7D9B; }
-.order.k-big { --kc: var(--gold); background: #FBF7EE; }
-.order.k-big::before { width: 6px; }
-.order.k-showcase { --kc: var(--ink); background: #F6F4EF; }
-.order.k-event { --kc: #E9B949; background: #FBF3E0; }
-/* задание 17: охота за карточкой — золотая рамка и значок коллекции */
-.order.k-hunt { --kc: var(--gold); background: #FBF3E0; box-shadow: inset 0 0 0 2px var(--gold); }
-.order.k-hunt .ava { display: grid; place-items: center; background: var(--gold); color: #fff; }
-.order.k-hunt .ava .ic { width: 70%; height: 70%; }
+.order.k-big { background: #FBF6EA; }
+.order.k-showcase { background: #F1F0EC; }
+.order.k-event { background: #F8EBC8; }
+/* задание 17: охота за карточкой — золотая рамка и значок коллекции в строке */
+.order.k-hunt { background: #FBF3E0; box-shadow: inset 0 0 0 2px var(--gold), var(--sh-1); }
+.okind { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
+.okind .ic { width: 15px; height: 15px; }
 .stack .hunted { position: absolute; z-index: 2; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
 .stack .hunted .ic { width: 14px; height: 14px; }
 .colbar { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -163,54 +161,52 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .alt { display: inline-flex; align-items: center; gap: 2px; }
 .alt .car, .alt .thing { width: 22px; height: auto; position: static; }
 .rdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
+.tpart { white-space: nowrap; }
+.tpart .car { width: 34px; height: auto; vertical-align: middle; margin-right: 6px; }   /* «Ателье и редкость»: деталь и кружок её редкости */
 .needtool { position: absolute; z-index: 1; top: 1px; right: 1px; width: calc(var(--cell) * .4); height: calc(var(--cell) * .4); border-radius: 50%;
   background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px var(--ink), 0 1px 3px rgba(0,0,0,.25); }
 .needtool svg { width: 86%; height: auto; }
 .chg { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%); display: flex; gap: 2px; }
 .chg b { width: calc(var(--cell) * .1); height: calc(var(--cell) * .1); border-radius: 50%; background: rgba(255,255,255,.3); }
 .chg b.on { background: #F1C76B; }
-.order.k-event::before { width: 6px; }
-.ava.evava { background: #E9B949; color: #fff; }
-.ava.evava .ic { width: 15px; height: 15px; }
 .k-event .oval .ic { color: #9A6A1E; fill: #F3D58C; }
-.order.ready { box-shadow: inset 0 0 0 1.5px var(--ok); background: var(--ok-bg); animation: bob 1.6s ease-in-out infinite; }
-.order.over { box-shadow: inset 0 0 0 2px var(--ok); }
-@keyframes bob { 50% { transform: translateY(-2px); } }
-.order.locked { align-items: center; justify-content: center; gap: 6px; background: #E9E9E5; color: var(--ink-3); padding: 8px; }
-.order.locked::before { display: none; }
+.order.ready { background: var(--ok-bg); box-shadow: inset 0 0 0 2px var(--ok), var(--sh-1); animation: readyPulse 1.6s ease-in-out infinite; }
+.order.over { box-shadow: inset 0 0 0 2px var(--ok), var(--sh-1); }
+@keyframes readyPulse { 50% { box-shadow: inset 0 0 0 2px var(--ok), 0 0 0 3px rgba(62,122,87,.2); } }   /* без сдвига: строка не выходит из ряда */
+.order.locked { justify-content: center; gap: 8px; background: #E9E9E5; box-shadow: none; color: var(--ink-3); }
 .order.locked > .ic { width: 22px; height: 22px; }
-.order.locked.can { background: #FFF; box-shadow: inset 0 0 0 1.5px var(--gold); color: var(--ink); }
-.oprice { display: flex; align-items: center; gap: 2px; font-weight: 700; font-size: 15px; color: var(--ink); }
-.oprice .ic { width: 15px; height: 15px; color: var(--gold); }
-.ohead { display: flex; align-items: center; gap: 6px; flex: none; }
-.ava { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; flex: none; }
-.ava svg { display: block; width: 100%; height: 100%; }
-.ava.vitrine { background: var(--ink); color: #F1D9A8; }
-.ava.vitrine .ic { width: 15px; height: 15px; }
-.oval { display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.oval .ic { width: 13px; height: 13px; color: var(--gold); }
-.ref { margin-left: auto; display: flex; align-items: center; gap: 1px; height: 22px; padding: 0 4px; border-radius: 11px; color: var(--ink-3); font-size: 11px; font-weight: 700; }
-.ref .ic { width: 15px; height: 15px; }
-.ref b { color: var(--ink-2); }
-.wants { flex: 1; min-height: 0; display: flex; gap: 3px; align-items: center; justify-content: flex-start; }
-.orders.grid .want { max-width: 60px; }   /* картинка 1,6 : 1 — выше рисунка, иначе «×N» уходит за край карточки */
-/* Одна машина в заказе — крупно, на всю карточку */
-.order.single .wants { justify-content: center; align-items: stretch; }
-.order.single .want { --bs: 24px; flex: 1; max-width: none; height: 100%; padding: 4px 0 2px; justify-content: center; box-sizing: border-box; }
-.order.single .want { align-items: center; }
-.order.single .want .car { width: 70%; min-width: 44px; max-width: 150px; height: auto; margin: auto 0; }
-.order.single .want .car.part { height: 82%; }
-.order.single .want .lv { top: 0; left: 4px; }
-.order.single .tick { width: 20px; height: 20px; top: 0; right: 4px; }
-.want {
-  --bs: 15px; position: relative; flex: 1 1 0; min-width: 44px; max-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 7px 1px 2px; border-radius: 8px;
-}
-.want .car { width: 100%; height: auto; display: block; }
-.want .car.part { width: 74%; }
-.want.req { background: linear-gradient(160deg, var(--fa), var(--fb)); box-shadow: inset 0 0 0 1px var(--rc); }
+.order.locked.can { background: #FFF; box-shadow: inset 0 0 0 1.5px var(--gold), var(--sh-1); color: var(--ink); }
+.oprice { display: flex; align-items: center; gap: 3px; font-weight: 800; font-size: 18px; color: var(--ink); }
+.oprice .ic { width: 18px; height: 18px; color: var(--gold); }
+/* машины заказа: картинка (сжимается, если строка узкая) и плашки рядом — уровень цвета нужной редкости (любая — серая),
+   «×N», «готово» — галочка в плашке */
+.wants { flex: 1 1 auto; min-width: 0; height: 100%; display: flex; align-items: center; gap: 10px; }
+.want { flex: 0 1 auto; min-width: 0; height: 100%; display: flex; align-items: center; gap: 3px; }
+.want .car { position: static; flex: 0 1 auto; display: block; min-width: 26px; width: auto; height: min(calc(100% - 6px), 34px); aspect-ratio: 1.6; object-fit: contain; }
+.want .lv, .want .cnt2, .want .tick { position: static; flex: none; height: 22px; min-width: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 7px; box-shadow: none;
+  display: grid; place-items: center; font-size: 14px; font-weight: 800; line-height: 1; }
+.want .lv { background: #E4E5E7; color: var(--ink); }
+.want.req .lv { background: var(--rc); color: var(--ri); }
+.want .cnt2 { display: flex; gap: 1px; font-size: 13px; }
+.want .cnt2.ok { background: var(--ok); }
+.want .tick { width: 22px; padding: 0; }
+.want .cnt2 .ic, .want .tick .ic { width: 13px; height: 13px; stroke-width: 2.8; }
 .want.done { opacity: .45; }
-.want .lv { top: -1px; left: -1px; }
+/* награда — крупно справа: значок + число; на экране не меньше 20 px при любом масштабе (--k) */
+.oval { flex: none; margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: max(var(--fs-reward), calc(20.5px / var(--k, 1))); font-weight: 800;
+  letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.oval .ic { width: .92em; height: .92em; color: var(--gold); stroke-width: 2; flex: none; }
+.oval .alt { gap: 2px; }
+.oval .alt .ic { width: .85em; height: .85em; }
+.oval .alt .car, .oval .alt .thing { width: 1.25em; }
+@media (max-width: 359px) {
+  .order { gap: 6px; padding: 0 9px 0 8px; }
+  .wants { gap: 6px; }
+  .want { gap: 2px; }
+  .want .lv, .want .cnt2, .want .tick { height: 19px; min-width: 19px; padding: 0 4px; font-size: 12px; border-radius: 6px; }
+  .want .tick { width: 19px; padding: 0; }
+  .oval { gap: 3px; }
+}
 .cnt2 { position: absolute; right: -2px; bottom: 1px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: var(--ink); border-radius: 8px; padding: 1px 4px; line-height: 1.1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px #fff; }
 .obig { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .obig .rtile { --bs: 20px; max-width: none; width: 100%; aspect-ratio: 1.15; }
@@ -220,7 +216,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .obig .rtile .cnt2 { right: 4px; bottom: 4px; font-size: 14px; }
 .obig .rtile .miss { position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; border-radius: 50%; background: #E3E3DE; }
 .ohead2 { display: flex; align-items: center; gap: 10px; }
-.ohead2 .ava { width: 40px; height: 40px; }
+.ohead2 .kic { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--ink); }   /* вид заказа (аватаров нет — задание 20) */
+.ohead2 .kic .ic { width: 22px; height: 22px; }
+.ohead2 .kic.k-hunt { background: var(--gold); }
+.ohead2 .kic.k-event { background: #E9B949; }
+.ohead2 .kic.k-showcase { color: #F1D9A8; }
 .ohead2 .sh-title { flex: 1; padding-right: 40px; font-size: 20px; }
 .obtns { display: flex; gap: 8px; justify-content: center; }
 /* Редкая машина на простой заказ: машина цвета своей редкости и два значка — «отдать» маленький, «оставить» крупный */
@@ -232,8 +232,8 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .tick { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #fff; }
 .tick .ic { width: 70%; height: 70%; stroke-width: 2.6; }
 #streak {
-  position: absolute; z-index: 3; top: -8px; right: 6px; display: flex; align-items: center; gap: 1px; height: 20px; padding: 0 6px 0 3px;
-  border-radius: 10px; background: #fff; color: var(--ink-3); font-size: 12px; font-weight: 800; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  display: flex; align-items: center; gap: 2px; height: 22px; padding: 0 8px 0 5px; box-sizing: border-box;
+  border-radius: var(--r-pill); background: #fff; color: var(--ink-3); font-size: 13px; font-weight: 800; box-shadow: var(--sh-1);
 }
 #streak .ic { width: 15px; height: 15px; }
 #streak.hot { background: #E07A22; color: #fff; }
@@ -246,8 +246,22 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   touch-action: none;
 }
 .cell { position: relative; border-radius: 10px; background: var(--tile); }
-.cell .car { position: absolute; left: 3%; width: 94%; bottom: 20%; height: auto; pointer-events: none; }
+.cell .car { position: absolute; z-index: 1; left: 3%; width: 94%; bottom: 18%; height: auto; pointer-events: none; }
 .cell .car.part { left: 14%; width: 72%; bottom: 16%; }
+/* Уровень на поле (задание 20) — крупная цифра на заднем плане клетки, под машиной; цвет — редкости (обычная — тёмно-серая).
+   Цвет редкости не только цифрой: рамка и заливка клетки остаются. Овальная подложка под машиной на поле больше не нужна */
+.board .lv {
+  z-index: 0; inset: 0; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none; overflow: hidden; pointer-events: none;
+  display: grid; place-items: start center; font-size: calc(var(--cell) * 1.02); line-height: .98; letter-spacing: -.06em; color: rgba(29,31,34,.17);
+}
+.board .r1 .lv { color: rgba(78,154,99,.5); }
+.board .r2 .lv { color: rgba(46,107,209,.45); }
+.board .r3 .lv { color: rgba(122,75,194,.45); }
+.board .r4 .lv { color: rgba(224,122,34,.5); }
+.board .plate { display: none; }
+/* деталь Ателье — цвет редкости, которую она даёт (уровень 1 — серый): вне поля — рамка вокруг картинки, на поле — рамка клетки */
+svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #fff); box-shadow: 0 0 0 2px var(--tc); }
+.cell svg.trim, .bub svg.trim { background: none; box-shadow: none; }
 .cell .thing { position: absolute; left: 12%; width: 76%; bottom: 10%; height: auto; pointer-events: none; }
 .plate { position: absolute; left: 13%; right: 13%; bottom: 13%; height: 15%; border-radius: 50%; background: var(--rc); opacity: .45; }
 .plate.legend, .stripe.legend {
@@ -257,7 +271,7 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 .cell.car { background: linear-gradient(160deg, var(--fa), var(--fb)); }
 .cell.car:not(.r0) { box-shadow: inset 0 0 0 1px var(--rc); }
-.cell.r4 { animation: glowL 1.6s ease-in-out infinite alternate; }
+.cell.r4:not(.trim) { animation: glowL 1.6s ease-in-out infinite alternate; }
 @keyframes glowL { to { box-shadow: inset 0 0 0 1.5px var(--r4), 0 0 12px rgba(224,122,34,.55); } }
 .cell.wanted { box-shadow: inset 0 0 0 2px var(--ok); animation: glow 1.4s ease-in-out infinite alternate; }
 @keyframes glow { to { box-shadow: inset 0 0 0 2px rgba(62,122,87,.45), 0 0 10px rgba(62,122,87,.3); } }
@@ -559,23 +573,24 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .seg i { font-style: normal; width: 34px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--ink-2); }
 .seg i.on { background: var(--ink); color: #fff; }
 
-/* Нижнее меню — капсула 76 px, крупные значки и подпись одним словом; активная вкладка — белая */
+/* Нижняя панель (задание 20) — капсула 68 px: лёгкое «стекло», тонкая обводка; активная вкладка — графитовая таблетка
+   с белым значком и подписью, остальные — серые. Бейджи с белым кольцом читаются на обоих фонах */
 .dock {
-  position: fixed; left: 50%; bottom: calc(10px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)) + var(--vgap, 0px)); z-index: 5;
+  position: fixed; left: 50%; bottom: calc(8px + var(--tg-bottom, env(safe-area-inset-bottom, 0px)) + var(--vgap, 0px)); z-index: 5;
   transform: translateX(-50%) scale(var(--k, 1)); transform-origin: 50% 100%;
-  width: min(calc(100vw - 20px), 440px); box-sizing: border-box; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
-  padding: 6px; border-radius: 32px; background: var(--dock); box-shadow: 0 6px 18px rgba(0,0,0,.16);
+  width: min(calc(100vw / var(--k, 1) - 20px), 440px); box-sizing: border-box; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+  padding: 6px; border-radius: 34px; background: rgba(255,255,255,.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: var(--sh-2);
 }
-.dock button { position: relative; height: 64px; border-radius: 26px; color: #9A9DA2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; }
-.dock button[aria-current="true"] { background: #fff; color: var(--ink); }
-.dock .ic { width: 31px; height: 31px; }
+.dock button { position: relative; height: 56px; border-radius: 28px; color: #8B8E93; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; }
+.dock button[aria-current="true"] { background: var(--ink); color: #fff; }
+.dock .ic { width: 27px; height: 27px; }
 .dock span { font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: -.01em; }
-.dot { position: absolute; top: 5px; left: calc(50% + 11px); width: 12px; height: 12px; border-radius: 6px; background: var(--r4); box-shadow: 0 0 0 2px var(--dock); }
-.dock button[aria-current="true"] .dot { box-shadow: 0 0 0 2px #fff; }
+.dot { position: absolute; top: 4px; left: calc(50% + 10px); width: 12px; height: 12px; border-radius: 6px; background: var(--r4); box-shadow: 0 0 0 2px #fff; }
+.dock button[aria-current="true"] .dot { box-shadow: 0 0 0 2px var(--ink); }
 /* «Салон»: плашка с числом доступных покупок (престиж — стрелка), значок салона раз в 5 с покачивается */
 .dbadge { position: absolute; top: 2px; left: calc(50% + 8px); min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px;
-  background: var(--gold); color: #fff; font-size: 13px; font-weight: 800; font-style: normal; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--dock); }
-.dock button[aria-current="true"] .dbadge { box-shadow: 0 0 0 2px #fff; }
+  background: var(--gold); color: #fff; font-size: 13px; font-weight: 800; font-style: normal; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; }
+.dock button[aria-current="true"] .dbadge { box-shadow: 0 0 0 2px var(--ink); }
 .dbadge .ic { width: 13px; height: 13px; stroke-width: 2.8; }
 .dock button.can > .ic { transform-origin: 50% 85%; animation: swing 5s ease-in-out infinite; }
 @keyframes swing { 0%, 12%, 100% { transform: none; } 3% { transform: rotate(-11deg); } 6% { transform: rotate(9deg); } 9% { transform: rotate(-4deg); } }
@@ -843,7 +858,7 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   </header>
 
   <section id="field" style="display:contents">
-    <div class="orders-wrap"><div class="orders grid" id="orders"></div><span id="streak" hidden></span></div>
+    <div class="orders-wrap"><div class="sbar"><span id="streak" hidden></span></div><div class="orders" id="orders"></div></div>
     <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
   </section>
 
@@ -891,11 +906,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=14"></script>
-<script src="core.js?v=14"></script>
-<script src="art.js?v=14"></script>
-<script src="salon.js?v=14"></script>
-<script src="monet.js?v=14"></script>
+<script src="tg.js?v=15"></script>
+<script src="core.js?v=15"></script>
+<script src="art.js?v=15"></script>
+<script src="salon.js?v=15"></script>
+<script src="monet.js?v=15"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -995,7 +1010,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 14 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 15 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1321,14 +1336,15 @@ let hasCert = false, goalCell = -1;
 function cellHTML(c, i, hl) {
   if (!c) return `<div class="cell" data-i="${i}"></div>`;
   if (c.k === 'car') {
-    const r = c.r || 0;
+    // деталь Ателье (задание 20): рамка, заливка и цифра — цвета редкости, которую она даёт (уровень 1 — серый, как у обычной)
+    const trim = c.line === Core.TRIM, r = trim ? c.lvl - 1 : c.r || 0;
     // значок сертификата на каждой седьмой: серый — сертификата нет, зелёный и пульсирует — можно сливать
     const cert = (c.lvl === 7 && c.line < P && !c.broken ? `<i class="needcert${hasCert ? ' on' : ''}">${Art.certMini}</i>` : '') +
       (i === goalCell ? '<i class="goalmark"></i>' : '');
     // сломанная машина: значок нужного инструмента (перетащить его на машину)
     const fix = c.broken ? `<i class="needtool">${Art.item(P, Core.toolFor(c.lvl))}</i>` : '';
-    return `<div class="cell car r${r}${hl.has(i) ? ' wanted' : ''}${c.broken ? ' broken' : ''}" data-i="${i}" style="${rv(r)}">` +
-      `${withPlate(r, Art.item(c.line, c.lvl, false, r))}${badge(c.lvl)}${cert}${fix}</div>`;
+    return `<div class="cell car r${r}${trim ? ' trim' : ''}${hl.has(i) ? ' wanted' : ''}${c.broken ? ' broken' : ''}" data-i="${i}" style="${rv(r)}">` +
+      `${withPlate(r, Art.item(c.line, c.lvl, false, trim ? 0 : r))}${badge(c.lvl)}${cert}${fix}</div>`;
   }
   if (c.k === 'key') return `<div class="cell key" data-i="${i}" aria-label="Ключ">${Art.thing('key')}</div>`;
   if (c.k === 'port') {
@@ -1379,6 +1395,8 @@ function altChip(type, value) {
 const ALT_IC = { coins: ICON.coin, stars: ICON.star, charge: '⚡', tank: ICON.fuel, key: ICON.key, chest: ICON.chest, swap: ICON.refresh };
 // охота (задание 18): заряд Ателье всегда, сверх награды другого вида (заряды полны — звёзды, это решает Core при сдаче)
 const huntChip = o => o.kind === 'hunt' ? `<span class="alt">${ALT_IC.charge}+${C.late.hunt.charge}</span>` : '';
+// Строка заказа (задание 20): машины со «знаками» слева, крупная награда справа; вид — тоном строки, у охоты — значок коллекции.
+// Плашки рядом с картинкой: уровень (цвет нужной редкости, любая — серая), «×N», «готово» — галочка в плашке («×N» и «готово» — одна)
 function orderHTML(o, oi) {
   if (oi >= s.slots) {
     const next = oi === s.slots;
@@ -1388,18 +1406,13 @@ function orderHTML(o, oi) {
   const m = Core.match(s, o);
   const items = o.items.map((it, k) => {
     const left = it.n - it.got, ok = left === 0 || m.cells[k].length >= left;
+    const mark = left > 1 ? `<i class="cnt2${ok ? ' ok' : ''}">${ok ? ICON.check : ''}×${left}</i>` : ok ? `<i class="tick">${ICON.check}</i>` : '';
     return `<span class="want${left === 0 ? ' done' : ''}${it.r >= 0 ? ' req' : ''}" style="${rv(Math.max(0, it.r))}">` +
-      `${Art.item(it.line, it.lvl, false, Math.max(0, it.r))}${badge(it.lvl)}${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}${ok ? `<i class="tick">${ICON.check}</i>` : ''}</span>`;
+      `${Art.item(it.line, it.lvl, false, Math.max(0, it.r))}${badge(it.lvl)}${mark}</span>`;
   }).join('');
-  const price = Core.refreshPrice(s, Date.now());
-  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
-    o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
-  const single = o.items.length === 1 && o.items[0].n === 1;
   const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? huntChip(o) + altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
-  return `<div class="order k-${o.kind}${single ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
-    `<span class="ohead">${ava}<span class="oval">${val}</span>` +
-    `<button class="ref" data-ref="${oi}" aria-label="Заменить заказ">${ICON.refresh}${price ? `<b>${price}</b>` : ''}</button></span>` +
-    `<span class="wants">${items}</span></div>`;
+  return `<div class="order k-${o.kind}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
+    (o.kind === 'hunt' ? `<span class="okind">${ICON.cards}</span>` : '') + `<span class="wants">${items}</span><span class="oval">${val}</span></div>`;
 }
 function renderOrders() {
   $('orders').innerHTML = s.orders.map(orderHTML).join('');
@@ -1707,15 +1720,33 @@ function renderAll() {
 // зовётся и по его событиям. Окно ниже, чем нужно полю с клеткой 30 px и ряду заказов 64 px, — вся игра целиком
 // уменьшается (масштаб), чтобы ничего не обрезалось: поле важнее заказов
 let fitH = 0, fitK = 1, fitIns = '';
+// Раскладка главного экрана (задание 20). Сверху вниз: шапка, полоска серии, четыре строки заказов (≥ 32 px), поле 7 × 9.
+// Клетка — по ширине экрана (не больше 64), но так, чтобы всё влезло по высоте. Не влезает: клетка уменьшается до 44 px, потом
+// вся игра (--k) до 0,92, потом клетка до 40 и масштаб сколько нужно — заказы не прячутся никогда.
+// Отступы Telegram (вырез, кнопки) не уменьшаются: --app-top / --app-bottom делятся на масштаб
+const PAD_T = 8, PAD_B = 84, SBAR = 22 + 4, ROWS = 4 * 32 + 3 * 6, BOARD_GAPS = 8 * 4;
 function fit() {
   const app = $('app'), root = document.documentElement.style;
   if (!app.clientWidth) return;
-  const vh = TG.on ? TG.height() : innerHeight, hud = app.querySelector('.hud').offsetHeight;
-  // масштаб: поле с клеткой 30 px, ряд заказов 64 px, шапка, меню; отступы Telegram (вырез, кнопки) не уменьшаются
-  const ins = TG.on ? TG.insets() : null, need = 8 + hud + 16 + 64 + 30 * 9 + 32 + 94;
-  let k = 1;
+  const vh = TG.on ? TG.height() : innerHeight, hud = app.querySelector('.hud').offsetHeight, ins = TG.on ? TG.insets() : null;
+  const cs = getComputedStyle(app), gap = parseFloat(cs.rowGap) || 0, vw = innerWidth;
+  // высота без отступов Telegram и постоянная часть (CSS-пиксели при масштабе 1): отступы, шапка, два зазора, серия, строки, зазоры поля
+  const V = ins ? vh - ins.top - ins.bottom : vh;
+  const pads = ins ? PAD_T + PAD_B : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const F = pads + hud + 2 * gap + SBAR + ROWS + BOARD_GAPS;
+  // ширина игры при масштабе k — на весь экран (не шире 460), клетка по ширине: 7 клеток, 6 зазоров по 4, отступы по 12
+  const wOf = k => Math.min(460, vw / k), cwOf = k => Math.min(64, Math.floor((wOf(k) - 24 - 6 * 4) / 7));
+  let k = 1, cell = Math.min(cwOf(1), Math.floor((V - F) / 9));
+  if (cell < Math.min(cwOf(1), 44)) {
+    k = Math.min(1, V / (F + 9 * 44)); cell = Math.min(cwOf(k), 44);
+    if (k < .92) { cell = Math.max(40, Math.floor((V / .92 - F) / 9)); k = Math.min(1, V / (F + 9 * cell)); cell = Math.min(cwOf(k), cell); }
+  }
+  k = Math.floor(k * 1000) / 1000;
+  root.setProperty('--k', k);
+  root.setProperty('--cell', cell + 'px');
+  app.style.width = wOf(k) + 'px';
+  app.style.marginLeft = (vw - wOf(k) * k) / 2 + 'px';
   if (ins) {
-    k = Math.min(1, (vh - ins.top - ins.bottom) / need);
     const key = JSON.stringify(ins);
     root.setProperty('--app-top', ins.top / k + 'px');
     root.setProperty('--app-bottom', ins.bottom / k + 'px');
@@ -1726,26 +1757,12 @@ function fit() {
       `${ins.fallback ? ` (не пришли — запас ${ins.top})` : ''}; ${TG.platform() || '?'} ${TG.version() || '(скрипт Telegram ещё не загружен)'}`);
     fitIns = key;
   }
-  const cs = getComputedStyle(app), padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom);
-  if (!ins) k = Math.min(1, vh / (padT + padB + hud + 16 + 64 + 30 * 9 + 32));
-  root.setProperty('--k', k);
   app.style.height = TG.on || k < 1 ? vh / k + 'px' : '';
   if (vh !== fitH || k !== fitK) {
-    L(`окно: высота ${vh} (innerHeight ${innerHeight}, visualViewport ${Math.round(window.visualViewport?.height || 0)}, Telegram ${TG.on ? Math.round(window.Telegram?.WebApp?.viewportStableHeight || 0) : '—'})`);
+    L(`окно: высота ${vh} (innerHeight ${innerHeight}, visualViewport ${Math.round(window.visualViewport?.height || 0)}, Telegram ${TG.on ? Math.round(window.Telegram?.WebApp?.viewportStableHeight || 0) : '—'}), клетка ${cell}`);
     if (k < 1) L(`мало места: высота ${vh}, вся игра уменьшена до ${Math.round(k * 100)}%`);
   }
   fitH = vh; fitK = k;
-  if (view !== 'field') return;
-  const W = app.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const H = app.clientHeight - padT - padB - hud - 16;   // без шапки и двух зазоров
-  // клетки — по ширине экрана; не влезает по высоте — сначала заказы переходят в компактный ряд, клетки — в последнюю очередь.
-  // Карточка заказа — не ниже 64 px: сетке 2 × 2 нужно 136 px, компактному ряду — 64
-  let cell = Math.min(64, Math.floor((W - 24) / 7));
-  if (H - (cell * 9 + 32) < 64) cell = Math.floor((H - 64 - 32) / 9);
-  cell = Math.max(30, cell);
-  document.documentElement.style.setProperty('--cell', cell + 'px');
-  const room = H - (cell * 9 + 32);
-  $('orders').className = 'orders ' + (room >= 136 ? 'grid' : room >= 110 ? 'compact tall' : 'compact');
 }
 addEventListener('resize', fit);
 TG.onChange(fit);
@@ -2304,7 +2321,7 @@ const HINTS = [
     txt: ['Машина 5–7-го уровня после слияния часто сломана. Иногда сломанную даёт и гараж.', 'Перетащи на неё нужный инструмент — она починится.', 'Инструменты даёт гараж Мастерской: сливай одинаковые.'] },
   { id: 'atelier', t: 'Ателье и редкость', open: () => Core.rarOn(s), lock: `Откроется на уровне ${C.ports.find(q => q.line === Core.TRIM).level}`, ic: () => Art.item(Core.TRIM, 5),
     table: () => `<table class="tbl">${[0, 1, 2, 3].map(r => `<tr><td><i class="rdot" style="background:var(--r${r})"></i> → <i class="rdot" style="background:var(--r${r + 1})"></i></td>` +
-      `<td>${Art.item(Core.TRIM, r + 2).replace('class="car', 'style="width:34px" class="car')}</td><td>${Core.TRIM_NAMES[r + 1].toLowerCase()}</td></tr>`).join('')}</table>`,
+      `<td class="tpart">${Art.item(Core.TRIM, r + 2)}<i class="rdot" style="background:var(--r${r + 1})"></i></td><td>${Core.TRIM_NAMES[r + 1].toLowerCase()}</td></tr>`).join('')}</table>`,
     txt: ['Перетащи деталь Ателье на машину — редкость вырастет на ступень.', `Ателье даёт ${C.atelier.charges} ${plural(C.atelier.charges, 'деталь', 'детали', 'деталей')}, потом по одной ${everyTime(C.atelier.regenMs)}.`] },
   { id: 'cert', t: 'Сертификат коллекционера', open: () => Core.portOpen(s, P) || [0, 1, 2].some(l => s.top[l] >= 7), lock: `Откроется на уровне ${C.ports.find(q => q.line === P).level}`, ic: () => Art.certMini,
     pic: () => chainPic(),
@@ -2940,13 +2957,7 @@ board.addEventListener('keydown', e => {
 });
 
 $('orders').addEventListener('click', e => {
-  const now = Date.now(), ref = e.target.closest('.ref');
-  if (ref) {
-    const ev = Core.refreshOrder(s, +ref.dataset.ref, now);
-    if (ev[0]?.t === 'poor') { shake(ref); shake($('coinPill')); sound('no'); return; }
-    return play(ev);
-  }
-  const lock = e.target.closest('.order.locked');
+  const now = Date.now(), lock = e.target.closest('.order.locked');
   if (lock) {
     const ev = Core.buySlot(s, +lock.dataset.slot, now);
     if (ev[0]?.t !== 'slot') { shake(lock); if (ev[0]?.t === 'poor') shake($('coinPill')); sound('no'); return; }
@@ -2962,8 +2973,8 @@ $('orders').addEventListener('click', e => {
 const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой' };
 function orderSheet(oi) {
   const o = s.orders[oi], m = Core.match(s, o), price = Core.refreshPrice(s, Date.now());
-  const ava = o.kind === 'showcase' ? `<span class="ava vitrine">${ZICON.showroom}</span>` : o.kind === 'event' ? `<span class="ava evava">${ICON.flag}</span>` :
-    o.kind === 'hunt' ? `<span class="ava">${ICON.cards}</span>` : `<span class="ava">${Art.avatar(o.face, Core.rand)}</span>`;
+  const kic = { showcase: ZICON.showroom, event: ICON.flag, hunt: ICON.cards }[o.kind];
+  const ava = kic ? `<span class="kic k-${o.kind}">${kic}</span>` : '';
   const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ?
     (o.kind === 'hunt' ? `<span class="chip">${huntChip(o)}</span> ` : '') + `<span class="chip">${altChip(o.reward, Core.orderValue(s, o))}</span>` +
     (o.kind === 'hunt' ? ` <span class="chip">${ICON.star}+${C.late.hunt.stars[0] + C.late.hunt.stars[1] * o.items[0].lvl}</span>` : '') :   // охота: звёзды сверх награды
@@ -3150,7 +3161,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 14;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 15;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
