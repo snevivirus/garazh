@@ -203,6 +203,9 @@ const CARS = [
   [['Seora', 'Lumo'], ['Haneul', 'Duri'], ['Fjellvik', 'Brisk'], ['Rheinmark', 'Kurve'],
    ['Arion', 'Velour'], ['Vierling', 'Strom'], ['Seiran', 'Miraen'], ['Nordhaus', 'Nordlicht']],
 ];
+// Куда смотрит машина (задание 27): line — куда смотрит линейка в игре (купе — вправо, чтобы отличались); src — куда смотрит снимок
+// владельца в Машины/ (по умолчанию влево; здесь — модели, снятые передом вправо). Сборщик отражает картинку, когда они расходятся
+const CAR_FACE = { line: ['left', 'left', 'right'], src: { 'arion-velour': 'right' } };
 const PARTS = 3, EV = 4, TRIM = 5;      // 3 — инструменты Мастерской, 4 — машины события, 5 — детали отделки Ателье
 const PART_NAMES = ['Гаечный ключ', 'Набор ключей', 'Колесо', 'Двигатель', 'Сертификат коллекционера'];
 const TRIM_NAMES = ['Полироль', 'Краска', 'Диски', 'Обвес', 'Эмблема мастера'];
@@ -1447,7 +1450,7 @@ function stuck(s, now) {
 }
 
 const Core = {
-  CONFIG, CARS, EVENT_CARS, PARTS, EV, TRIM, PART_NAMES, TRIM_NAMES, N, key, maxLvl, units, xpNeed, rand, around, isPart, rarOn,
+  CONFIG, CARS, CAR_FACE, EVENT_CARS, PARTS, EV, TRIM, PART_NAMES, TRIM_NAMES, N, key, maxLvl, units, xpNeed, rand, around, isPart, rarOn,
   toolFor, trimFor, needItem, itemFits, itemHint,
   closed, openCount, portFuel, tapCost, freeTap, portOpen, portOf, carLines, pickLine, zoneIdx, fuelMax, regenMs, lineDone, fxHas, fxSum, fxOf,
   setMonetOn, cardCount, huntTargets, testHunt, testMilestone, lateOn, hasRar, pickAlt, giveAlt, canGrant, grant, useReserve, maxCharges, dayOf,

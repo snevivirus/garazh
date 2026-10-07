@@ -797,6 +797,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 #monetPanel .mrow > span:first-child { flex: 1; display: flex; flex-direction: column; font-size: 13px; color: var(--ink-2); }
 #monetPanel .mrow b { font-size: 15px; color: var(--ink); }
 #monetPanel .btn { height: 38px; padding: 0 12px; font-size: 14px; }
+#monetPanel .set { width: 100%; margin-top: 6px; }   /* читы для проверки (задание 27) */
 #monetPanel .mday { display: flex; gap: 6px; }
 /* Экран «Магазин» (задание 23): группы со значком-разделителем, крупные карточки, цена ⭐ 20 px, состояние значком */
 #shop .sgroup { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--ink-3); }
@@ -1031,8 +1032,6 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
     <div class="set-list">
       <button class="set" id="sHelp"></button>
       <button class="set" id="sSound" role="switch" aria-checked="false"></button>
-      <button class="set" id="sFill"></button>
-      <button class="set" id="sSpeed" role="switch" aria-checked="false"></button>
       <button class="set" id="sReset"></button>
       <div class="set-head">Журнал для проверки</div>
       <button class="set" id="sLogSend"></button>
@@ -1060,11 +1059,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=22"></script>
-<script src="core.js?v=22"></script>
-<script src="art.js?v=22"></script>
-<script src="salon.js?v=22"></script>
-<script src="monet.js?v=22"></script>
+<script src="tg.js?v=24"></script>
+<script src="core.js?v=24"></script>
+<script src="art.js?v=24"></script>
+<script src="salon.js?v=24"></script>
+<script src="monet.js?v=24"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1170,7 +1169,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 22 от 07.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 24 от 07.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1867,9 +1866,6 @@ function renderSettings() {
   $('sHelp').innerHTML = tic(ICON.help) + '<span>Подсказки</span>' + (freshHints().length ? '<i class="dot"></i>' : '') + ICON.arrow;   // задание 22: вход в подсказки — здесь
   $('sSound').innerHTML = tic(ICON.sound) + '<span>Звук</span><i class="sw"></i>';
   $('sSound').setAttribute('aria-checked', String(!!s.sound));
-  $('sFill').innerHTML = tic(ICON.fuel) + '<span>Полный бак</span>';
-  $('sSpeed').innerHTML = tic(ICON.clock) + '<span>Ускорить время ×10</span><i class="sw"></i>';
-  $('sSpeed').setAttribute('aria-checked', String(s.speed === 10));
   $('sReset').innerHTML = tic(ICON.reset) + `<span>${$('sReset').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Новая игра'}</span>`;
   $('sLogSend').innerHTML = tic(ICON.share) + '<span>Отправить журнал</span>';
   $('sLogClear').innerHTML = tic(ICON.close) + `<span>${$('sLogClear').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Очистить журнал'}</span>`;
@@ -2735,7 +2731,10 @@ function renderMonetPanel() {
   if (!Monet.panel) { mp.innerHTML = ''; return; }
   const c = Monet.counts(), L = Monet.LIMIT, d = Monet.day();
   const sw = `<div class="mrow"><span><b>Заглушки рекламы и покупок</b>${Monet.on ? 'включены — видны в игре' : 'выключены'}</span>` +
-    `<button class="btn light" data-mtoggle>${Monet.on ? 'Выключить' : 'Включить'}</button></div>`;
+    `<button class="btn light" data-mtoggle>${Monet.on ? 'Выключить' : 'Включить'}</button></div>` +
+    // задание 27: читы для проверки — только в тестовой панели
+    `<button class="set" id="sFill" data-cheat="fill"><span class="tic">${ICON.fuel}</span><span>Полный бак</span></button>` +
+    `<button class="set" id="sSpeed" data-cheat="speed" role="switch" aria-checked="${s.speed === 10}"><span class="tic">${ICON.clock}</span><span>Ускорить время ×10</span><i class="sw"></i></button>`;
   if (!Monet.on) { mp.innerHTML = '<div class="set-head">Тест монетизации</div>' + sw; return; }
   mp.innerHTML = '<div class="set-head">Тест монетизации</div>' + sw +
     `<button class="set" data-shop>${ICON.bag}<span>Магазин</span></button>` +
@@ -2775,6 +2774,9 @@ $('monetPanel').addEventListener('click', e => {
   const prep = e.target.closest('[data-prep]'), day = e.target.closest('[data-mday]');
   if (prep) return prepMonet(prep.dataset.prep);
   if (e.target.closest('[data-mreset]')) Monet.resetCounts();
+  const cheat = e.target.closest('[data-cheat]')?.dataset.cheat;     // задание 27: читы — из тестовой панели
+  if (cheat === 'fill') { s.fuel = Core.fuelMax(s); s.fuelAt = Date.now(); save(); renderAll(); bump($('fuelPill')); L('тест: полный бак'); }
+  if (cheat === 'speed') { Core.setSpeed(s, Date.now(), s.speed === 10 ? 1 : 10); save(); L(`тест: время ×${s.speed}`); }
   if (e.target.closest('[data-mtoggle]')) { Monet.setTest(!Monet.on); L(Monet.on ? 'заглушки включены' : 'заглушки выключены'); renderAll(); }
   if (e.target.closest('[data-shop]')) return setView('shop');
   if (e.target.closest('[data-shopreset]')) {        // покупки: запас, магазин, копилка, постоянные улучшения
@@ -3318,8 +3320,6 @@ $('cars').addEventListener('click', e => {
 });
 $('sHelp').addEventListener('click', () => setView('help'));
 $('sSound').addEventListener('click', () => { s.sound = !s.sound; save(); renderSettings(); sound('coin'); });
-$('sFill').addEventListener('click', () => { s.fuel = Core.fuelMax(s); s.fuelAt = Date.now(); save(); renderAll(); bump($('fuelPill')); });
-$('sSpeed').addEventListener('click', () => { Core.setSpeed(s, Date.now(), s.speed === 10 ? 1 : 10); save(); renderSettings(); });
 let resetTimer = 0;
 $('sReset').addEventListener('click', () => {
   const b = $('sReset');
@@ -3405,7 +3405,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 22;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 24;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
