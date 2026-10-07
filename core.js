@@ -26,7 +26,6 @@ const CONFIG = {
 
   fuelMax: 60,                        // бак (+10 за каждый «бак» в салоне)
   fuelRegenMs: 120000,                // +1 топливо за 2 минуты (компрессор — на четверть быстрее)
-  fuelCoins: 30,                      // полный бак за монеты — только когда бак пуст
   fuelBelow: 10,                      // задание 16: ролик за полный бак — когда топлива меньше
   // Улучшения порта: 5 ступеней. Ступень → шансы 2-го и 3-го уровня; со 2-й каждое 3-е касание — без топлива.
   // Второй ряд (6–8, после погрузчика в «Порту и складе»): +3% к 2-му уровню, 8-я — бак +5.
@@ -52,7 +51,7 @@ const CONFIG = {
   // Диспетчерская: деталь из Мастерской и Ателье на уровень выше — 10%
   toolUp: 0.1,
   // Ателье выдаёт детали по зарядам: до 2 нажатий, +1 заряд каждые 3 часа; копить начинает с открытия (детали отделки — редкость)
-  atelier: { charges: 2, regenMs: 3600e3, coins: [40, 1.5] },        // заряд — 1 час (задание 10, было 3 ч)   // заряд за монеты: 40, каждый следующий за день ×1,5 (ночью сброс)
+  atelier: { charges: 2, regenMs: 3600e3 },        // заряд — 1 час (задание 10, было 3 ч); за монеты — нет (задание 23: только ролик)
   bubbleChance: 0.05,                 // после слияния рядом всплывает копия в пузыре на 60 с
   bubbleMs: 60000,
   bubbleCoinsPerUnit: 2,              // цена: 2 монеты за каждую машину 1-го уровня в нём (свет мойки −30%)
@@ -75,7 +74,8 @@ const CONFIG = {
   partUnits: 2,
   slotPrices: [0, 25, 120],           // 1-й слот заказа открыт; 2-й и 3-й — за монеты (задание 22: заказов три, 4-го слота нет)
   slot4Refund: 300,                   // задание 22: старое сохранение с открытым 4-м слотом — его цена возвращается
-  orderCoinMult: 1.06,                // задание 22: общий множитель монет за заказы — три заказа вместо четырёх, заработок в день в допуске ±5% (подобрано ботом)
+  orderCoinMult: 0.96,                // общий множитель монет за заказы (задание 22: 1,06 — три заказа вместо четырёх; задание 22В: 0,96 — средние машины
+                                      // сдаются чаще, без поправки заработок +11%); подобрано ботом, допуск ±5% к сборке 16
   // Уровни предметов у всех видов одни и те же: на 2–3 ниже лучшей машины линейки (не ниже 2-го).
   // Крупный отличается числом машин и множителем: ≈ 3–5× монет быстрого и ≈ 1,7× монет на единицу топлива.
   kinds: {                            // вид заказа: сколько предметов, монет за единицу стоимости
@@ -101,12 +101,16 @@ const CONFIG = {
     big:    [[1, 2], [2, 3], [3, 5], [3, 5], [3, 5]],
   },
   orderDistinct: 3,                   // разных машин в заказе не больше трёх: одинаковые — одной карточкой «×N»
-  orderRarity: { big: [.05, .05, .05, .1, .2], normal: [0, 0, 0, 0, .08] },    // заказ просит редкость («зелёная 4-го»); задание 10: было .15/.25
+  // задание 22В: микс уровней — с этой ступени (0 — до 4-го уровня, 2 — с 7-го) в обычном (от 2 машин) и крупном (от 3) не меньше
+  // половины машин — средние: от orderMin до «лучшая − mid» (если это ниже orderMin — до «лучшая − 2»); остальные — как раньше.
+  // С поля машину берут с вероятностью field[0] + field[1] × (сколько подходящих на поле), не выше field[2]. Крупный с plainBig —
+  // без редкости и с поля берёт только белые
+  orderMix: { from: 2, mid: 3, field: [0.5, 0.05, 0.85], plainBig: 3 },
+  orderRarity: { big: [.05, .05, .05, 0, 0], normal: [0, 0, 0, 0, .3] },   // задание 22В: крупный с 4-й ступени (11-го уровня) — без редкости (было .1/.2), обычный на 5-й — .3 (было .08)    // заказ просит редкость («зелёная 4-го»); задание 10: было .15/.25
   orderPickRarity: 1,                 // машина, которую заказ взял с поля, просит свою редкость (задание 10: иначе редкую нечем сдать)
   orderRarityW: [{ 1: 3, 2: 1 }, { 1: 3, 2: 1 }, { 1: 3, 2: 1 }, { 1: 3, 2: 2 }, { 1: 3, 2: 2, 3: 1 }],   // 5-я — только из найденных   // какую: зелёную, синюю, фиолетовую — по ступеням
   showcaseChance: 0.15,               // после подиума — заказ «на витрину»
   refreshMs: [1800000, 900000],       // бесплатная замена заказа раз в 30 минут (с креслами — раз в 15)
-  refreshCoins: 5,                    // платная замена: 5 монет + уровень игрока
   streakGapMs: 120000, streakNeed: 3, streakMult: 1.5,   // серия: 3 заказа без паузы > 2 мин → ×1,5
   washBonus: 0.15,                    // пост мойки: заказы +15% монет
   lineBonus: 0.2,                     // полная линейка: легковые +20% монет, купе +20% звёзд
@@ -125,7 +129,7 @@ const CONFIG = {
 
   // «Порт и склад»: склад вне поля, корабль с ящиком, ремонт дешевле
   storePrices: [0, 300, 700, 1500],   // ячейки склада: первая — со стеллажами, остальные за монеты
-  ship: { ms: [4 * 3600e3, 3 * 3600e3], coins: 120, cars: [3, 4], lvls: [2, 4], fuel: 10 },   // с маяком — раз в 3 ч
+  ship: { ms: [4 * 3600e3, 3 * 3600e3], cars: [3, 4], lvls: [2, 4], fuel: 10 },   // с маяком — раз в 3 ч; «сейчас» — только за ролик (задание 23)
   // Бесконечные траты: престиж салона за звёзды (+1% монет за заказы за уровень)
   prestige: { stars: 600, growth: 1.12, pct: 0.01 },
 
@@ -496,25 +500,13 @@ function setSpeed(s, now, speed) {
   s.speed = speed;
   s.fuelAt = now - done * regenMs(s);
 }
-function buyFuel(s) {
-  if (s.fuel >= 1 || s.coins < C.fuelCoins) return [{ t: 'reject' }];
-  s.coins -= C.fuelCoins;
-  s.fuel = fuelMax(s);
-  return [{ t: 'fuelBuy' }];
-}
 
-// ── Причал: корабль с ящиком машин раз в 4 часа (с маяком — 3). Можно не ждать — за монеты ──
+// ── Причал: корабль с ящиком машин раз в 4 часа (с маяком — 3). Можно не ждать — за ролик (задание 23: не за монеты) ──
 const shipMs = s => C.ship.ms[fxHas(s, 'shipFast') ? 1 : 0] / s.speed;
-const shipPrice = (s, now) => s.ship ? Math.max(1, Math.ceil(C.ship.coins * Math.max(0, s.ship.at - now) / shipMs(s))) : 0;
-function arrive(s, now, pay = false) {
-  if (!s.ship || (!pay && now < s.ship.at)) return [];
+function arrive(s, now, early = false) {          // early — корабль сейчас (награда за ролик)
+  if (!s.ship || (!early && now < s.ship.at)) return [];
   const at = nearestFree(s, C.ports[0].cell);
-  if (at < 0) return pay ? [{ t: 'full', at: C.ports[0].cell }] : [];
-  if (pay && now < s.ship.at) {
-    const price = shipPrice(s, now);
-    if (s.coins < price) return [{ t: 'poor' }];
-    s.coins -= price;
-  }
+  if (at < 0) return early ? [{ t: 'full', at: C.ports[0].cell }] : [];
   const lines = carLines(s), items = [];
   for (let k = randInt(s, ...C.ship.cars); k > 0; k--) items.push([lines[Math.floor(rand(s) * lines.length)], randInt(s, ...C.ship.lvls), rollRarity(s, 2)]);
   items.push(['fuel', C.ship.fuel]);
@@ -577,18 +569,6 @@ function charges(s, now) {
   if (k > 0) { a.n = Math.min(maxCharges(s), a.n + k); a.at = a.n >= maxCharges(s) ? now : a.at + k * atRegen(s); }
   return a.n;
 }
-// Заряд сейчас — за монеты; цена растёт с каждой покупкой за день и сбрасывается ночью (day — номер или дата дня)
-const chargePrice = (s, day) => Math.round(C.atelier.coins[0] * C.atelier.coins[1] ** (s.atelier?.buy?.day === day ? s.atelier.buy.n : 0));
-function buyCharge(s, now, day) {
-  if (!rarOn(s) || charges(s, now) >= maxCharges(s)) return [{ t: 'reject' }];
-  const price = chargePrice(s, day);
-  if (s.coins < price) return [{ t: 'poor' }];
-  s.coins -= price;
-  s.atelier.n++;
-  if (s.atelier.n >= maxCharges(s)) s.atelier.at = now;
-  s.atelier.buy = { day, n: s.atelier.buy?.day === day ? s.atelier.buy.n + 1 : 1 };
-  return [{ t: 'chargeBuy', price, at: portOf(TRIM).cell }];
-}
 // Награда за ролик (задания 12, 16; в игре — только в тесте монетизации): одна функция на все места.
 // Условие места не выполнено — reject, игра не меняется. ctx — что нужно месту: { order } для замены заказа
 function reward(s, place, now, ctx = {}) {
@@ -613,13 +593,13 @@ function reward(s, place, now, ctx = {}) {
     const i = s.cells.findIndex(c => c?.k === 'chest' && c.kind === 'gift' && !c.x2);
     if (i < 0 || !free()) return no;
     s.cells[i].x2 = 1; twin(i);
-  } else if (place === 'reroll') {               // бесплатная замена потрачена — заменить без монет
-    const oi = ctx.order, price = refreshPrice(s, now);
-    if (!s.orders[oi] || oi >= s.slots || !price) return no;
-    s.coins += price; ev.push(...refreshOrder(s, oi, now));
+  } else if (place === 'reroll') {               // бесплатная замена потрачена — заменить сейчас
+    const oi = ctx.order;
+    if (!s.orders[oi] || oi >= s.slots || refreshFree(s, now)) return no;
+    ev.push(...refreshOrder(s, oi, now, true));
   } else if (place === 'ship') {                 // корабль в пути — приходит сейчас
     if (!s.ship || now >= s.ship.at || nearestFree(s, C.ports[0].cell) < 0) return no;
-    s.coins += shipPrice(s, now); ev.push(...arrive(s, now, true));
+    ev.push(...arrive(s, now, true));
   } else if (place === 'room') {                 // поле полное — 2 ближайшие закрытые клетки
     if (free() || !openNearest(s, 2, C.ports[0].cell, ev).length) return no;
   } else return no;
@@ -890,7 +870,9 @@ function makeOrder(s, slot, now) {
   const add = (line, lvl, n = 1, r = -1) => {
     lvl = Math.max(1, Math.min(itemCap(s, line), lvl));
     const same = items.find(x => x.line === line && x.lvl === lvl && x.r === r);
-    if (same) same.n += n; else items.push({ line, lvl, r, n, got: 0 });
+    if (same) { same.n += n; return same; }
+    items.push({ line, lvl, r, n, got: 0 });
+    return items[items.length - 1];
   };
   const line = () => lines[Math.floor(rand(s) * lines.length)];
   if (C.firstOrders[seq]) C.firstOrders[seq].forEach(([l, v]) => add(l, v));
@@ -907,28 +889,45 @@ function makeOrder(s, slot, now) {
     let count = randInt(s, lo, hi);
     if (kind === 'big' && count > 1 && portOpen(s, PARTS) && rand(s) < 0.5) { add(PARTS, randInt(s, 2, Math.max(2, Math.min(4, s.top[PARTS] + 1)))); count--; }
     const late = stage >= 4;              // 5-я ступень (с 15-го уровня): линии с машиной ≥ 6-го уровня — выше уровни (задание 17)
-    if (kind === 'big' && stage >= C.orderLead[0] && count > 1 && rand(s) < C.orderLead[2]) { const l = line(); add(l, Math.max(2, Math.min(late && s.top[l] >= 6 ? C.late.leadCap : C.orderLead[3], s.top[l] - C.orderLead[1]))); count--; }   // главная машина — почти лучшая
+    const X = C.orderMix, mix = stage >= X.from && (kind === 'normal' || kind === 'big');
+    const lead = kind === 'big' && stage >= C.orderLead[0] && count > 1 && rand(s) < C.orderLead[2];
+    if (lead) { const l = line(); add(l, Math.max(2, Math.min(late && s.top[l] >= 6 ? C.late.leadCap : C.orderLead[3], s.top[l] - C.orderLead[1]))); count--; }   // главная машина — почти лучшая
+    // микс уровней (задание 22В): сколько машин заказа должны быть средними
+    const cars = count + (lead ? 1 : 0);
+    let midLeft = mix && cars >= (kind === 'big' ? 3 : 2) ? Math.ceil(cars / 2) : 0;
+    const mids = new Set();
+    const midRange = l => { const lo = C.orderMin[stage], M = s.top[l]; return [lo, Math.max(lo, M - X.mid >= lo ? M - X.mid : M - 2)]; };
     // обычный и крупный заказ наполовину берут то, что уже стоит на поле, — так он достижим и разгружает поле.
     // Крупный забирает и то, что дальше не сливается: машины 8-го уровня и лишние сертификаты.
     const top = c => c.lvl === maxLvl(c.line) && (c.line < PARTS || s.cells.filter(isCert).length > 1);
     const [da, db] = C.orderLvl[stage];
-    const onField = s.cells.filter(c => isCar(c) && c.lvl >= (c.line < PARTS ? Math.max(C.orderMin[stage], s.top[c.line] - da) : 2) && (kind === 'big' && top(c) ||
+    const plain = c => !(kind === 'big' && stage >= X.plainBig && c.r > 0);   // крупный с 4-й ступени — только белые с поля
+    const onField = s.cells.filter(c => isCar(c) && plain(c) && c.lvl >= (c.line < PARTS ? Math.max(C.orderMin[stage], s.top[c.line] - da) : 2) && (kind === 'big' && top(c) ||
       c.line < PARTS && c.lvl < s.top[c.line] - 1 && lines.includes(c.line)));   // «лучшая − 1» не трогаем: из неё растёт новый уровень
+    const midField = midLeft ? s.cells.filter(c => isCar(c) && plain(c) && c.line < PARTS && lines.includes(c.line) &&
+      c.lvl >= midRange(c.line)[0] && c.lvl <= midRange(c.line)[1]) : [];
+    const pFrom = pool => mix ? Math.min(X.field[2], X.field[0] + X.field[1] * pool.length) : 0.5;   // чем больше подходящих на поле, тем чаще
     while (count > 0) {
-      if (items.length >= C.orderDistinct) { (items.find(x => x.r < 0 && x.line !== PARTS) || items[0]).n++; count--; continue; }
-      const pick = kind !== 'quick' && onField.length && rand(s) < 0.5 ? onField[Math.floor(rand(s) * onField.length)] : null;
-      const l = pick ? pick.line : line(), M = s.top[l], n = Math.min(count, rand(s) < 0.35 ? 2 : 1);   // n ≤ count — лимит машин держится
+      if (items.length >= C.orderDistinct) {
+        const it = midLeft > 0 && items.find(x => mids.has(x) && x.r < 0) || items.find(x => x.r < 0 && x.line !== PARTS) || items[0];
+        it.n++; count--; if (mids.has(it)) midLeft--;
+        continue;
+      }
+      const mid = midLeft > 0, pool = mid ? midField : onField;
+      const pick = kind !== 'quick' && pool.length && rand(s) < pFrom(pool) ? pool[Math.floor(rand(s) * pool.length)] : null;
+      const l = pick ? pick.line : line(), M = s.top[l], n = Math.min(count, mid ? midLeft : count, rand(s) < 0.35 ? 2 : 1);   // n ≤ count — лимит машин держится
       const low = kind === 'quick' && stage >= 2 ? 1 : 0;   // быстрый с 7-го уровня — две машины невысокого уровня
       const lo = l < PARTS ? C.orderMin[stage] : 2;
       const [a, b] = late && l < PARTS && M >= 6 && kind !== 'quick' ? C.late.orderLvl : [da, db];
-      const lvl = pick ? pick.lvl : randInt(s, Math.max(lo, M - a - low), Math.max(lo, M - b - low));
+      const lvl = pick ? pick.lvl : mid ? randInt(s, ...midRange(l)) : randInt(s, Math.max(lo, M - a - low), Math.max(lo, M - b - low));
       const rr = C.orderRarity[kind]?.[stage] || 0;   // у деталей редкости нет; поздние заказы просят и синюю, и фиолетовую
       // 5-я ступень — только редкость, которую игрок уже находил
       const found = Object.values(s.seen).reduce((x, m) => Math.max(x, 31 - Math.clz32(m)), 0);
       const rw = late ? Object.fromEntries(Object.entries(C.orderRarityW[stage]).filter(([k]) => +k <= found)) : C.orderRarityW[stage];
       const r = pick && pick.r > 0 && rand(s) < C.orderPickRarity ? pick.r : l < PARTS && rarOn(s) && Object.keys(rw).length && rand(s) < rr ? pickW(s, rw) : -1;
-      add(l, lvl, r >= 0 ? 1 : n, r);
+      const it = add(l, lvl, r >= 0 ? 1 : n, r);
       count -= r >= 0 ? 1 : n;
+      if (mid) { mids.add(it); midLeft -= r >= 0 ? 1 : n; }
     }
   }
   items.sort((a, b) => a.line - b.line || a.lvl - b.lvl);
@@ -1102,19 +1101,17 @@ function completeOrder(s, oi, now) {
   return ev;
 }
 
-// Замена заказа «↻»: раз в 30 минут бесплатно, иначе за монеты. Отданное вернётся ящиком.
-const refreshPrice = (s, now) => now >= s.refreshAt ? 0 : C.refreshCoins + s.level;
-function refreshOrder(s, oi, now) {
+// Замена заказа «↻»: раз в 30 минут бесплатно, иначе — запас замен или ролик (ad; задание 23: не за монеты). Отданное вернётся ящиком.
+const refreshFree = (s, now) => now >= s.refreshAt;
+function refreshOrder(s, oi, now, ad = false) {
   const o = s.orders[oi];
   if (!o || oi >= s.slots) return [];
-  let price = refreshPrice(s, now);
-  const swap = price > 0 && s.swaps > 0;            // запас бесплатных замен (награда поздней игры, задание 17)
-  if (swap) { s.swaps--; price = 0; }
-  if (s.coins < price) return [{ t: 'poor', order: oi }];
-  s.coins -= price;
-  if (!price && !swap) s.refreshAt = now + C.refreshMs[fxHas(s, 'refresh') ? 1 : 0];
+  const free = refreshFree(s, now), swap = !free && !ad && s.swaps > 0;   // запас бесплатных замен (награда поздней игры, задание 17)
+  if (!free && !ad && !swap) return [{ t: 'wait', order: oi }];
+  if (swap) s.swaps--;
+  if (free) s.refreshAt = now + C.refreshMs[fxHas(s, 'refresh') ? 1 : 0];
   const back = o.items.flatMap(it => Array(it.got).fill([it.line, it.lvl, 0]));
-  const ev = [{ t: 'refresh', order: oi, id: o.id, born: o.born, price }];
+  const ev = [{ t: 'refresh', order: oi, id: o.id, born: o.born }];
   if (back.length) {
     const at = nearestFree(s, C.ports[0].cell);
     if (at >= 0) { s.cells[at] = { k: 'chest', kind: 'crate', cars: back }; ev.push({ t: 'crate', at }); }
@@ -1437,7 +1434,6 @@ function nextHint(s, now) {
   }
   const mixed = dragHint(s, 'mixed') || dragHint(s, 'force');
   if (mixed) return mixed;
-  if (s.fuel < 1 && s.coins >= C.fuelCoins) return { t: 'fuel' };
   return null;
 }
 
@@ -1455,12 +1451,12 @@ const Core = {
   toolFor, trimFor, needItem, itemFits, itemHint,
   closed, openCount, portFuel, tapCost, freeTap, portOpen, portOf, carLines, pickLine, zoneIdx, fuelMax, regenMs, lineDone, fxHas, fxSum, fxOf,
   setMonetOn, cardCount, huntTargets, testHunt, testMilestone, lateOn, hasRar, pickAlt, giveAlt, canGrant, grant, useReserve, maxCharges, dayOf,
-  newGame, migrate, tick, charges, chargeWaitMs, chargePrice, buyCharge, reward, fuelWaitMs, setSpeed, buyFuel, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
+  newGame, migrate, tick, charges, chargeWaitMs, reward, fuelWaitMs, setSpeed, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
   dailyGift, claimDaily, dailyDone, goalDone, claimTask, taskReady,
   move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, exact, orderValue, orderTokens, bonusPct,
-  giveOne, deliver, refreshOrder, refreshPrice, buySlot, nextBuy,
-  store, unstore, buyStore, arrive, shipPrice, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
-  built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, stuck,
+  giveOne, deliver, refreshOrder, refreshFree, buySlot, nextBuy,
+  store, unstore, buyStore, arrive, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
+  built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
 };
 if (typeof module !== 'undefined') module.exports = Core; else window.Core = Core;
 })();

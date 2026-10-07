@@ -61,6 +61,7 @@
   --fs-text: 15px;                           /* текст */
   /* «Мягкий рельеф + неоновые капсулы» (задание 22, docs/ДИЗАЙН.md): выпуклые плитки и таблетки, вдавленные пустые клетки,
      главное — тёмные капсулы с неоновой обводкой и свечением. Без backdrop-filter; свечение — только у капсул */
+  --car-w: 92%; --car-hmax: 58%; --car-bottom: 13%;   /* посадка машины в плитку (задание 24): ширина, высота не больше (58%, а не ≈ 68%: высокий кузов закрывает цифру уровня не больше чем наполовину), низ колёс от низа */
   --raise: linear-gradient(145deg, #F1F2F4, #E3E4E8);                                         /* выпуклость: заливка */
   --sh-out: -4px -4px 9px rgba(255,255,255,.95), 5px 5px 12px rgba(150,156,170,.55);          /* выпуклость: тени */
   --sh-out-s: -3px -3px 7px rgba(255,255,255,.95), 4px 4px 10px rgba(150,156,170,.55);        /* то же, мельче */
@@ -91,7 +92,9 @@ html, body, #app, [role=button], .order, .hud, .dock, .overlay, .sheet { touch-a
 .ic .d { fill: currentColor; fill-opacity: .14; }
 .ic .dg { fill: currentColor; fill-opacity: .22; }
 .car-img.mono, svg.mono { filter: brightness(0) invert(.82); opacity: .9; }
-/* Машины владельца по редкостям: холст 1,6 : 1, машина — 92% ширины, колёса на одной линии */
+/* Машины владельца по редкостям (задание 24): картинка обрезана по машине. Везде — коробка 1,6 : 1, машина вписана в неё,
+   низ колёс — по низу коробки; в плитке — правило .pl img.car-img ниже (--car-w / --car-hmax / --car-bottom) */
+img.car-img { aspect-ratio: 1.6; object-fit: contain; object-position: 50% 100%; }
 .cell .car.v2 { left: 0; width: 100%; bottom: 2%; }
 .bub .car.v2 { left: 8%; width: 84%; bottom: 22%; }
 
@@ -270,7 +273,9 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   display: block; font-size: 54cqw; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--gk, var(--gk0)); pointer-events: none;
   text-shadow: 0 1px 0 rgba(255,255,255,.8), 0 -1px 0 rgba(0,0,0,.08); }
 .cell.bubble { container-type: inline-size; }
-.pl .car, .pl .car.v2 { position: absolute; z-index: 2; left: 4%; width: 92%; bottom: 13%; height: auto; filter: drop-shadow(0 1.5px 1.5px rgba(40,46,60,.35)); pointer-events: none; }
+.pl .car, .pl .car.v2 { position: absolute; z-index: 2; left: calc((100% - var(--car-w)) / 2); width: var(--car-w); bottom: var(--car-bottom); height: auto; filter: drop-shadow(0 1.5px 1.5px rgba(40,46,60,.35)); pointer-events: none; }
+/* рендер в плитке: --car-w ширины, но не выше --car-hmax (высокие кузова — по высоте), низ колёс на одной линии */
+.pl img.car.car-img { height: var(--car-hmax); aspect-ratio: auto; }   /* сильнее, чем .pl .car.v2 (height: auto) */
 .pl .car.part { left: 16%; width: 68%; bottom: 13%; }
 .pl::after { content: ""; position: absolute; z-index: 1; left: 18%; right: 18%; bottom: 10%; height: 8%; border-radius: 50%; background: rgba(40,46,60,.28); filter: blur(3px); pointer-events: none; }
 html.flat .pl { box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)); }
@@ -742,7 +747,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .daychest .dc-txt { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.25; }
 .daychest.can { background: var(--ok-bg); box-shadow: inset 0 0 0 1.5px var(--ok); }
 .daychest .btn { height: 46px; padding: 0 16px; font-size: 16px; animation: beckon 1.4s ease-in-out infinite; }
-/* ролик рядом с кнопкой за монеты (задание 12, только ?monet=1): не помещаются в ряд — каждая на своей строке */
+/* кнопки в ряд с кнопкой ролика (задания 12, 23): не помещаются — каждая на своей строке */
 .adrow { width: 100%; flex-wrap: wrap; }
 .adrow .btn { flex: 1 1 auto; white-space: nowrap; padding: 0 16px; }
 .daychest.ad { flex-wrap: wrap; text-align: center; }
@@ -793,14 +798,34 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 #monetPanel .mrow b { font-size: 15px; color: var(--ink); }
 #monetPanel .btn { height: 38px; padding: 0 12px; font-size: 14px; }
 #monetPanel .mday { display: flex; gap: 6px; }
-.shop .srow.off { opacity: .55; }
-.shop .sic { width: auto; min-width: 44px; padding: 0 4px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 2px; font-weight: 800; font-size: 15px; }
-.shop .sic .car, .shop .sic .ic { width: 30px; height: auto; position: static; }
-.shop .stt { display: flex; flex-direction: column; gap: 2px; }
-.shop .stt b { font-size: 17px; color: var(--ink); }
-.shop .btn { height: 44px; padding: 0 16px; font-size: 17px; flex: none; }
-.shop .why { min-width: 40px; text-align: center; font-weight: 800; color: var(--ink-3); display: flex; justify-content: center; }
-.shop .why .ic { width: 18px; height: 18px; }
+/* Экран «Магазин» (задание 23): группы со значком-разделителем, крупные карточки, цена ⭐ 20 px, состояние значком */
+#shop .sgroup { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--ink-3); }
+#shop .sgroup::after { content: ""; flex: 1; height: 3px; border-radius: 2px; background: var(--well2); box-shadow: var(--sh-in); }
+#shop .sgroup .ic { width: 22px; height: 22px; }
+#shop .shopcard { min-height: 84px; }
+#shop .shopcard.off { opacity: .62; }
+#shop .shopcard > .tic { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; gap: 1px; font-weight: 800; font-size: 16px; }
+#shop .shopcard > .tic .ic { width: 32px; height: 32px; }
+#shop .shopcard > .tic > .ic:only-child, #shop .shopcard > .tic > .car:only-child, #shop .shopcard > .tic > svg:only-child { width: 44px; height: 44px; }
+#shop .stt { display: flex; flex-direction: column; gap: 3px; }
+#shop .stt b { font-size: 17px; color: var(--ink); }
+#shop .stt small { display: flex; align-items: center; gap: 3px; font-size: 13px; color: var(--ink-2); }
+#shop .stt small .ic { width: 20px; height: 20px; }
+#shop .sbuy { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#shop .sbuy .btn { height: 40px; padding: 0 14px; font-size: 15px; }
+#shop .sst { display: inline-flex; align-items: center; gap: 2px; height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 20px; background: var(--well2); box-shadow: var(--sh-in);
+  color: var(--ink-2); font-style: normal; font-weight: 800; font-size: 16px; }
+#shop .sst .ic { width: 20px; height: 20px; }
+#shop .sst .car { width: 26px; height: auto; position: static; }
+#shop .sst.ok { color: var(--ok); }
+#shop .pigbar { display: flex; align-items: center; gap: 8px; }
+#shop .pigbar .xpbig { flex: 1; margin: 0; }
+#shop .pigbar b { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+/* кнопка ролика (задание 23): недоступна — серая, со значком причины */
+.btn.adbtn { font-size: 20px; }   /* награда на кнопке ролика — 20 px */
+.btn.adbtn .ic { width: 22px; height: 22px; }
+.btn.adbtn.off .adw { display: inline-flex; align-items: center; gap: 2px; }
+.btn.adbtn.off .adw b { font-variant-numeric: tabular-nums; }
 .btn small { margin-left: 4px; font-size: 12px; opacity: .8; }
 
 /* Подсказки: список карточек механик */
@@ -880,6 +905,88 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 #hintCar { position: fixed; left: 0; top: 0; z-index: 14; pointer-events: none; opacity: 0; }
 #hintCar .car, #hintCar .thing { width: 100%; height: auto; display: block; }
 
+/* ── Экраны (задание 25): Салон, Коллекция, Настройки, Подсказки, событие — токены задания 22 (рельеф, вдавленность, неон) ── */
+/* Салон: вкладки зон — выпуклые таблетки (значок + построено / всего), активная — голубая неоновая капсула, готовая — зелёный неон */
+.ztab { height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 16px;
+  background: var(--raise); box-shadow: var(--sh-out-s); color: var(--ink-2); }
+.ztab .ic { width: 22px; height: 22px; }
+.ztab .zn { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.ztab.on { background: var(--navy); color: #EAF6FF; box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.45); }
+.ztab.done:not(.on) { color: #0F7A48; box-shadow: var(--sh-out-s), inset 0 0 0 1.5px var(--neon-ok); }
+.ztab.locked { background: var(--well2); box-shadow: var(--sh-in); color: #8E95A3; }
+.zstar { width: 20px; height: 20px; background: var(--neon-ok); box-shadow: 0 0 0 2px var(--bg-a), 0 0 8px rgba(31,209,127,.6); }
+.zstar .ic { width: 14px; height: 14px; fill: none; color: #fff; stroke-width: 2.6; }
+.stage { border-radius: 28px; background: var(--raise); box-shadow: var(--sh-out-s), inset 0 0 0 1px rgba(255,255,255,.7); }
+.plus > .ic { width: 40px; height: 40px; background: var(--navy); color: #EAF6FF; box-shadow: 0 0 0 1.5px rgba(56,182,255,.55), 0 3px 8px rgba(13,15,24,.35); }
+.plus.can > .ic { box-shadow: 0 0 0 2px var(--neon), 0 0 12px rgba(56,182,255,.6); }
+.cost { gap: 3px; padding: 2px 10px 2px 7px; border-radius: 16px; background: var(--navy); color: #EAF6FF; font-size: 20px; box-shadow: 0 2px 6px rgba(13,15,24,.3); }
+.cost .ic { width: 18px; height: 18px; color: #F3D58C; fill: none; }
+.plus:not(.can) .cost > b { color: #A9B1C2; }
+.zdone { width: 34px; height: 34px; background: var(--navy); color: var(--neon-ok); box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 12px rgba(31,209,127,.55); }
+.zdone .ic { width: 20px; height: 20px; fill: none; stroke-width: 2.6; }
+.zlock { background: var(--navy); color: #EAF6FF; }
+.zprog i { background: var(--well2); box-shadow: var(--sh-in); }
+.zprog i.on { background: var(--neon-ok); box-shadow: 0 0 6px rgba(31,209,127,.5); }
+.zfx span { height: 36px; padding: 0 11px; border-radius: 18px; background: var(--raise); box-shadow: var(--sh-out-s); font-size: 18px; font-weight: 800; }
+.zfx .ic { width: 18px; height: 18px; }
+.zfx span.on { color: #0F7A48; box-shadow: var(--sh-out-s), inset 0 0 0 1.5px var(--neon-ok); }
+.bonuses { border-radius: 22px; background: var(--raise); box-shadow: var(--sh-out-s); }
+.bonuses li { font-size: 15px; }
+.bonuses li .ic { width: 18px; height: 18px; }
+.bgroup, .prow { border-top: 1px solid rgba(150,156,170,.28); }
+.prow .btn { height: 44px; font-size: 20px; }
+.prest { border-radius: 22px; background: var(--navy); box-shadow: 0 0 0 1.5px var(--neon-g), 0 0 14px rgba(232,182,74,.4); }
+.prest .btn { font-size: 20px; }
+/* Коллекция: 3 в ряд, карточка — плитка как на поле, под ней точки редкости; охота — золотая неоновая капсула */
+.col-line { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stack { padding: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.stack > .pl { display: block; width: 100%; aspect-ratio: 1; }
+.stack.unknown > .pl { background: var(--well2); box-shadow: var(--sh-in); }
+.stack .sc-q { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 0; font-size: 30px; color: #8E95A3; }
+.stack.hunt > .pl { box-shadow: 0 0 0 2px var(--neon-g), 0 0 14px rgba(232,182,74,.65); }
+.stack.fresh::after { top: 6px; right: 6px; }
+.stack > .pl.land { animation: land .6s cubic-bezier(.2,.8,.2,1) .2s backwards; }
+.rdots5 { min-height: 10px; }
+.rdots5 i { background: var(--well2); box-shadow: var(--sh-in); }
+.colbar .xpbig { height: 8px; }
+.colbar .nextm .ic, .colbar .alt .ic, .colbar .alt .car { width: 20px; height: 20px; }
+.bonus { height: 32px; padding: 0 11px; border-radius: 16px; background: var(--raise); box-shadow: var(--sh-out-s); color: var(--ink-2); font-size: 15px; }
+.bonus .ic { width: 18px; height: 18px; }
+.bonus.on { background: var(--navy); color: #F3D58C; box-shadow: 0 0 0 1.5px var(--neon-g), 0 0 10px rgba(232,182,74,.45); }
+.trophy { background: var(--navy); box-shadow: 0 0 0 1.5px var(--neon-g); }
+/* Настройки: строки — выпуклые карточки, значок в вдавленной плитке 44 px, переключатель-таблетка; «Новая игра» — вдавленная серая */
+.set { height: auto; min-height: 64px; padding: 10px 12px; border-radius: 20px; background: var(--raise); box-shadow: var(--sh-out-s); font-weight: 600; }
+.set > .tic { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 14px; background: var(--well2); box-shadow: var(--sh-in); color: var(--ink); }
+.set > .tic .ic { width: 24px; height: 24px; }
+.sw { width: 50px; height: 30px; border-radius: 15px; background: var(--well2); box-shadow: var(--sh-in); }
+.sw::after { top: 4px; left: 4px; width: 22px; height: 22px; background: #F4F5F7; box-shadow: 1px 2px 4px rgba(60,66,84,.35); }
+.set[aria-checked="true"] .sw { background: var(--navy); box-shadow: 0 0 0 1.5px var(--neon-ok), 0 0 8px rgba(31,209,127,.45); }
+.set[aria-checked="true"] .sw::after { transform: translateX(20px); background: var(--neon-ok); }
+#sReset { background: var(--well2); box-shadow: var(--sh-in); color: var(--ink-2); }
+.set.confirm, #sReset.confirm { background: #B4433A; color: #fff; box-shadow: none; }
+#monetPanel .mrow { background: var(--raise); box-shadow: var(--sh-out-s); border-radius: 18px; }
+/* Подсказки: список карточек — значок, название, строка, точка «ещё не видел» */
+.hints { grid-template-columns: 1fr; gap: 8px; }
+.hcard { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; min-height: 64px; padding: 10px 12px; border-radius: 20px;
+  background: var(--raise); box-shadow: var(--sh-out-s); text-align: left; }
+.hcard .stt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hcard .stt small { font-size: 13px; font-weight: 600; color: var(--ink-2); line-height: 1.25; }
+.hcard.locked { background: var(--well2); box-shadow: var(--sh-in); color: var(--ink-2); }
+.hcard .dot { position: static; flex: none; box-shadow: none; }
+.hcard > .tic .car, .hcard > .tic .thing { width: 40px; height: auto; }
+/* значки экранов — не меньше 18 px и цены — не меньше 20 px на экране, и когда вся игра уменьшена (--k) */
+#salon .ic, #cars .ic, #settings .ic, #help .ic { min-width: max(18px, calc(18px / var(--k, 1))); min-height: max(18px, calc(18px / var(--k, 1))); flex: none; }
+.cost, .prow .btn, .prest .btn { font-size: max(20px, calc(20px / var(--k, 1))); }
+.ztab { height: max(58px, calc(58px / var(--k, 1))); }
+/* событие (окно): трек наград — плитки-значки, число награды 20 px, текущий шаг — голубая неоновая капсула, пройденный — зелёная обводка */
+.step { background: var(--raise); box-shadow: var(--sh-out-s); }
+.step .srn { font-size: 20px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.step .sr .ic { width: 22px; height: 22px; }
+.step.done { background: var(--well2); box-shadow: var(--sh-in), inset 0 0 0 1.5px var(--neon-ok); }
+.step.next { background: var(--navy); color: #EAF6FF; box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.5); }
+.step.next .n { color: #A9B1C2; }
+.step.last { background: var(--navy); color: #F3D58C; box-shadow: 0 0 0 1.5px var(--neon-g); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -916,6 +1023,8 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 
   <section class="view" id="cars" hidden></section>
 
+  <section class="view" id="shop" hidden></section>
+
   <section class="view" id="help" hidden></section>
 
   <section class="view" id="settings" hidden>
@@ -938,7 +1047,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 <nav class="dock" id="dock">
   <button data-view="salon" aria-label="Салон"></button>
   <button data-view="field" aria-label="Поле" aria-current="true"></button>
-  <button data-shop aria-label="Магазин"></button>
+  <button data-view="shop" aria-label="Магазин"></button>
   <button data-view="cars" aria-label="Коллекция"></button>
   <button data-view="settings" aria-label="Настройки"></button>
 </nav>
@@ -951,11 +1060,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=17"></script>
-<script src="core.js?v=17"></script>
-<script src="art.js?v=17"></script>
-<script src="salon.js?v=17"></script>
-<script src="monet.js?v=17"></script>
+<script src="tg.js?v=22"></script>
+<script src="core.js?v=22"></script>
+<script src="art.js?v=22"></script>
+<script src="salon.js?v=22"></script>
+<script src="monet.js?v=22"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1003,6 +1112,7 @@ const ICON = {
   trophy: ic('<path class="d" d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
   chest: ic('<rect class="d" x="4" y="9" width="16" height="11" rx="2"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
   close: ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'),
+  inf: ic('<path d="M12 12c-1.8-2.4-3.2-3.6-4.8-3.6a3.6 3.6 0 0 0 0 7.2c1.6 0 3-1.2 4.8-3.6zm0 0c1.8 2.4 3.2 3.6 4.8 3.6a3.6 3.6 0 0 0 0-7.2c-1.6 0-3 1.2-4.8 3.6z"/>'),
   piggy: ic('<path class="d" d="M5 12.5c0-3.3 3-5.5 7-5.5 2.2 0 4 .6 5.3 1.7L19.5 7v3.2c.6.6 1 1.3 1 2.1v1.4c0 .6-.4 1-1 1h-.9c-.6 1-1.5 1.8-2.6 2.3V19h-2.5v-1.5h-3V19H8v-2.1c-1.8-1-3-2.6-3-4.4z"/><path d="M15.9 11h.1M10.5 7.4 11.3 6h2.4"/>'),
   video: ic('<rect class="d" x="3.5" y="6" width="17" height="12" rx="3"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>'),
   play: ic('<path d="M5 12h12M13 7l5 5-5 5"/>'),
@@ -1060,7 +1170,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 17 от 06.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 22 от 07.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1078,7 +1188,7 @@ function L(text) {
   clearTimeout(logT); logT = setTimeout(logSaveNow, 800);
 }
 const fs1 = x => (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
-const VIEWNAME = { field: 'Поле', salon: 'Салон', cars: 'Коллекция', help: 'Подсказки', settings: 'Настройки' };
+const VIEWNAME = { field: 'Поле', salon: 'Салон', cars: 'Коллекция', shop: 'Магазин', help: 'Подсказки', settings: 'Настройки' };
 const LNAME = ['легковая', 'внедорожник', 'купе', 'деталь Мастерской', 'машина события', 'деталь Ателье'];
 const what = c => !c ? 'пусто' : c.k === 'key' ? 'ключ' : c.k !== 'car' ? c.k :
   `${LNAME[c.line]} ${c.lvl} ур.${c.r ? ' ' + RNAME[c.r].toLowerCase() : ''}${c.broken ? ' сломанная' : ''}`;
@@ -1103,23 +1213,31 @@ function logIdle(sec, tail = '') {
   L(`простой ${Math.round(sec)} с — ${scr()}${idleHint ? ', палец-подсказка показывался' : ', пальца не было'}${tail}`);
 }
 let hintEp = null;     // палец показан: что показывает и где (прямоугольники клеток), ждём, что сделает игрок
-function hintOn(h, els) {
-  idleHint = true;
-  const rects = els.map(el => el.getBoundingClientRect());
-  const desc = h.t === 'drag' ? `перетащить: ${what(s.cells[h.from])} → ${what(s.cells[h.to])}` :
+// предмет в строке подсказки (задание 25): машина — с редкостью (и «белая»), деталь Ателье — с цветом, который она даёт
+const whatH = c => what(c).replace(' сломанная', '') + (c?.k === 'car' && c.line < Core.PARTS && !c.r ? ' белая' : '') + (c?.broken ? ' сломанная' : '') +
+  (c?.k === 'car' && c.line === Core.TRIM ? ' ' + ['серая', 'зелёная', 'синяя', 'фиолетовая', 'оранжевая'][c.lvl - 1] : '');   // цвет детали — редкость, которую даёт
+const hintDesc = h => h.t === 'drag' ? `перетащить: ${whatH(s.cells[h.from])} → ${whatH(s.cells[h.to])}` :
     h.t === 'give' ? `отдать: ${what(s.cells[h.from])} → заказ ${h.i + 1}` :
     { order: `сдать заказ ${h.i + 1}`, port: `нажать ${PORTNAME[s.cells[h.i]?.line]?.toLowerCase()}`, chest: 'открыть сундук', bubble: 'забрать машину из пузыря',
       cell: 'купить клетку', slot: 'открыть слот заказа', store: 'склад', tier: 'нажать значок улучшения гаража', fuel: 'купить бак',
       build: 'построить предмет в салоне', prestige: 'престиж салона', cal: 'открыть задания дня', task: 'забрать награду задания', daily: 'задания дня' }[h.t] || h.t;
+function hintOn(h, els) {
+  idleHint = true;
+  const rects = els.map(el => el.getBoundingClientRect()), desc = hintDesc(h);
   if (hintEp?.desc === desc) { hintEp.rects = rects; return; }     // тот же палец снова — строку не повторяем
   if (hintEp) hintEnd('убран, показан другой');
   hintEp = { h, desc, rects };
   LOG.sum.hint[0]++;
-  L(`палец-подсказка: ${desc}`);
+  L(`палец-подсказка: ${desc}${h.why ? ` — ${h.why}` : ''}`);     // задание 25: и почему выбрана
 }
+// задание 25: подсказку, которую игрок дважды подряд не сделал, палец 60 с не показывает (показывает следующую по приоритету)
+const hintSkip = {};      // описание → { n: пропущено подряд, until: до какого времени молчит }
 function hintEnd(res) {
   LOG.sum.hint[res === 'сделал' ? 1 : res.startsWith('убран') ? 3 : 2]++;
   L(`палец-подсказка → ${res}`);
+  const x = hintEp && (hintSkip[hintEp.desc] ||= { n: 0, until: 0 });
+  if (x && res === 'сделал') x.n = 0;
+  else if (x && res.startsWith('не ') && ++x.n >= 2) { x.n = 0; x.until = Date.now() + 60e3; L(`палец-подсказка: ${hintEp.desc} — пропущена, пауза 60 с`); }
   hintEp = null;
 }
 function logTouch(e) {            // любое касание экрана, до того как игра его обработает
@@ -1203,7 +1321,7 @@ const LOGEV = {
   huntGone: () => 'охота за карточкой ушла (сутки)',
   huntPrize: e => `награда охоты: ${e.charge ? `заряд Ателье +${e.charge}` : `звёзды вместо заряда +${e.stars} (заряды полны)`}, звёзды +${e.bonus}`, grant: e => `тест: товар выдан — ${e.id}`, reserve: () => 'бак из запаса', kind: e => `новый вид в гараже: ${['легковые', 'внедорожники', 'купе'][e.line]}`, cellBuy: () => 'купил клетку поля', slot: () => 'открыл слот заказа',
   tier: e => e.tier && `улучшил ${PORTNAME[e.line].toLowerCase()} до ступени ${e.tier}`, build: e => `салон: построил «${ITEM_NAME[e.item]}»`,
-  fuelBuy: () => 'купил полный бак', bubbleBuy: () => 'забрал машину из пузыря', chargeBuy: () => 'купил заряд Ателье', reward: e => `награда за ролик: ${Monet.NAME[e.place] || e.place}`, taskClaim: () => 'забрал награду задания дня',
+  bubbleBuy: () => 'забрал машину из пузыря', reward: e => `награда за ролик: ${Monet.NAME[e.place] || e.place}`, taskClaim: () => 'забрал награду задания дня',
   claim: () => 'открыл сундук дня', unstore: () => 'вернул машину со склада', prestige: () => 'престиж салона', zoneDone: () => 'зона салона готова',
 };
 const readyNow = () => new Set(s.orders.map((o, oi) => o && oi < s.slots && Core.match(s, o).ready ? o.id : null).filter(x => x !== null));
@@ -1359,7 +1477,7 @@ function renderHud() {
     s.storeN ? `<i class="hbadge">${s.store.length}/${s.storeN}</i>` : '');
   // «Салон»: плашка с числом покупок (престиж — стрелка); Коллекция и Подсказки — плашка поменьше без числа.
   // Меню перерисовывается, только когда изменилось, — иначе покачивание сбрасывалось бы каждую секунду
-  const n = buyN(), prest = canPrestige(), dots = [false, false, false, Object.keys(s.fresh).length > 0, freshHints().length > 0];
+  const n = buyN(), prest = canPrestige(), dots = [false, false, shopNew(), Object.keys(s.fresh).length > 0, freshHints().length > 0];
   const dk = $('dock').children;
   DOCK.forEach(([icon, label], k) => {
     const h = icon + (k === 0 && (n || prest) ? `<i class="dbadge">${n || ICON.up}</i>` : dots[k] ? '<i class="dot"></i>' : '');
@@ -1571,11 +1689,10 @@ function stackHTML(line, lvl) {
   const under = [...[3, 2, 1, 0].filter(r => r < top), ...[0, 1, 2, 3, 4].filter(r => r > top)].slice(0, 2);
   const edges = on && m ? under.map((r, q) => `<i class="edge${m & (1 << r) ? '' : ' no'}" style="--q:${q + 1};${rv(r)}"></i>`).join('') : '';
   const hunted = s.orders.some((o, oi) => o?.kind === 'hunt' && oi < s.slots && o.items[0].line === line && o.items[0].lvl === lvl);   // охота ищет эту модель
-  return `<button class="stack${m ? '' : ' unknown'}${s.fresh[k] ? ' fresh' : ''}" data-k="${k}"${m ? '' : ' disabled'} aria-label="${m ? nameOf(line, lvl) : 'Неизвестная машина'}">${edges}` +
-    (hunted ? `<i class="hunted">${ICON.cards}</i>` : '') +
-    `<span class="scard${s.landRar?.[k] !== undefined ? ' land' : ''}" style="${rv(top)}">${badge(lvl)}` +
-    `<span class="sc-car">${m ? Art.item(line, lvl, false, top, true) : Art.item(line, lvl, true, 0)}</span>` +
-    (m ? `<span class="sc-name"><small>${brand}</small>${model}</span>${on ? rdots(m) : ''}` : '<b class="sc-q">?</b>') + '</span></button>';
+  // задание 25: карточка — плитка машины как на поле (заливка лучшей редкости, цифра уровня в углу), под ней — пять точек редкости
+  return `<button class="stack${m ? '' : ' unknown'}${s.fresh[k] ? ' fresh' : ''}${hunted ? ' hunt' : ''}" data-k="${k}"${m ? '' : ' disabled'} aria-label="${m ? nameOf(line, lvl) : 'Неизвестная машина'}">` +
+    `<span class="pl r${top}${s.landRar?.[k] !== undefined ? ' land' : ''}" style="${rv(top)}">${m ? Art.item(line, lvl, false, top, true) : Art.item(line, lvl, true, 0)}${badge(lvl)}` +
+    (m ? '' : '<b class="sc-q">?</b>') + '</span>' + (m && on ? rdots(m) : '<span class="rdots5"></span>') + '</button>';
 }
 // награда этапа коллекции картинками: бак, заряд, монеты, звёзды, трофей
 const milePics = rw => [rw.tank && ICON.fuel + rw.tank, rw.charge && Art.item(Core.TRIM, 2, true), rw.coins && ICON.coin + rw.coins, rw.stars && ICON.star + rw.stars,
@@ -1685,8 +1802,9 @@ function renderSalon() {
   $('bonuses').innerHTML = bonusesHTML();
   $('zoneTabs').innerHTML = C.salon.map((z, zi) => {
     const done = Core.zoneDone(s, zi);
-    return `<button class="ztab${zi === zoneSel ? ' on' : ''}${!done && zi !== cur ? ' locked' : ''}" data-z="${zi}" aria-label="${ZNAME[zi]}">` +
-      `${ZICON[z.id]}${done ? `<i class="zstar">${ICON.star}</i>` : ''}</button>`;
+    const nb = z.items.filter(it => (s.salon[z.id] || {})[it]).length;   // задание 25: построено / всего — цифрами
+    return `<button class="ztab${zi === zoneSel ? ' on' : ''}${done ? ' done' : ''}${!done && zi !== cur ? ' locked' : ''}" data-z="${zi}" aria-label="${ZNAME[zi]}">` +
+      `${ZICON[z.id]}<b class="zn">${nb}/${z.items.length}</b>${done ? `<i class="zstar">${ICON.check}</i>` : ''}</button>`;
   }).join('');
   const zi = zoneSel, z = C.salon[zi], done = Core.zoneDone(s, zi), active = zi === cur;
   const builtObj = s.salon[z.id] || {}, car = zoneCar(z.id);
@@ -1694,7 +1812,7 @@ function renderSalon() {
   const plus = active ? Core.buildable(s).map(b => {
     const [x, y] = SALON.anchors[b.item];
     return `<button class="plus${s.stars >= b.price ? ' can' : ''}" data-item="${b.item}" style="left:${(x / SALON.W * 100).toFixed(1)}%;top:${(y / SALON.H * 100).toFixed(1)}%" aria-label="${ITEM_NAME[b.item]}">` +
-      `${ICON.plus}<span class="cost">${ICON.star}<b>${b.price}</b><span class="fx">${fxChip(b.fx)}</span></span></button>`;
+      `${ICON.plus}<span class="cost">${ICON.star}<b>${b.price}</b></span></button>`;   // эффект — в ряду под сценой (задание 25: цена крупно)
   }).join('') : '';
   const prog = `<div class="zprog">${z.items.map(it => `<i class="${builtObj[it] ? 'on' : ''}"></i>`).join('')}</div>`;
   const fxs = `<div class="zfx">${z.items.map((it, k) => `<span class="${builtObj[it] ? 'on' : ''}" data-item="${it}">${fxChip(z.fx[k])}</span>`).join('')}</div>`;
@@ -1710,7 +1828,7 @@ function renderSalon() {
       (t < max ? `<button class="btn gold${s.coins < price ? ' off' : ''}" data-pup="${l}">${ICON.coin}${price}</button>` : '<span class="works">макс.</span>') + '</div>';
   }).join('');
   $('scene').innerHTML = `<div class="stage${!active && !done ? ' dim' : ''}">${svg}${plus}` +
-    `${!active && !done ? `<i class="zlock">${ICON.lock}</i>` : ''}${done ? `<i class="zdone">${ICON.star}</i>` : ''}</div>${prog}${fxs}`;
+    `${!active && !done ? `<i class="zlock">${ICON.lock}</i>` : ''}${done ? `<i class="zdone">${ICON.check}</i>` : ''}</div>${prog}${fxs}`;
 }
 
 // Карточка предмета салона: картинка, название, эффект одной строкой, цена или «Работает»
@@ -1745,15 +1863,16 @@ function zoneDoneCard(zi) {
 }
 
 function renderSettings() {
-  $('sHelp').innerHTML = ICON.help + '<span>Подсказки</span>' + (freshHints().length ? '<i class="dot"></i>' : '') + ICON.arrow;   // задание 22: вход в подсказки — здесь
-  $('sSound').innerHTML = ICON.sound + '<span>Звук</span><i class="sw"></i>';
+  const tic = ic => `<span class="tic">${ic}</span>`;   // задание 25: значок строки — в вдавленной плитке 44 px
+  $('sHelp').innerHTML = tic(ICON.help) + '<span>Подсказки</span>' + (freshHints().length ? '<i class="dot"></i>' : '') + ICON.arrow;   // задание 22: вход в подсказки — здесь
+  $('sSound').innerHTML = tic(ICON.sound) + '<span>Звук</span><i class="sw"></i>';
   $('sSound').setAttribute('aria-checked', String(!!s.sound));
-  $('sFill').innerHTML = ICON.fuel + '<span>Полный бак</span>';
-  $('sSpeed').innerHTML = ICON.clock + '<span>Ускорить время ×10</span><i class="sw"></i>';
+  $('sFill').innerHTML = tic(ICON.fuel) + '<span>Полный бак</span>';
+  $('sSpeed').innerHTML = tic(ICON.clock) + '<span>Ускорить время ×10</span><i class="sw"></i>';
   $('sSpeed').setAttribute('aria-checked', String(s.speed === 10));
-  $('sReset').innerHTML = ICON.reset + `<span>${$('sReset').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Новая игра'}</span>`;
-  $('sLogSend').innerHTML = ICON.share + '<span>Отправить журнал</span>';
-  $('sLogClear').innerHTML = ICON.close + `<span>${$('sLogClear').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Очистить журнал'}</span>`;
+  $('sReset').innerHTML = tic(ICON.reset) + `<span>${$('sReset').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Новая игра'}</span>`;
+  $('sLogSend').innerHTML = tic(ICON.share) + '<span>Отправить журнал</span>';
+  $('sLogClear').innerHTML = tic(ICON.close) + `<span>${$('sLogClear').classList.contains('confirm') ? 'Нажмите ещё раз' : 'Очистить журнал'}</span>`;
   const n = LOG.ev.length;
   $('sLogInfo').textContent = `Версия: ${BUILD}. В журнале ${n} ${plural(n, 'событие', 'события', 'событий')}.`;
   renderMonetPanel();
@@ -1767,6 +1886,7 @@ function renderAll() {
   renderOrders();
   if (view === 'salon') renderSalon();
   if (view === 'cars') renderCollection();
+  if (view === 'shop') renderShop();
   if (view === 'help') renderHelp();
   if (view === 'settings') renderSettings();
 }
@@ -1972,11 +2092,7 @@ function playFx(ev) {
         else floatText(e.to, `<span class="ok" style="--fc:#3E7A57">${ICON.check}</span>${ICON.wrench}`, 'fl-rar', '#3E7A57');
       });
         sound(e.t === 'rarUp' ? 'lucky' : 'build'); buzz([15, 30, 15]); break;
-      case 'noCharge': shake(cellEl(e.at)); sound('no');
-        showPop(e.at, `${ICON.clock}<b>${fmtCharge()}</b><span style="margin:0 4px;color:var(--ink-3)">или</span>${ICON.bolt}${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.chargePrice(s, todayKey())}</b>`,
-          () => Core.buyCharge(s, Date.now(), todayKey()));
-        break;
-      case 'chargeBuy': later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); }); bump($('coinPill')); sound('unlock'); break;
+      case 'noCharge': shake(cellEl(e.at)); sound('no'); showWaitBub(e.at, 'charge', fmtCharge(), `${ICON.bolt}<b>+1</b>`); break;
       case 'reward':                       // награда за ролик (задание 16): у мест с сундуком, кораблём, клетками — свои события
         if (e.at >= 0) later(() => { flash(e.at, '#B88A2E'); pop(cellEl(e.at)); });
         if (e.place === 'fuel') bump($('fuelPill'));
@@ -2033,7 +2149,7 @@ function playFx(ev) {
       case 'repair': flash(e.at, '#3E7A57'); pop(cellEl(e.at).querySelector('.car')); sound('coin'); break;
       case 'bubbleBuy': flash(e.at); pop(cellEl(e.at).querySelector('.car')); sound('coin'); bump($('coinPill')); break;
       case 'bubblePop': if (onField) { const [x, y, r] = center(cellEl(e.at)); flyEl('<i class="bub" style="display:block;position:static;width:100%;aspect-ratio:1"></i>', '', [x, y], [x, y], r.width, 260, 0, 1.4, 0); } break;
-      case 'fuel': case 'fuelBuy': setTimeout(() => bump($('fuelPill')), e.t === 'fuel' ? popDelay : 0); if (e.t === 'fuelBuy') hidePop(); break;
+      case 'fuel': setTimeout(() => bump($('fuelPill')), popDelay); break;
       case 'fuelGift': case 'coinGift': {
         floatText(e.at, `+${e.n}${e.t === 'fuelGift' ? ICON.fuel : ICON.coin}`, 'fl-gold');
         const [x0, y0] = center(cellEl(e.at)), [x1, y1] = center(e.t === 'fuelGift' ? $('fuelPill') : $('coinPill'));
@@ -2135,7 +2251,7 @@ function showPoster() {
   setTimeout(() => { el.remove(); zoneSel = null; if (view === 'salon') renderSalon(); }, 2800);
 }
 
-// Пузырь над портом: «полный бак за монеты» или «улучшить порт»
+// Пузырь над портом: «сколько ждать · ▶ награда» (задание 23) или «улучшить порт»
 let popTimer = 0, popAct = null;
 function showPop(at, html, onTap) {
   const b = $('popBub'), [x, , r] = center(cellEl(at));
@@ -2149,7 +2265,13 @@ function showPop(at, html, onTap) {
   popTimer = setTimeout(hidePop, 4000);
 }
 function hidePop() { $('popBub').hidden = true; popAct = null; }
-const showFuelBub = at => showPop(at, `${ICON.fuel}<b>${Core.fuelMax(s)}</b>${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${C.fuelCoins}</b>`, () => Core.buyFuel(s));
+// пузырь у гаража (задание 23): сколько ждать и — если ролик доступен — «▶ награда» (касание — ролик); за монеты — нет
+function showWaitBub(at, place, wait, prize) {
+  const ok = Monet.canShow(place);
+  showPop(at, `${ICON.clock}<b>${wait}</b>` + (ok ? `<span style="margin:0 4px;color:var(--ink-3)">·</span>${adIcon()}${prize}` : ''),
+    ok ? () => (Monet.offered(place), Monet.rewarded(place), []) : null);
+}
+const showFuelBub = at => showWaitBub(at, 'fuel', fmtWait(), `${ICON.fuel}<b>${Core.fuelMax(s)}</b>`);
 // Карточка гаража (долгое нажатие): ступень, что даст следующая — «было → станет», цена и «Улучшить»
 const PORTNAME = ['Гараж', 'Гараж внедорожников', 'Гараж купе', 'Гараж Мастерской', 'Гараж события', 'Ателье'];
 const pc = v => `${Math.round(v * 1000) / 10}%`.replace('.', ',');
@@ -2165,10 +2287,10 @@ function portSheet(line) {
   const price = Core.tierPrice(t, line), poor = s.coins < price;
   const act = t >= max ? `<div class="sh-txt">${line < P && !Core.fxHas(s, 'tier2') ? 'Второй ряд улучшений — после погрузчика в салоне «Порт и склад».' : 'Все ступени куплены.'}</div>` :
     `<button class="btn gold${poor ? ' off' : ''}" data-up>${ICON.up}Улучшить ${ICON.coin}${price}</button>` + (poor ? `<div class="sh-foot">нужно ещё ${price - s.coins} монет</div>` : '');
-  // Ателье: заряды, время до следующего и «Заряд сейчас» за монеты (цена растёт с каждой покупкой за день)
-  const now = Date.now(), ch = line === Core.TRIM ? Core.charges(s, now) : -1, cp = Core.chargePrice(s, todayKey());
-  const btns = ch === 0 ? withAd('charge', chargeBtn(cp), '+1') : chargeBtn(cp);
-  const charge = ch < 0 ? '' : `<div class="card-row${btns.includes('data-ad') ? ' ad' : ''}" style="width:100%"><span class="tic">${ICON.bolt}</span><span class="dc-txt">Заряды: <b>${ch} из ${Core.maxCharges(s)}</b>` +
+  // Ателье: заряды, время до следующего и «заряд сейчас» — за ролик, когда зарядов 0 (задание 23: за монеты — нет)
+  const now = Date.now(), ch = line === Core.TRIM ? Core.charges(s, now) : -1;
+  const btns = ch === 0 ? adBtn('charge', '+1') : '';
+  const charge = ch < 0 ? '' : `<div class="card-row${btns ? ' ad' : ''}" style="width:100%"><span class="tic">${ICON.bolt}</span><span class="dc-txt">Заряды: <b>${ch} из ${Core.maxCharges(s)}</b>` +
     (ch < Core.maxCharges(s) ? `<br>следующий через ${fmtCharge()}</span>` + btns : '</span>') + '</div>' +
     (line === Core.TRIM ? `<div class="obtns adrow">${buyBtn('part1', Art.item(Core.TRIM, 1))}${buyBtn('part2', Art.item(Core.TRIM, 2))}</div>` : '');
   return `<div class="sheet narrow" data-port="${line}">${xbtn}<div class="sh-pic">${GARAGE.replace('class="garage"', 'class="garage" style="position:static;width:64px;color:var(--ink)"')}${Art.item(line, line === Core.TRIM ? 2 : 1)}</div>` +
@@ -2178,19 +2300,11 @@ function portSheet(line) {
 // основной гараж: какие виды машин выдаёт — открытые картинкой 1-го уровня, закрытые замком
 const kindsRow = line => line !== 0 ? '' : `<div class="kinds">${C.ports[0].kinds.map(k => Core.carLines(s).includes(k.line) ?
   `<span class="kind">${Art.item(k.line, 1)}</span>` : `<span class="kind off">${ICON.lock}</span>`).join('')}</div>`;
-const chargeBtn = cp => `<button class="btn gold${s.coins < cp ? ' off' : ''}" data-charge>${ICON.bolt}${ICON.coin}${cp}</button>`;
 function openPort(line) {
   rep.tier.done = true;
   queuePopup(portSheet(line), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', async e => {
     if (adTap(e, el)) return;
     if (await buyTap(e, el, () => portSheet(line))) return;
-    const cb = e.target.closest('[data-charge]');
-    if (cb) {
-      const ev = Core.buyCharge(s, Date.now(), todayKey());
-      if (ev[0]?.t !== 'chargeBuy') { shake(cb); if (ev[0]?.t === 'poor') shake($('coinPill')); sound('no'); return; }
-      play(ev); el.innerHTML = portSheet(line);
-      return;
-    }
     const b = e.target.closest('[data-up]');
     if (!b) return;
     const ev = Core.upgradePort(s, line);
@@ -2350,7 +2464,7 @@ const HINTS = [
     table: () => `<table class="tbl"><tr><td>${ICON.coin}</td><td>Монеты</td><td>за заказы</td></tr><tr><td>${ICON.star}</td><td>Звёзды</td><td>за слияния</td></tr></table>`,
     txt: ['Монеты — на слоты заказов, гараж, клетки, ремонт.', 'Звёзды — на салон. От звёзд растёт уровень.'] },
   { id: 'fuel', t: 'Топливо', lvl: 1, ic: () => ICON.fuel,
-    txt: ['1 топливо — одно нажатие гаража.', `+1 каждые ${C.fuelRegenMs / 60000} мин. Пустой бак — заполнить за ${C.fuelCoins} монет.`] },
+    txt: ['1 топливо — одно нажатие гаража.', `+1 каждые ${C.fuelRegenMs / 60000} мин. Пустой бак — подождать или посмотреть ролик.`] },
   { id: 'cells', t: 'Клетки поля', lvl: 1, ic: () => ICON.lock,
     pic: () => `<div class="cell lock can" style="position:relative;width:56px;height:56px">${ICON.lock}<span class="cprice">${ICON.coin}${Core.cellPrice(s)}</span></div>`,
     txt: ['Клетку рядом с открытыми можно купить за монеты.', 'Ещё клетки дают уровни, салон и новые гаражи.'] },
@@ -2422,8 +2536,9 @@ function explain(id, delay = 0) {
 }
 function renderHelp() {
   $('help').innerHTML = `<div class="view-head">${ICON.help}<span>Подсказки</span></div><div class="hints">` + HINTS.map(h => hintOpen(h) ?
-    `<button class="hcard" data-h="${h.id}"><span class="hpic">${h.ic()}</span><b>${h.t}</b>${s.hintRead[h.id] ? '' : '<i class="dot"></i>'}</button>` :
-    `<button class="hcard locked" disabled><span class="hpic">${ICON.lock}</span><b>${h.t}</b><span>${h.lock || `Откроется на уровне ${h.lvl}`}</span></button>`).join('') + '</div>';
+    `<button class="hcard card-row" data-h="${h.id}"><span class="tic">${h.ic()}</span><span class="stt"><b>${h.t}</b><small>${String(h.txt?.[0] || '')}</small></span>` +
+      `${s.hintRead[h.id] ? '' : '<i class="dot"></i>'}</button>` :
+    `<button class="hcard card-row locked" disabled><span class="tic">${ICON.lock}</span><span class="stt"><b>${h.t}</b><small>${h.lock || `Откроется на уровне ${h.lvl}`}</small></span></button>`).join('') + '</div>';
 }
 function openHint(id) {
   s.hintRead[id] = 1;
@@ -2500,22 +2615,38 @@ function fuelCard() {
   return `<div class="sheet narrow">${xbtn}<span class="bigic" style="color:var(--ink)">${ICON.fuel}</span><span class="bignum">${s.fuel}<span style="font-size:22px;color:var(--ink-3)"> / ${max}</span></span>` +
     `<div class="sh-title">Топливо</div><div class="sh-txt">1 топливо — одно нажатие гаража. +1 каждые ${Math.round(Core.regenMs(s) / 6000) / 10} мин.</div>` +
     `<div class="sh-txt">${full ? `Полный бак через <b>${hm(full)}</b>` : '<b>Бак полный</b>'}</div>` +
-    (s.fuel < 1 ? withAd('fuel', `<button class="btn gold" data-fill>${ICON.fuel}${max} за ${ICON.coin}${C.fuelCoins}</button>`, `${ICON.fuel}${max}`) :
-      s.fuel < C.fuelBelow ? withAd('fuel', '', `${ICON.fuel}${max}`) : '') + reserveRow(max) + '</div>';
+    (s.fuel < C.fuelBelow ? withAd('fuel', '', `${ICON.fuel}${max}`) : '') + reserveRow(max) + '</div>';   // бак за монеты — нет (задание 23)
 }
 function coinCard() {
   const b = Core.nextBuy(s), what = !b ? '' : b.t === 'slot' ? 'слот заказа' : b.t === 'tier' ? `улучшение ${b.line === Core.TRIM ? 'Ателье' : b.line === 0 ? 'гаража' : 'гаража ' + LINE_NAME[b.line]}` :
     b.t === 'cell' ? 'клетка поля' : 'место на складе';
   return `<div class="sheet narrow">${xbtn}<span class="bigic">${ICON.coin}</span><span class="bignum">${s.coins}</span><div class="sh-title">Монеты</div>` +
-    `<div class="sh-txt">Дают заказы. Тратятся на слоты заказов, улучшения гаражей, клетки поля, заряды Ателье.</div>` +
+    `<div class="sh-txt">Дают заказы. Тратятся на слоты заказов, улучшения гаражей, клетки поля, склад.</div>` +
     (b ? `<div class="xpbig"><i style="width:${Math.min(100, s.coins / b.price * 100).toFixed(0)}%"></i></div><div class="sh-txt">Дальше: <b>${what}</b> — <span class="chip coin">${ICON.coin}${b.price}</span></div>` : '') + '</div>';
 }
-// Ролик с наградой рядом с кнопкой за монеты (задание 12): только с ?monet=1 и по правилам Monet (с 4-го дня, лимиты)
-// (с задания 16 — 8 мест; ctx — что нужно месту, например номер заказа для замены)
-// с «Без роликов» (задание 17) ролика нет — вместо значка видео подарок
+// Кнопка ролика с наградой (задания 12, 16, 23): заглушки включены по умолчанию — кнопка видна всегда, когда условие места выполнено.
+// Без слов: доступен — активная кнопка ▶ + награда; рано (первые 3 дня) — серая, замок + день («4»); пауза между роликами — серая,
+// часы + мм:сс (сама станет активной); дневной лимит — серая, «✕»; «Без роликов» куплен — подарок вместо ▶, награда сразу.
+// ctx — что нужно месту, например номер заказа для замены
 const adIcon = () => Monet.vip() ? ICON.gift : ICON.video;
-const adBtn = (place, label, ctx) => Monet.canShow(place) ?
-  `<button class="btn light" data-ad="${place}"${ctx ? ` data-ctx='${JSON.stringify(ctx)}'` : ''} aria-label="${Monet.vip() ? 'Награда' : 'Ролик'}">${adIcon()}${label}</button>` : '';
+const mmss = ms => { const t = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+function adBtn(place, label, ctx) {
+  const st = Monet.state(place), cx = ctx ? ` data-ctx='${JSON.stringify(ctx)}'` : '';
+  if (st.why === 'off') return '';
+  if (st.ok || st.why === 'busy') return `<button class="btn adbtn" data-ad="${place}"${cx} aria-label="${Monet.vip() ? 'Награда' : 'Ролик'}">${adIcon()}${label}</button>`;
+  const why = st.why === 'early' ? `${ICON.lock}<b>${st.day}</b>` : st.why === 'gap' ? `${ICON.clock}<b data-until="${st.until}">${mmss(st.until - Date.now())}</b>` : ICON.close;
+  return `<button class="btn adbtn off" data-adwait="${place}" data-why="${st.why}"${cx} disabled aria-label="Ролик пока недоступен"><span class="adw">${why}</span>${label}</button>`;
+}
+// пауза между роликами: обратный отсчёт; кончилась — кнопка становится активной
+setInterval(() => document.querySelectorAll('[data-until]').forEach(b => {
+  const btn = b.closest('[data-adwait]'), ms = +b.dataset.until - Date.now();
+  if (ms > 0) { b.textContent = mmss(ms); return; }
+  if (!btn || !Monet.canShow(btn.dataset.adwait)) return;
+  btn.querySelector('.adw').outerHTML = adIcon();
+  btn.dataset.ad = btn.dataset.adwait; btn.removeAttribute('data-adwait'); btn.removeAttribute('data-why');
+  btn.disabled = false; btn.classList.remove('off'); btn.setAttribute('aria-label', 'Ролик');
+  Monet.offered(btn.dataset.ad);
+}), 1000);
 function withAd(place, coinBtn, label, ctx) {
   const ad = adBtn(place, label, ctx);
   return ad ? `<div class="obtns adrow">${coinBtn}${ad}</div>` : coinBtn;
@@ -2542,30 +2673,44 @@ function showPlaque(place, html) {
   clearTimeout(plqTimer);
   plqTimer = setTimeout(() => { b.hidden = true; }, 6000);
 }
-// Магазин (задание 17, только в тесте монетизации): товар — картинка, название, ⭐ цена, «Купить»; нельзя — серый с причиной;
-// куплено навсегда — ✓. Копилка — сколько в ней монет и «Разбить»
+// Экран «Магазин» (задание 23): пункт нижней панели, виден всегда, когда заглушки включены. Товары CONFIG.shop группами без слов
+// (значок-разделитель: бак, Ателье, навсегда), крупные карточки: значок, что получишь, цена ⭐ крупно, «Купить». Нельзя купить —
+// значок вместо кнопки: куплено — галочка, лимит на сегодня — часы, рано — замок + день, нет Ателье — замок + деталь, запас полон —
+// бак 15, нет места — сетка. Копилка — полоска «N / 500» и «Разбить». Покупка — Monet.buy (✓ / ✕, повторная проверка, выдача)
 const SHOP_IC = { tanks5: ICON.fuel + '×5', part1: Art.item(Core.TRIM, 1), part2: Art.item(Core.TRIM, 2), starter: ICON.gift, vip: ICON.video,
   piggy: ICON.piggy, atelier3: ICON.bolt + '+1', tankplus: ICON.fuel + '+' + C.shop.items.tankplus.fuel };
-const WHY = { нет: '—', куплено: ICON.check, день: ICON.calendar, Ателье: ICON.lock, запас: ICON.fuel + '15', лимит: '3/3', место: ICON.grid, мало: '<100' };
-function shopRow(p) {
-  const g = Core.canGrant(s, p.id, Date.now(), Monet.day()), price = C.shop.items[p.id].price;
-  const pig = p.id === 'piggy' ? ` · в копилке ${s.shop?.piggy || 0}` : '';
-  const right = g.ok ? `<button class="btn gold${Monet.on ? '' : ' off'}" data-buy="${p.id}"${Monet.on ? '' : ' disabled'}>${p.id === 'piggy' ? 'Разбить' : 'Купить'}</button>` :
-    g.why === 'куплено' ? `<i class="tick">${ICON.check}</i>` : `<span class="why">${WHY[g.why] || g.why}</span>`;
-  return `<div class="srow card-row${g.ok ? '' : ' off'}" data-id="${p.id}"><span class="tic sic">${SHOP_IC[p.id]}</span><span class="stt"><b>${p.title}</b>` +
-    `<span class="price">${ICON.tgstar}${price}${pig ? `<small>${pig}</small>` : ''}</span></span>${right}</div>`;
+const SHOP_GET = { tanks5: `${ICON.fuel}×${C.shop.items.tanks5.tanks} в запас`, tankplus: `бак +${C.shop.items.tankplus.fuel} навсегда`,
+  part1: 'деталь Ателье, 1 в день', part2: 'деталь Ателье, 1 в день', atelier3: 'ещё заряд Ателье навсегда',
+  starter: `${ICON.fuel}×${C.shop.items.starter.tanks} и ${C.shop.items.starter.parts} детали`, vip: 'награды сразу, без роликов', piggy: '10% монет заказов' };
+const SHOP_GROUPS = [[ICON.fuel, ['tanks5', 'tankplus']], [ICON.bolt, ['part1', 'part2', 'atelier3']], [ICON.inf, ['starter', 'vip', 'piggy']]];
+const shopState = g => `<i class="sst${g.why === 'куплено' ? ' ok' : ''}">` + ({ куплено: ICON.check, лимит: ICON.clock, день: `${ICON.lock}<b>${C.shop.fromDay + 1}</b>`,
+  Ателье: ICON.lock + Art.item(Core.TRIM, 1), запас: `${ICON.fuel}<b>${C.shop.reserveMax}</b>`, место: ICON.grid }[g.why] || ICON.lock) + '</i>';
+const canBuy = id => Core.canGrant(s, id, Date.now(), Monet.day());
+function shopCard(id) {
+  const p = Monet.LIST.find(x => x.id === id), g = canBuy(id), it = C.shop.items[id], pig = id === 'piggy', n = s.shop?.piggy || 0;
+  const bar = pig ? `<span class="pigbar"><span class="xpbig"><i style="width:${Math.min(100, n / it.max * 100).toFixed(0)}%"></i></span><b>${n} / ${it.max}</b></span>` : '';
+  const act = g.ok || g.why === 'мало' ? `<button class="btn gold${g.ok ? '' : ' off'}" data-buy="${id}"${g.ok ? '' : ' disabled'}>${pig ? 'Разбить' : 'Купить'}</button>` : shopState(g);
+  return `<div class="shopcard card-row${g.ok ? '' : ' off'}" data-id="${id}"><span class="tic">${SHOP_IC[id]}</span>` +
+    `<span class="stt"><b>${p.title}</b><small>${SHOP_GET[id]}</small>${bar}</span><span class="sbuy"><span class="price">${ICON.tgstar}${it.price}</span>${act}</span></div>`;
 }
-const shopSheet = () => `<div class="sheet shop">${xbtn}<div class="sh-title">Магазин</div>${Monet.LIST.map(shopRow).join('')}` +
-  `<div class="set-note">${Monet.on ? 'тест, без денег' : 'покупки пока выключены'}</div></div>`;
-// задание 22: магазин открывается из панели всегда; без теста монетизации кнопки «Купить» выключены
-function openShop() {
-  queuePopup(shopSheet(), 0, 'card', 'panel', el => el.addEventListener('click', async e => {
-    const b = e.target.closest('[data-buy]');
-    if (!b) return;
-    await Monet.buy(b.dataset.buy);
-    if (popupOpen === el) el.innerHTML = shopSheet();
-  }));
+function renderShop() {
+  const head = `<div class="view-head">${ICON.bag}<span>Магазин</span></div>`, el = $('shop');
+  const h = !Monet.on ? head + '<div class="set-note">покупки выключены</div>' : head + SHOP_GROUPS.map(([ic, ids]) => `<div class="sgroup">${ic}</div>` +
+    ids.map(shopCard).join('')).join('') + '<div class="set-note">тест, без денег</div>';
+  if (el._h !== h) { el._h = h; el.innerHTML = h; }      // перерисовать, только когда изменилось (касание не теряется)
+  if (!Monet.on) return;
+  // что уже видел: точка на «Магазине» — когда товар впервые стал доступен или копилка снова набрала 100
+  const ok = Monet.LIST.filter(p => canBuy(p.id).ok).map(p => p.id), ever = s.shopEver || [];
+  if (ok.some(id => !ever.includes(id)) || !!s.shopPig !== ok.includes('piggy')) { s.shopEver = [...new Set([...ever, ...ok])]; s.shopPig = ok.includes('piggy'); save(); }
 }
+const shopNew = () => Monet.on && Monet.LIST.some(p => p.id !== 'piggy' && canBuy(p.id).ok && !(s.shopEver || []).includes(p.id)) || Monet.on && canBuy('piggy').ok && !s.shopPig;
+const openShop = () => setView('shop');
+$('shop').addEventListener('click', async e => {
+  const b = e.target.closest('[data-buy]');
+  if (!b) return;
+  await Monet.buy(b.dataset.buy);
+  renderAll();
+});
 // контекстные кнопки товара (только в тесте и только когда товар можно купить)
 const buyBtn = (id, label) => Monet.on && Core.canGrant(s, id, Date.now(), Monet.day()).ok ?
   `<button class="btn light" data-buy="${id}" aria-label="Купить">${label}<span class="price">${ICON.tgstar}${C.shop.items[id].price}</span></button>` : '';
@@ -2582,14 +2727,18 @@ function giftWindow(delay) {
   queuePopup(`<div class="sheet narrow card">${xbtn}<div class="sh-pic">${Art.thing('gift')}</div><div class="sh-title">Подарок дня</div>` +
     withAd('gift', `<button class="btn ok" data-close>Забрать</button>`, '×2') + '</div>', delay, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => adTap(e, el))));
 }
-// Тестовая панель (только в тесте монетизации): по месту — «сегодня n из N» и «Подготовить», сброс счётчиков, день игры для лимитов
+// Тестовая панель (7 нажатий по номеру сборки или ?monet=1; задание 23): переключатель заглушек, по месту — «сегодня n из N»
+// и «Подготовить», сброс счётчиков, день игры для лимитов
 function renderMonetPanel() {
   const mp = $('monetPanel');
-  mp.hidden = !Monet.on;
-  if (!Monet.on) { mp.innerHTML = ''; return; }
+  mp.hidden = !Monet.panel;
+  if (!Monet.panel) { mp.innerHTML = ''; return; }
   const c = Monet.counts(), L = Monet.LIMIT, d = Monet.day();
-  mp.innerHTML = '<div class="set-head">Тест монетизации</div>' +
-    `<button class="set" data-shop>${ICON.coin}<span>Магазин</span></button>` +
+  const sw = `<div class="mrow"><span><b>Заглушки рекламы и покупок</b>${Monet.on ? 'включены — видны в игре' : 'выключены'}</span>` +
+    `<button class="btn light" data-mtoggle>${Monet.on ? 'Выключить' : 'Включить'}</button></div>`;
+  if (!Monet.on) { mp.innerHTML = '<div class="set-head">Тест монетизации</div>' + sw; return; }
+  mp.innerHTML = '<div class="set-head">Тест монетизации</div>' + sw +
+    `<button class="set" data-shop>${ICON.bag}<span>Магазин</span></button>` +
     Object.keys(L.place).map(p => `<div class="mrow"><span><b>${Monet.NAME[p]}</b>сегодня ${c.by[p] || 0} из ${L.place[p]}</span>` +
       `<button class="btn light" data-prep="${p}">Подготовить</button></div>`).join('') +
     `<div class="mrow"><span><b>Всего роликов</b>сегодня ${c.n} из ${L.perDay}</span><button class="btn light" data-mreset>Сбросить</button></div>` +
@@ -2610,7 +2759,7 @@ function prepMonet(p) {
   if (p === 'double') s.lastBig = { coins: Math.max(60, Core.orderValue(s, s.orders.find(o => o) || { kind: 'big', items: [] }) || 60) };
   if (p === 'chest') { s.daily.goals.forEach(g => { g.have = g.need; g.got = true; }); s.daily.claimed = false; }
   if (p === 'gift' && free() >= 0) s.cells[free()] = { k: 'chest', kind: 'gift', cars: [[0, 2, 0], [0, 3, 0], ['fuel', 15]] };
-  if (p === 'reroll') s.refreshAt = now + C.refreshMs[0];
+  if (p === 'reroll') { s.refreshAt = now + C.refreshMs[0]; s.swaps = 0; }
   if (p === 'ship') s.ship = { at: now + 3600e3 };
   if (p === 'room') s.cells.forEach((c, i) => { if (!c) s.cells[i] = { k: 'car', line: 0, lvl: 1, r: 0 }; });
   save(); setView('field'); renderAll();
@@ -2626,7 +2775,8 @@ $('monetPanel').addEventListener('click', e => {
   const prep = e.target.closest('[data-prep]'), day = e.target.closest('[data-mday]');
   if (prep) return prepMonet(prep.dataset.prep);
   if (e.target.closest('[data-mreset]')) Monet.resetCounts();
-  if (e.target.closest('[data-shop]')) return openShop();
+  if (e.target.closest('[data-mtoggle]')) { Monet.setTest(!Monet.on); L(Monet.on ? 'заглушки включены' : 'заглушки выключены'); renderAll(); }
+  if (e.target.closest('[data-shop]')) return setView('shop');
   if (e.target.closest('[data-shopreset]')) {        // покупки: запас, магазин, копилка, постоянные улучшения
     s.reserve = 0; delete s.shop; if (s.atelier && s.atelier.n > C.atelier.charges) s.atelier.n = C.atelier.charges;
     save(); L('тест: покупки сброшены');
@@ -2637,16 +2787,17 @@ $('monetPanel').addEventListener('click', e => {
   if (day) { Monet.setDay(Monet.day() + +day.dataset.mday); L(`тест: день игры для роликов — ${Monet.day() + 1}-й`); }
   renderMonetPanel();
 });
-// 7 быстрых нажатий по номеру сборки — тест монетизации вкл / выкл (в Telegram адрес с ?monet=1 не открыть)
+// 7 быстрых нажатий по номеру сборки — тестовая панель вкл / выкл (в Telegram адрес с ?monet=1 не открыть; задание 23: заглушки
+// включены и без неё)
 let verTaps = [];
 $('sLogInfo').addEventListener('click', () => {
   const now = Date.now();
   verTaps = verTaps.filter(t => now - t < 700 * 7).concat(now);
   if (verTaps.length < 7) return;
   verTaps = [];
-  Monet.setTest(!Monet.on);
-  L(Monet.on ? 'тест монетизации включён' : 'тест монетизации выключен');
-  queuePopup(`<div class="sheet narrow card"><div class="sh-title">Тест монетизации ${Monet.on ? 'включён' : 'выключен'}</div>` +
+  Monet.setPanel(!Monet.panel);
+  L(Monet.panel ? 'тест монетизации включён' : 'тест монетизации выключен');
+  queuePopup(`<div class="sheet narrow card"><div class="sh-title">Тест монетизации ${Monet.panel ? 'включён' : 'выключен'}</div>` +
     `<button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, 0, 'card', 'panel');
   renderAll(); renderMonetPanel();
 });
@@ -2658,7 +2809,6 @@ function openCard(html, again) {
     if (await buyTap(e, el, again || (() => html))) return;
     const go = e.target.closest('[data-go]');
     if (go) { el.close(); setView(go.dataset.go); }
-    if (e.target.closest('[data-fill]')) { const ev = Core.buyFuel(s); if (ev[0].t === 'reject') { shake($('coinPill')); sound('no'); return; } el.close(); play(ev); }
   })));
 }
 $('lvlBox').addEventListener('click', () => openCard(levelCard()));
@@ -2689,7 +2839,7 @@ function tasksSheet() {
   }).join('');
   const all = Core.dailyDone(s);
   const chest = d.claimed ? `<div class="daychest"><span class="dc-txt">Сундук дня получен. Новые задания завтра.</span></div>` :
-    `<div class="daychest${all ? ' can' : ''}${all && Monet.canShow('chest') ? ' ad' : ''}">${Art.thing('daily')}<span class="dc-txt">За все три задания — сундук дня: машины, детали, монеты</span>` +
+    `<div class="daychest${all ? ' can' : ''}${all && Monet.on ? ' ad' : ''}">${Art.thing('daily')}<span class="dc-txt">За все три задания — сундук дня: машины, детали, монеты</span>` +
     (all ? withAd('chest', `<button class="btn ok" data-chest>Открыть</button>`, '×2') : '') + '</div>';
   return `<div class="sheet">${xbtn}<div class="sh-title">Задания на сегодня</div><div class="sh-sub">${ICON.clock}новые через ${hm(mid - Date.now())}</div>${rows}${chest}</div>`;
 }
@@ -2733,7 +2883,7 @@ function eventSheet() {
   const days = Math.floor(left / 864e5), hours = Math.floor(left % 864e5 / 36e5);
   const next = tr[e.step], prev = e.step ? tr[e.step - 1] : 0;
   const steps = tr.map((need, k) => { const [ic, n] = rewardIcon(C.event.rewards[k]);
-    return `<div class="step${k < e.step ? ' done' : k === e.step ? ' next' : ''}${k === tr.length - 1 ? ' last' : ''}"><span class="n">${k + 1}</span><span class="sr">${ic}</span>${n}</div>`; }).join('');
+    return `<div class="step${k < e.step ? ' done' : k === e.step ? ' next' : ''}${k === tr.length - 1 ? ' last' : ''}"><span class="n">${k + 1}</span><span class="sr">${ic}</span>${n ? `<b class="srn">${n}</b>` : ''}</div>`; }).join('');
   return `<div class="sheet">${xbtn}<div class="sh-title">${EVNAME[e.theme]}</div><div class="sh-sub">${ICON.clock}ещё ${days ? `${days} д ` : ''}${hours} ч</div>` +
     `<div class="scheme"><div><span class="sic">${Art.item(Core.EV, 2)}</span>Сливай</div>${ICON.play}<div><span class="sic">${ICON.card}</span>Сдавай заказы</div>${ICON.play}<div><span class="sic">${ICON.flag}</span>Двигайся по треку</div></div>` +
     `<div class="tokens">${ICON.token}${e.tokens}${next ? `<span class="xpbig"><i style="width:${((e.tokens - prev) / (next - prev) * 100).toFixed(0)}%"></i></span><span style="font-size:14px;color:var(--ink-2)">${next}</span>` : ''}</div>` +
@@ -2751,19 +2901,19 @@ function depotSheet() {
   }).join('');
   const store = s.storeN ? `<div class="sh-title">Склад</div><div class="slots4">${slots}</div><div class="sh-txt">Перетащи машину на значок склада вверху — она подождёт здесь. Нажми на машину — вернётся на поле.</div>` : '';
   const ready = s.ship && now >= s.ship.at;
-  const ship = s.ship ? `<div class="shipbox card-row${!ready && Monet.canShow('ship') ? ' ad' : ''}"><span class="tic">${ICON.ship}</span><span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
-    (ready ? '' : withAd('ship', `<button class="btn gold" data-ship>Сейчас ${ICON.coin}${Core.shipPrice(s, now)}</button>`, ICON.ship)) + '</div>' : '';
+  const ship = s.ship ? `<div class="shipbox card-row${!ready && Monet.on ? ' ad' : ''}"><span class="tic">${ICON.ship}</span><span class="dc-txt">${ready ? 'Корабль пришёл. Освободи клетку — сундук выгрузят.' : `Корабль с сундуком машин — через <b>${hm(s.ship.at - now)}</b>`}</span>` +
+    (ready ? '' : adBtn('ship', ICON.ship)) + '</div>' : '';   // «сейчас» — только за ролик (задание 23)
   return `<div class="sheet">${xbtn}${store}${ship}</div>`;
 }
 function openDepot() {
   queuePopup(depotSheet(), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
     if (adTap(e, el)) return;
-    const out = e.target.closest('[data-out]'), slot = e.target.closest('[data-slot]'), ship = e.target.closest('[data-ship]');
-    const ev = out ? Core.unstore(s, +out.dataset.out) : slot ? Core.buyStore(s) : ship ? Core.arrive(s, Date.now(), true) : null;
+    const out = e.target.closest('[data-out]'), slot = e.target.closest('[data-slot]');
+    const ev = out ? Core.unstore(s, +out.dataset.out) : slot ? Core.buyStore(s) : null;
     if (!ev) return;
-    if (['poor', 'full', 'reject'].includes(ev[0]?.t)) { shake(out || slot || ship); sound('no'); if (ev[0].t === 'poor') shake($('coinPill')); return; }
+    if (['poor', 'full', 'reject'].includes(ev[0]?.t)) { shake(out || slot); sound('no'); if (ev[0].t === 'poor') shake($('coinPill')); return; }
     play(ev);
-    if (ship) el.close(); else el.innerHTML = depotSheet();
+    el.innerHTML = depotSheet();
   })));
 }
 $('depotBtn').addEventListener('click', openDepot);
@@ -2830,9 +2980,29 @@ function hintTarget(h) {
   if (h.t === 'fuel') return $('popBub').hidden ? cellEl(s.cells.findIndex(c => c?.k === 'port')) : $('popBub');
   return cellEl(h.i);
 }
+// Палец (задание 25): свой порядок поверх Core.nextHint (по нему ходит бот — его не меняем): сначала слияние двух одинаковых
+// (линейка, уровень, редкость), потом сдать готовый заказ, потом деталь на машину, потом остальное. Действие должно быть возможным
+// (деталь подходит машине, пара — одинаковая). Подсказка на паузе (дважды не сделал) пропускается. Обучение — как раньше
+function hintOk(h) {
+  if (h.t !== 'drag') return true;
+  const a = s.cells[h.from], b = s.cells[h.to], P = Core.PARTS, T = Core.TRIM;
+  if (a?.k === 'key') return true;
+  if (a?.k !== 'car' || b?.k !== 'car' || a.broken) return false;
+  const part = c => c.line === P || c.line === T;
+  if (part(a) && !part(b)) return Core.itemFits(b, a);                                    // деталь → машина, которая её принимает
+  return a.line === b.line && a.lvl === b.lvl && (a.r || 0) === (b.r || 0) && !b.broken;  // слияние — только одинаковых
+}
+function fingerHint(now) {
+  if (s.n.orders < 2) return Core.nextHint(s, now);                                       // обучение (первые заказы) — как раньше
+  const ready = s.orders.findIndex((o, oi) => o && oi < s.slots && Core.match(s, o).ready);
+  const cands = [[Core.dragHint(s, 'same'), 'слияние'], [ready >= 0 && { t: 'order', i: ready }, 'сдать'], [Core.itemHint(s), 'деталь на машину'],
+    [Core.nextHint(s, now), 'дальше по игре']];
+  for (const [h, why] of cands) if (h && hintOk(h) && !((hintSkip[hintDesc(h)]?.until || 0) > now)) return { ...h, why };
+  return null;
+}
 function showHint() {
   // первое задание дня: после первого заказа палец показывает на значок заданий, пока их не откроют
-  const h = s.n.orders > 0 && !s.hintSeen.daily && !$('cal').hidden && view === 'field' ? { t: 'cal' } : repeatHint() || Core.nextHint(s, Date.now());
+  const h = s.n.orders > 0 && !s.hintSeen.daily && !$('cal').hidden && view === 'field' ? { t: 'cal' } : repeatHint() || fingerHint(Date.now());
   if (!h || (view === 'salon' && h.t !== 'build' && h.t !== 'prestige')) return;
   const fg = $('finger');
   const tip = (x, y) => `translate(${x - 19}px,${y - 4}px)`;    // кончик пальца — в точку касания
@@ -3043,7 +3213,7 @@ $('orders').addEventListener('click', e => {
 });
 const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой' };
 function orderSheet(oi) {
-  const o = s.orders[oi], m = Core.match(s, o), price = Core.refreshPrice(s, Date.now());
+  const o = s.orders[oi], m = Core.match(s, o), now = Date.now(), free = Core.refreshFree(s, now) || s.swaps > 0;
   const kic = { showcase: ZICON.showroom, event: ICON.flag, hunt: ICON.cards }[o.kind];
   const ava = kic ? `<span class="kic k-${o.kind}">${kic}</span>` : '';
   const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ?
@@ -3057,8 +3227,10 @@ function orderSheet(oi) {
   }).join('');
   return `<div class="sheet" data-order="${oi}">${xbtn}<div class="ohead2">${ava}<div class="sh-title">${KIND[o.kind]}</div></div>` +
     `<div class="obig">${tiles}</div><div class="sh-txt">Награда: ${reward}</div>` +
-    `<div class="obtns${price && Monet.canShow('reroll') ? ' adrow' : ''}">${m.any ? `<button class="btn ok" data-give>${ICON.check}Сдать, что есть</button>` : ''}` +
-    `<button class="btn light" data-refresh>${ICON.refresh}${price ? `${ICON.coin}${price}` : 'Заменить'}</button>${price ? adBtn('reroll', ICON.refresh, { order: oi }) : ''}</div></div>`;
+    `<div class="obtns">${m.any ? `<button class="btn ok" data-give>${ICON.check}Сдать, что есть</button>` : ''}` +
+    // замена (задание 23): бесплатная по таймеру или из запаса — «↻ Заменить»; иначе «↻ ▶» за ролик, без заглушек — сколько ждать
+    (free ? `<button class="btn light" data-refresh>${ICON.refresh}Заменить</button>` : adBtn('reroll', ICON.refresh, { order: oi }) ||
+      `<button class="btn light off" disabled aria-label="Замена позже">${ICON.refresh}${ICON.clock}${mmss(s.refreshAt - now)}</button>`) + '</div></div>';
 }
 function openOrder(oi) {
   queuePopup(orderSheet(oi), 0, 'card', 'panel', el => (adOffered(el), el.addEventListener('click', e => {
@@ -3067,7 +3239,7 @@ function openOrder(oi) {
     if (e.target.closest('[data-give]')) { el.close(); return play(Core.deliver(s, oi, now)); }
     if (e.target.closest('[data-refresh]')) {
       const ev = Core.refreshOrder(s, oi, now);
-      if (ev[0]?.t === 'poor') { shake(e.target.closest('[data-refresh]')); shake($('coinPill')); sound('no'); return; }
+      if (ev[0]?.t === 'wait') { shake(e.target.closest('[data-refresh]')); sound('no'); return; }
       el.close(); play(ev);
     }
   })));
@@ -3127,7 +3299,7 @@ function setView(v) {
   view = v;
   hidePop();
   $('field').style.display = v === 'field' ? 'contents' : 'none';
-  ['salon', 'cars', 'help', 'settings'].forEach(id => { $(id).hidden = v !== id; });
+  ['salon', 'cars', 'shop', 'help', 'settings'].forEach(id => { $(id).hidden = v !== id; });
   [...$('dock').children].forEach(b => b.setAttribute('aria-current', String(b.dataset.view === v || (v === 'help' && b.dataset.view === 'settings'))));   // подсказки — из Настроек
   renderAll();
   if (v === 'field') {
@@ -3136,7 +3308,7 @@ function setView(v) {
     pendingFx = [];
   }
 }
-$('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.hasAttribute('data-shop')) { L('магазин из панели'); openShop(); } else setView(b.dataset.view); });
+$('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.view === 'shop' && view !== 'shop') L('магазин из панели'); setView(b.dataset.view); });
 $('help').addEventListener('click', e => { const b = e.target.closest('.hcard[data-h]'); if (b) openHint(b.dataset.h); });
 $('cars').addEventListener('click', e => {
   const b = e.target.closest('.stack');
@@ -3233,7 +3405,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 17;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 22;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

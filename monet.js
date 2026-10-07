@@ -1,14 +1,14 @@
-// Монетизация (задания 12, 16, 17): заглушки, выключены. Реклама по желанию игрока с наградой и покупки за ⭐ — через подменяемого провайдера
-// (Monet.use). По умолчанию провайдер «нет»: всё отвечает ok:false, кнопок и плашек в игре нет.
-// Тест монетизации — ?monet=1 или 7 быстрых нажатий по номеру сборки в Настройках (флаг garazh.monet): тестовый «ролик» 3 с
-// и «покупка» ✓/✕, тестовая панель в Настройках. ?monet=1&day=N — для лимитов считать, что идёт N-й день игры.
-// Реальных сетей, ключей и адресов здесь нет. В Node (бот) модуль отдаёт LIMIT и NAME.
+// Монетизация (задания 12, 16, 17, 23): реклама по желанию игрока с наградой и покупки за ⭐ — через подменяемого провайдера (Monet.use).
+// С задания 23 тестовый провайдер включён по умолчанию (заглушки видны в обычной игре): «ролик» 3 с и «покупка» ✓/✕ — тест, без денег.
+// Выключают — ?monet=0 (на этот запуск) и переключатель в тестовой панели (флаг garazh.monet = 0); провайдер «нет» — всё ok:false,
+// кнопок и плашек нет. Тестовая панель в Настройках — 7 быстрых нажатий по номеру сборки (флаг garazh.monetPanel) или ?monet=1;
+// &day=N — для лимитов считать, что идёт N-й день игры. Реальных сетей, ключей и адресов здесь нет. В Node (бот) модуль отдаёт LIMIT и NAME.
 (function () {
   'use strict';
   // Лимиты: первые 3 дня ни одного ролика (день игры с 0: 4-й день — 3), между любыми двумя — 2 минуты, всего не больше
-  // 8 в день и свой дневной лимит у каждого места (бак — 3, заряд Ателье — 2 — решение владельца)
+  // 8 в день и свой дневной лимит у каждого места (бак — 3, заряд Ателье — 2 — решение владельца; «×2» — 1, задание 22Б)
   const LIMIT = { gapMs: 2 * 60e3, perDay: 8, fromDay: 3,
-    place: { fuel: 3, charge: 2, double: 2, chest: 1, gift: 1, reroll: 2, ship: 1, room: 1 } };
+    place: { fuel: 3, charge: 2, double: 1, chest: 1, gift: 1, reroll: 2, ship: 1, room: 1 } };
   const NAME = { fuel: 'полный бак', charge: '+1 заряд Ателье', double: 'монеты крупного заказа ×2', chest: 'второй сундук дня',
     gift: 'подарок дня ×2', reroll: 'замена заказа', ship: 'корабль сейчас', room: '+2 клетки' };
   const NONE = { products: [], rewarded: async () => ({ ok: false }), buy: async () => ({ ok: false }) };
@@ -19,7 +19,7 @@
     get: k => { try { return localStorage.getItem(k); } catch { return null; } },
     set: (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} },
   };
-  let provider = NONE, game = null, busy = false, testDay = null;
+  let provider = NONE, game = null, busy = false, testDay = null, panel = false;
 
   const Monet = {
     LIMIT, NAME, products: [],
@@ -27,8 +27,11 @@
     _test: {},                                       // для автопроверки: { next: 'fail' } — следующий ролик не досмотрен
     use(p) { provider = p || NONE; Monet.products = provider === NONE ? [] : PRODUCTS; game?.setOn?.(provider !== NONE); },
     get on() { return provider !== NONE; },
-    // тест монетизации: включить / выключить (флаг в localStorage — и в Telegram, где адрес не поменять)
-    setTest(on) { ls.set('garazh.monet', on ? '1' : null); Monet.use(on ? testProvider() : null); },
+    // заглушки: включить / выключить (флаг в localStorage — и в Telegram, где адрес не поменять; включены по умолчанию — флаг не хранится)
+    setTest(on) { ls.set('garazh.monet', on ? null : '0'); Monet.use(on ? testProvider() : null); },
+    // тестовая панель в Настройках (счётчики, «Подготовить», день игры)
+    get panel() { return panel; },
+    setPanel(on) { panel = !!on; ls.set('garazh.monetPanel', on ? '1' : null); },
     // связь с игрой: s() — сохранение (счётчики — s.monet), day() — день игры с 0, today() — дата, now(), log(text), save(),
     // reward(place, ctx) — выдать награду правилами игры (Core.reward), ответ — получилось ли; canGrant(id, day) / grant(id, day) —
     // товар (Core.canGrant / Core.grant); setOn(on) — тест монетизации вкл / выкл (копилка, запас баков в правилах)
@@ -43,12 +46,19 @@
       const m = game.s().monet || {};
       return m.day === Monet.dayKey() ? { n: m.n || 0, by: m.by || {}, at: m.at || 0 } : { n: 0, by: {}, at: m.at || 0 };
     },
-    canShow(place) {
-      if (provider === NONE || !game || busy || !NAME[place]) return false;
+    // можно ли ролик сейчас (задание 23 — для вида кнопки): ok; why — off (заглушек нет), busy (идёт ролик), limit (дневной лимит),
+    // early (первые 3 дня; day — с какого дня), gap (пауза; until — когда можно). С «Без роликов» — без паузы и первых 3 дней
+    state(place) {
+      if (provider === NONE || !game || !NAME[place]) return { ok: false, why: 'off' };
+      if (busy) return { ok: false, why: 'busy' };
       const c = Monet.counts();
-      if (c.n >= LIMIT.perDay || (c.by[place] || 0) >= LIMIT.place[place]) return false;
-      return Monet.vip() || Monet.day() >= LIMIT.fromDay && game.now() - c.at >= LIMIT.gapMs;   // с «Без роликов» — без паузы и первых 3 дней
+      if (c.n >= LIMIT.perDay || (c.by[place] || 0) >= LIMIT.place[place]) return { ok: false, why: 'limit' };
+      if (Monet.vip()) return { ok: true };
+      if (Monet.day() < LIMIT.fromDay) return { ok: false, why: 'early', day: LIMIT.fromDay + 1 };
+      const wait = LIMIT.gapMs - (game.now() - c.at);
+      return wait > 0 ? { ok: false, why: 'gap', until: game.now() + wait } : { ok: true };
     },
+    canShow: place => Monet.state(place).ok,
     resetCounts() { delete game.s().monet; game.save(); game.log('тест: счётчики роликов сброшены'); },
     offered(place) { game?.log(`ролик предложен: ${NAME[place] || place}`); },
     async rewarded(place, ctx) {
@@ -92,18 +102,23 @@
     if (!document.getElementById('monetCss')) {
       const css = document.createElement('style');
       css.id = 'monetCss';
-      css.textContent = '.monet{z-index:50}.monet .m-ad{position:relative;width:min(300px,calc(100vw - 48px),calc((100vh - var(--tg-top,0px) - 40px) * .64));aspect-ratio:9/14;border-radius:30px;' +
-        'background:#202329;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}' +
-        '.monet .m-ad b{font-size:64px;line-height:1}.monet .m-ad b .ic{width:64px;height:64px}.monet .m-ad small{opacity:.7}';
+      css.textContent = '.monet{z-index:50}.monet .m-ad{align-items:center;justify-content:center;gap:14px;min-height:min(300px,calc(100vh - var(--tg-top,0px) - 80px))}' +
+        '.monet .m-ad b{display:grid;place-items:center;width:112px;height:112px;border-radius:50%;background:var(--navy,#14161F);color:#fff;font-size:56px;line-height:1;' +
+        'box-shadow:0 0 0 1.5px var(--neon,#38B6FF),0 0 14px rgba(56,182,255,.55)}.monet .m-ad b .ic{width:56px;height:56px}';
       document.head.appendChild(css);
     }
     const ic = d => `<svg class="ic" viewBox="0 0 24 24">${d}</svg>`, X = ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'), OK = ic('<path d="M5.5 12.5 9.7 16.7 18.5 7.5"/>');
     // ⭐ Stars Telegram — тот же значок, что ICON.tgstar в игре (сплошная звезда)
     const TG_STAR = ic('<path d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z" fill="currentColor"/>');
-    const layer = html => { const el = document.createElement('div'); el.className = 'overlay monet'; el.innerHTML = html; document.body.appendChild(el); return el; };
+    // слой поверх окон игры: карточка по центру, как у окон игры (задание 21) — появление 0,96 → 1 за 180 мс
+    const layer = html => {
+      const el = document.createElement('div'); el.className = 'overlay monet as-card'; el.innerHTML = html; document.body.appendChild(el);
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) el.firstElementChild.animate?.([{ transform: 'scale(.96)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      return el;
+    };
     return {
       rewarded: () => new Promise(done => {
-        const el = layer(`<div class="m-ad"><small>Реклама · тест</small><b>3</b><button class="xbtn" data-close aria-label="Закрыть">${X}</button></div>`);
+        const el = layer(`<div class="sheet narrow card m-ad"><button class="xbtn" data-close aria-label="Закрыть">${X}</button><div class="sh-title">Реклама · тест</div><b>3</b><div class="sh-txt">без денег</div></div>`);
         const b = el.querySelector('b');
         let n = 3, watched = false;
         const t = setInterval(() => {
@@ -127,7 +142,9 @@
   if (typeof window !== 'undefined') {
     window.Monet = Monet;
     const q = new URLSearchParams(location.search);
-    if (q.get('monet') === '1' || ls.get('garazh.monet') === '1') Monet.use(testProvider());
+    // заглушки — по умолчанию (задание 23); ?monet=0 — без них на этот запуск; ?monet=1 — с ними и с тестовой панелью
+    if (q.get('monet') === '1' || q.get('monet') !== '0' && ls.get('garazh.monet') !== '0') Monet.use(testProvider());
+    panel = q.get('monet') === '1' || ls.get('garazh.monetPanel') === '1';
     const d = q.get('day') ?? ls.get('garazh.monetDay');
     if (Monet.on && d !== null && d !== '' && !isNaN(+d)) testDay = Math.max(0, +d);
   }

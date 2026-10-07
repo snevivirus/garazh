@@ -297,9 +297,9 @@ const certMini = `<svg viewBox="12 3 40 37" aria-hidden="true">${PART_ART[4]}</s
 function nestedAny(line, lvl, cx, groundY, width) {
   const url = exactUrl(line, lvl, 0, true);    // своя картинка сразу, сцена докачает её сама — без старой SVG на время загрузки
   if (!url) return nested(line, lvl, cx, groundY, width);
-  // холст 1,6 : 1, колёса на 88%
-  const h = width / 1.6;
-  return `<image href="${url}" x="${f(cx - width / 2)}" y="${f(groundY - h * .88)}" width="${f(width)}" height="${f(h)}"/>`;
+  // задание 24: картинка обрезана по машине — коробка 1,6 : 1 шириной 92% (как прежняя машина на холсте), машина вписана, колёса — на земле
+  const bw = width * .92, h = bw / 1.6;
+  return `<image href="${url}" x="${f(cx - bw / 2)}" y="${f(groundY - h)}" width="${f(bw)}" height="${f(h)}" preserveAspectRatio="xMidYMax meet"/>`;
 }
 
 window.Art = { item, preload, nested: nestedAny, thing: thingSVG, certMini, loadRasters,
