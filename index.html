@@ -66,6 +66,7 @@
   --sh-out: -4px -4px 9px rgba(255,255,255,.95), 5px 5px 12px rgba(150,156,170,.55);          /* выпуклость: тени */
   --sh-out-s: -3px -3px 7px rgba(255,255,255,.95), 4px 4px 10px rgba(150,156,170,.55);        /* то же, мельче */
   --sh-in: inset 2px 2px 5px rgba(150,156,170,.55), inset -2px -2px 5px #fff;                 /* вдавленность */
+  --vol: 1.25;          /* задание 31: сила объёма плитки — лунка, тень под машиной, отрыв машины (1 — как в задании 22; поправить одним числом) */
   --well2: #E0E1E5;                                                                           /* дно вдавленной клетки */
   --navy: linear-gradient(160deg, #1C2030, #0D0F18);                                          /* неоновая капсула: тёмный фон */
   --neon: #38B6FF; --neon-o: #FF9230; --neon-g: #E8B64A; --neon-ok: #1FD17F;                  /* неон: уровень, гараж, вкладка / серия / охота / готов */
@@ -256,9 +257,13 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 /* Поле (задание 22): клетки — вдавленные лунки, зазор 3 px. С задания 30 поле — под карточками заказов; лишняя высота (высокий экран:
    клетку и так ограничивает ширина, 7 колонок) — ровным отступом под полем, над нижней панелью */
 .board-wrap { flex: 1 1 auto; min-height: 0; display: grid; place-items: start center; }
+/* задание 31: поле растёт кольцами — видна часть поля (5 × 5, 7 × 7, 7 × 9); дальние клетки не рисуются и касаний не берут.
+   Маленькое поле — по центру своей области, полное 7 × 9 — под карточками заказов (как в задании 30) */
+.board > [hidden] { display: none !important; }
+.board-wrap.mid { place-items: center; }
 .board {
   --bs: calc(var(--cell) * .42);
-  display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); gap: 3px;
+  display: grid; grid-template-columns: repeat(var(--cols, 7), var(--cell)); grid-auto-rows: var(--cell); gap: var(--bgap, 3px);
   touch-action: none;
 }
 .cell { position: relative; border-radius: 30%; background: var(--well2); box-shadow: var(--sh-in); }
@@ -269,16 +274,16 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
    Объём «машина лежит в лунке»: внутренняя тень клетки, контактная тень-эллипс под машиной, лёгкий отрыв машины (drop-shadow —
    по альфа-каналу, годится и для будущих вырезанных PNG). Без объёма — класс flat на <html> (для снимков «без объёма / с объёмом») */
 .pl { position: relative; container-type: inline-size; border-radius: 30%; overflow: hidden; background: var(--g, var(--g0));
-  box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)), inset 2px 2px 4px rgba(60,66,84,.22), inset -2px -2px 4px rgba(255,255,255,.7); }
+  box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)), inset calc(2px * var(--vol)) calc(2px * var(--vol)) calc(4px * var(--vol)) rgba(60,66,84, calc(.22 * var(--vol))), inset -2px -2px 4px rgba(255,255,255,.7); }
 .pl .lv, .cell.bubble .lv { position: absolute; z-index: 0; left: 11cqw; top: 3cqw; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none;
   display: block; font-size: 54cqw; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--gk, var(--gk0)); pointer-events: none;
   text-shadow: 0 1px 0 rgba(255,255,255,.8), 0 -1px 0 rgba(0,0,0,.08); }
 .cell.bubble { container-type: inline-size; }
-.pl .car, .pl .car.v2 { position: absolute; z-index: 2; left: calc((100% - var(--car-w)) / 2); width: var(--car-w); bottom: var(--car-bottom); height: auto; filter: drop-shadow(0 1.5px 1.5px rgba(40,46,60,.35)); pointer-events: none; }
+.pl .car, .pl .car.v2 { position: absolute; z-index: 2; left: calc((100% - var(--car-w)) / 2); width: var(--car-w); bottom: var(--car-bottom); height: auto; filter: drop-shadow(0 calc(1.5px * var(--vol)) calc(1.5px * var(--vol)) rgba(40,46,60, calc(.35 * var(--vol)))); pointer-events: none; }
 /* рендер в плитке: --car-w ширины, но не выше --car-hmax (высокие кузова — по высоте), низ колёс на одной линии */
 .pl img.car.car-img { height: var(--car-hmax); aspect-ratio: auto; }   /* сильнее, чем .pl .car.v2 (height: auto) */
 .pl .car.part { left: 16%; width: 68%; bottom: 13%; }
-.pl::after { content: ""; position: absolute; z-index: 1; left: 18%; right: 18%; bottom: 10%; height: 8%; border-radius: 50%; background: rgba(40,46,60,.28); filter: blur(3px); pointer-events: none; }
+.pl::after { content: ""; position: absolute; z-index: 1; left: 18%; right: 18%; bottom: 10%; height: 8%; border-radius: 50%; background: rgba(40,46,60, calc(.28 * var(--vol))); filter: blur(3px); pointer-events: none; }
 html.flat .pl { box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)); }
 html.flat .pl::after { display: none; }
 html.flat .pl .car { filter: none; }
@@ -1060,11 +1065,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=27"></script>
-<script src="core.js?v=27"></script>
-<script src="art.js?v=27"></script>
-<script src="salon.js?v=27"></script>
-<script src="monet.js?v=27"></script>
+<script src="tg.js?v=28"></script>
+<script src="core.js?v=28"></script>
+<script src="art.js?v=28"></script>
+<script src="salon.js?v=28"></script>
+<script src="monet.js?v=28"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1170,7 +1175,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 27 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 28 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1326,8 +1331,13 @@ const LOGEV = {
 };
 const readyNow = () => new Set(s.orders.map((o, oi) => o && oi < s.slots && Core.match(s, o).ready ? o.id : null).filter(x => x !== null));
 let readyIds = readyNow();
+let logRing = 0;          // задание 31: текущее кольцо поля для журнала
 function logPlay(ev) {
-  ev.forEach(e => { const t = LOGEV[e.t]?.(e); if (t) L(t); });
+  ev.forEach(e => { const t = LOGEV[e.t]?.(e); if (t) L(t);
+    if (e.t === 'cellBuy') { const k = Core.ring(e.at); L(`клетка куплена: кольцо ${k}, осталось ${s.cells.filter((c, i) => c?.k === 'lock' && Core.ring(i) === k).length}`); } });
+  const k = Core.curRing(s);
+  if (logRing && k > logRing && C.rings) { const v = Core.viewRect(s); L(`кольцо ${logRing} закрыто — поле ${v.cols} × ${v.rows}`); }
+  logRing = k;
   const now = readyNow();
   s.orders.forEach((o, oi) => { if (o && now.has(o.id) && !readyIds.has(o.id)) L(`заказ ${oi + 1} готов — можно сдать`); });
   readyIds = now;
@@ -1555,7 +1565,26 @@ function renderBoard() {
   // ящиков видно не больше трёх — ближайшие к центру; остальные появятся, когда поле дорастёт
   nearBoxes = new Set(s.cells.map((c, i) => c?.k === 'box' && Core.canOpen(s, i) ? i : -1).filter(i => i >= 0)
     .sort((a, b) => Math.hypot(a % 7 - 3, (a / 7 | 0) - 4) - Math.hypot(b % 7 - 3, (b / 7 | 0) - 4)).slice(0, 3));
+  const v = Core.viewRect(s), key = [v.r0, v.c0, v.rows, v.cols].join(), was = viewKey && key !== viewKey ? boardSnap() : null;
   $('board').innerHTML = s.cells.map((c, i) => cellHTML(c, i, hl)).join('');
+  [...$('board').children].forEach((el, i) => { el.hidden = !Core.inView(v, i); });     // задание 31: дальние клетки не рисуются
+  if (key !== viewKey) { viewKey = key; fit(); if (was) boardGrow(was); }
+}
+// Отъезд поля (задание 31): закрыто кольцо — видимая часть больше, плитки меньше. Поле перерисовано в новом размере, а потом плавно
+// (450 мс, ease-out) уходит из старого масштаба в новый вокруг основного гаража: машины не прыгают; клетки нового кольца проявляются (200 мс)
+let viewKey = '';
+function boardSnap() {
+  const g = cellEl(C.ports[0].cell).getBoundingClientRect();
+  return { g, vis: new Set([...$('board').children].map((el, i) => el.hidden ? -1 : i).filter(i => i >= 0)) };
+}
+function boardGrow(was) {
+  const b = $('board'), g = cellEl(C.ports[0].cell).getBoundingClientRect(), br = b.getBoundingClientRect();
+  const kk = parseFloat(document.documentElement.style.getPropertyValue('--k')) || 1, sc = was.g.width / g.width;
+  const cx = g.left + g.width / 2, cy = g.top + g.height / 2;
+  const dx = (was.g.left + was.g.width / 2 - cx) / kk, dy = (was.g.top + was.g.height / 2 - cy) / kk;
+  b.style.transformOrigin = `${(cx - br.left) / kk}px ${(cy - br.top) / kk}px`;
+  anim(b, [{ transform: `translate(${dx}px,${dy}px) scale(${sc})` }, { transform: 'none' }], { duration: 450, easing: 'ease-out' });
+  [...b.children].forEach((el, i) => { if (!el.hidden && !was.vis.has(i)) anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 250, fill: 'backwards' }); });
 }
 
 // Награда другого вида (задание 17): значок и сколько штук (как в Core.giveAlt); остаток стоимости — звёздами
@@ -1907,17 +1936,23 @@ function fit() {
   // задание 30), зазоры поля
   const V = ins ? vh - ins.top - ins.bottom : vh;
   const pads = ins ? PAD_T + PAD_B : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  let oh = 76;
-  const F = () => pads + hud + 2 * gap + oh + 8 * BOARD_GAP;
-  // ширина игры при масштабе k — на весь экран (не шире 460), клетка по ширине: 7 клеток, 6 зазоров, края
-  const wOf = k => Math.min(460, vw / k), cwOf = k => Math.min(64, Math.floor((wOf(k) - 2 * PAD_X - 6 * BOARD_GAP) / 7));
-  if (Math.floor((V - F()) / 9) < 48) oh = 68;
-  let k = 1, cell = Math.min(cwOf(1), Math.floor((V - F()) / 9));
+  // задание 31: поле — видимая часть W × H (5 × 5, 7 × 7, 7 × 9); маленькое — плитка до CONFIG.cellMax, зазор пропорционально плитке
+  const vr = s ? Core.viewRect(s) : { cols: C.cols, rows: C.rows }, W = vr.cols, H = vr.rows, full = W === C.cols && H === C.rows;
+  let oh = 76, bg = BOARD_GAP;
+  const F = () => pads + hud + 2 * gap + oh + (H - 1) * bg;
+  // ширина игры при масштабе k — на весь экран (не шире 460), клетка по ширине: W клеток, W − 1 зазоров, края
+  const wOf = k => Math.min(460, vw / k), cwOf = k => Math.min(full ? 64 : C.cellMax, Math.floor((wOf(k) - 2 * PAD_X - (W - 1) * bg) / W));
+  if (Math.floor((V - F()) / H) < 48) oh = 68;
+  let k = 1, cell = Math.min(cwOf(1), Math.floor((V - F()) / H));
+  if (!full && Math.round(cell * .057) > bg) { bg = Math.round(cell * .057); cell = Math.min(cwOf(1), Math.floor((V - F()) / H)); }   // 3 px при 53 → 4 при 72
   if (cell < Math.min(cwOf(1), 44)) {
-    k = Math.min(1, V / (F() + 9 * 44)); cell = Math.min(cwOf(k), 44);
-    if (k < .92) { cell = Math.max(40, Math.floor((V / .92 - F()) / 9)); k = Math.min(1, V / (F() + 9 * cell)); cell = Math.min(cwOf(k), cell); }
+    k = Math.min(1, V / (F() + H * 44)); cell = Math.min(cwOf(k), 44);
+    if (k < .92) { cell = Math.max(40, Math.floor((V / .92 - F()) / H)); k = Math.min(1, V / (F() + H * cell)); cell = Math.min(cwOf(k), cell); }
   }
   $('orders').style.setProperty('--oh', oh + 'px');
+  root.setProperty('--bgap', bg + 'px');
+  $('board').style.setProperty('--cols', W);
+  $('boardWrap').classList.toggle('mid', !full);
   k = Math.floor(k * 1000) / 1000;
   root.setProperty('--k', k);
   root.setProperty('--cell', cell + 'px');
@@ -3388,7 +3423,7 @@ Monet.attach({ s: () => s, day: dayIdx, today: todayKey, now: () => Date.now(), 
   // магазин (задание 17): товар выдают правила; тест вкл / выкл — копилка и запас баков в правилах
   canGrant: (id, day) => Core.canGrant(s, id, Date.now(), day), grant: (id, day) => play(Core.grant(s, id, Date.now(), day)),
   price: id => C.shop.items[id].price, setOn: on => Core.setMonetOn(on) });
-window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); noteRefund(); initHints(); save(); hideFinger(); hidePop(); renderAll(); fit(); },
+window.G = { get s() { return s; }, set(v) { s = Core.migrate(v); s.fresh ||= {}; s.day0 ||= todayKey(); noteRefund(); initHints(); save(); hideFinger(); hidePop(); viewKey = ''; logRing = 0; renderAll(); fit(); },
   Core, Art, play, setView, hidePop, openDaily, openHint, openPort, openCard, levelCard, starCard, fuelCard, coinCard, openDepot, eventSheet, openItem, explain, queuePopup, HINTS };
 
 Art.loadRasters(renderAll);
@@ -3407,7 +3442,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 27;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 28;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

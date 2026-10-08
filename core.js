@@ -5,6 +5,10 @@
 // ── Все числа баланса — здесь ──────────────────────────────────────────────
 const CONFIG = {
   cols: 7, rows: 9,
+  // задание 31: поле растёт кольцами вокруг основного гаража — покупать (и открывать Салоном, ящиком, наградой) можно только клетки
+  // текущего кольца, ближайшего к гаражу, где ещё остались замки; на экране — прямоугольник открытых клеток и текущего кольца
+  rings: true,                        // false — как до задания 31 (всё поле на экране, клетки — любые рядом с открытыми; для бота «до»)
+  cellMax: 72,                        // потолок плитки на маленьком поле (5 × 5, 7 × 7), CSS-пиксели
   // Порты (клетка = ряд * 7 + столбец). Задание 15: один основной гараж в центре выдаёт все виды машин по мере открытия;
   // Мастерская — слева от него, Ателье — справа (поменять местами — переставить cell). Первый гараж открывает кольцо из 8
   // клеток, Мастерская и Ателье — по 2 (sideCells), новый вид гаража — 4 клетки возле него (portCells).
@@ -350,7 +354,20 @@ function openCell(s, i, ev) {
     if (!s.cells.some(x => x?.k === 'box')) s.cells.forEach((x, j) => { if (x?.k === 'key') { s.cells[j] = null; s.coins += C.keyCoins; ev.push({ t: 'coinGift', at: j, n: C.keyCoins }); } });
   }
 }
-const canOpen = (s, i) => ['lock', 'box'].includes(s.cells[i]?.k) && around(i, false).some(j => !closed(s.cells[j]));
+// Кольца (задание 31): номер кольца — расстояние «по квадрату» от основного гаража (гараж — 0); текущее — ближайшее кольцо с замками
+const RING = Array.from({ length: N }, (_, i) => { const [r, c] = rc(i), [r0, c0] = rc(C.ports[0].cell); return Math.max(Math.abs(r - r0), Math.abs(c - c0)); });
+const ring = i => RING[i];
+const curRing = s => s.cells.reduce((m, c, i) => c?.k === 'lock' && RING[i] < m ? RING[i] : m, Infinity);
+// Что видно на экране: прямоугольник открытых клеток и клеток текущего кольца (нет замков или правило выключено — всё поле)
+function viewRect(s) {
+  const k = C.rings ? curRing(s) : Infinity;
+  if (k === Infinity) return { r0: 0, c0: 0, rows: C.rows, cols: C.cols, ring: k };
+  let r0 = C.rows, r1 = -1, c0 = C.cols, c1 = -1;
+  s.cells.forEach((c, i) => { if (closed(c) && RING[i] !== k) return; const [r, cc] = rc(i); r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, cc); c1 = Math.max(c1, cc); });
+  return { r0, c0, rows: r1 - r0 + 1, cols: c1 - c0 + 1, ring: k };
+}
+const inView = (v, i) => { const [r, c] = rc(i); return r >= v.r0 && r < v.r0 + v.rows && c >= v.c0 && c < v.c0 + v.cols; };
+const canOpen = (s, i) => ['lock', 'box'].includes(s.cells[i]?.k) && around(i, false).some(j => !closed(s.cells[j])) && (!C.rings || RING[i] <= curRing(s));
 // Открыть n ближайших к from замков (ящики — только ключом). Возвращает открытые клетки.
 function openNearest(s, n, from, ev) {
   const out = [];
@@ -1456,7 +1473,7 @@ const Core = {
   setMonetOn, cardCount, huntTargets, testHunt, testMilestone, lateOn, hasRar, pickAlt, giveAlt, canGrant, grant, useReserve, maxCharges, dayOf,
   newGame, migrate, tick, charges, chargeWaitMs, reward, fuelWaitMs, setSpeed, tapPort, upgradePort, maxTier, tierPrice, tierFuel, tapChest,
   dailyGift, claimDaily, dailyDone, goalDone, claimTask, taskReady,
-  move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, match, fits, exact, orderValue, orderTokens, bonusPct,
+  move, buyBubble, canOpen, canKey, buyCell, cellPrice, buyableCells, ring, curRing, viewRect, inView, match, fits, exact, orderValue, orderTokens, bonusPct,
   giveOne, deliver, refreshOrder, refreshFree, buySlot, nextBuy,
   store, unstore, buyStore, arrive, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
