@@ -182,9 +182,35 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .order.k-showcase { background: linear-gradient(145deg, #F0F1F4, #DFE1E7); }
 .order.k-event { background: linear-gradient(145deg, #F8EDCF, #EADBB3); }
 .order.k-hunt { background: linear-gradient(160deg, #241E12, #120F08); color: #FFD27A; box-shadow: 0 0 0 1.5px var(--neon-g), 0 0 14px rgba(232,182,74,.5), 4px 6px 12px rgba(150,156,170,.55); }
+/* задание 33: VIP-заказ — тёмная карточка с двойной золотой рамкой и короной в углу (охота — одна золотая неоновая рамка) */
+.order.k-vip { background: linear-gradient(160deg, #1B1726, #0D0B13); color: #FFD27A; box-shadow: inset 0 0 0 1.5px #E8B64A, 0 0 0 2.5px #0D0B13, 0 0 0 4px #E8B64A, 4px 6px 12px rgba(150,156,170,.55); }
+.order.k-vip .want { box-shadow: inset 0 0 0 1.5px var(--gb, var(--gb0)), 0 2px 5px rgba(0,0,0,.28); }
+.order.k-vip .oval .ic, .order.k-vip .omark .ic { color: #FFD27A; }
+.ohead2 .kic.k-vip { background: #1B1726; color: #FFD27A; }
 .stack .hunted { position: absolute; z-index: 2; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #fff; display: grid; place-items: center; }
 .stack .hunted .ic { width: 14px; height: 14px; }
 .colbar { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* «Эксклюзивы» (задание 33): три постамента над полоской коллекции — машина 8-го уровня крупно (пусто — силуэт линейки),
+   под ней доход в час и мешок монет; «Собрать» — в заголовке */
+.hall-head { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 800; }
+.hall-head .ic { width: 22px; height: 22px; color: #C9962E; }
+.hall-head .hall-get { margin-left: auto; height: 40px; padding: 0 14px; font-size: 20px; }
+.hall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ped { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px 10px; border-radius: 20px; background: var(--raise); box-shadow: var(--sh-out-s); min-width: 0; }
+.ped .pl { width: 100%; aspect-ratio: 1; }
+.ped.empty .pl { background: var(--well2); box-shadow: var(--sh-in); }
+.ped.empty .pl .car { opacity: .35; }
+.ped .ped-n { font-size: 13px; font-weight: 700; color: var(--ink-2, #5E6370); }
+.ped .rate, .ped .bag { display: flex; align-items: center; gap: 3px; font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ped .rate .ic, .ped .bag .ic { width: 18px; height: 18px; }
+.ped .bag { color: #9A6B10; }
+#dock button.over { box-shadow: 0 0 0 2px var(--neon-ok), 0 0 14px rgba(31,209,127,.45); border-radius: 22px; }
+.hall-ask .rtile, .mile-car { flex: none; width: 110px; height: 110px; max-width: none; --bs: 22px; }
+.mile-row { display: flex; justify-content: center; }   /* задание 33: плитка машины в окне подтверждения и этапа */
+.hall-ask .hall-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.hall-ask .hall-row > .ic { width: 26px; height: 26px; }
+.hall-ask .btn span, .hall-btn span { font-size: 17px; }
+.mscreen .hall-btn { align-self: center; height: 52px; padding: 0 20px; gap: 8px; font-size: 18px; }
 .colbar .xpbig { flex: 1; margin: 0; }
 .colbar .nextm { display: flex; align-items: center; gap: 2px; color: var(--ink-2); }
 .colbar .nextm .ic, .alt .ic { width: 18px; height: 18px; }
@@ -657,6 +683,8 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 .rar-row { display: flex; align-items: flex-end; justify-content: center; gap: 5px; width: 100%; }
 .rcol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
 .rtile { display: block; width: 100%; aspect-ratio: 1; max-width: 58px; }   /* плитка машины в окне — .pl (задание 22) */
+.hall-ask .hall-row .rtile, .mile-row .rtile { flex: none; display: block; width: 110px; height: 110px; max-width: none; aspect-ratio: auto; }   /* задание 33 */
+.hall-ask .hall-row .rtile { width: min(110px, 32vw); height: min(110px, 32vw); }   /* замена «старая → новая» на 320 px — без прокрутки */
 .rmul { display: flex; align-items: center; gap: 1px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .rmul .ic { width: 12px; height: 12px; color: var(--gold); }
 .rar-luck { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: #F4F4F1; font-weight: 800; font-size: 15px; }
@@ -1065,11 +1093,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=28"></script>
-<script src="core.js?v=28"></script>
-<script src="art.js?v=28"></script>
-<script src="salon.js?v=28"></script>
-<script src="monet.js?v=28"></script>
+<script src="tg.js?v=30"></script>
+<script src="core.js?v=30"></script>
+<script src="art.js?v=30"></script>
+<script src="salon.js?v=30"></script>
+<script src="monet.js?v=30"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1115,6 +1143,7 @@ const ICON = {
   token: ic('<circle class="d" cx="12" cy="12" r="8.5"/><path d="m12 7.6 1.4 2.8 3 .4-2.2 2.1.5 3-2.7-1.4-2.7 1.4.5-3-2.2-2.1 3-.4z"/>'),
   ship: ic('<path class="d" d="M3.5 15.5h17l-2.6 4.2H6.1z"/><path d="M6 15.5V11h12v4.5M9 11V7.5h6V11M12 7.5v-3"/>'),
   trophy: ic('<path class="d" d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/>'),
+  crown: ic('<path class="dg" d="M4 8.5 8 12l4-6 4 6 4-3.5-1.6 9.5H5.6z"/><path d="M5.6 21h12.8"/>'),          // задание 33: VIP и «Эксклюзивы»
   chest: ic('<rect class="d" x="4" y="9" width="16" height="11" rx="2"/><path d="M4 9a3 4 0 0 1 3-4h10a3 4 0 0 1 3 4M4 13h16M11 12h2v3h-2z"/>'),
   close: ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'),
   inf: ic('<path d="M12 12c-1.8-2.4-3.2-3.6-4.8-3.6a3.6 3.6 0 0 0 0 7.2c1.6 0 3-1.2 4.8-3.6zm0 0c1.8 2.4 3.2 3.6 4.8 3.6a3.6 3.6 0 0 0 0-7.2c-1.6 0-3 1.2-4.8 3.6z"/>'),
@@ -1175,7 +1204,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 28 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 30 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1319,6 +1348,9 @@ function logDrop(ev, from, to, was, card, depot, cancel) {
 }
 // После каждого хода: заказы, уровень, покупки; заказ, который стал готов
 const LOGEV = {
+  hallPut: e => `«Эксклюзивы»: ${e.swap ? 'заменил' : 'поставил'} ${['легковую', 'внедорожник', 'купе'][e.line]} 8 ур., ${RNAME[e.r].toLowerCase()}`,
+  hallBack: e => `«Эксклюзивы»: прежняя машина вернулась на поле`, hallCollect: e => `«Эксклюзивы»: собрал +${e.n} монет`,
+  vipGone: () => 'VIP-заказ ушёл (сутки)', vipCar: () => 'VIP: часть награды — редкая машина',
   orderDone: e => { LOG.sum.firstOrder ??= clock(); return `заказ сдан: ${KIND[e.kind].toLowerCase()}, ${e.kind === 'event' ? `+${e.tokens} жетонов` : e.alt ? 'награда не монетами' : `+${e.coins} ${plural(e.coins, 'монета', 'монеты', 'монет')}`}`; },
   refresh: e => `заказ ${e.order + 1} заменён${e.price ? ` за ${e.price} монет` : ' бесплатно'}`,
   levelUp: e => `новый уровень игрока: ${e.level}`, milestone: e => `коллекция: этап ${e.n} карточек`,
@@ -1487,7 +1519,7 @@ function renderHud() {
     s.storeN ? `<i class="hbadge">${s.store.length}/${s.storeN}</i>` : '');
   // «Салон»: плашка с числом покупок (престиж — стрелка); Коллекция и Подсказки — плашка поменьше без числа.
   // Меню перерисовывается, только когда изменилось, — иначе покачивание сбрасывалось бы каждую секунду
-  const n = buyN(), prest = canPrestige(), dots = [false, false, shopNew(), Object.keys(s.fresh).length > 0, freshHints().length > 0];
+  const n = buyN(), prest = canPrestige(), dots = [false, false, shopNew(), Object.keys(s.fresh).length > 0 || hallDot(), freshHints().length > 0];
   const dk = $('dock').children;
   DOCK.forEach(([icon, label], k) => {
     const h = icon + (k === 0 && (n || prest) ? `<i class="dbadge">${n || ICON.up}</i>` : dots[k] ? '<i class="dot"></i>' : '');
@@ -1611,7 +1643,7 @@ function orderHTML(o, oi) {
       `${Art.item(it.line, it.lvl, false, r)}${badge(it.lvl)}${left > 1 ? `<i class="cnt2">×${left}</i>` : ''}</span>`;
   }).join('');
   const val = o.kind === 'event' ? ICON.token + Core.orderTokens(o) : o.reward ? huntChip(o) + altChip(o.reward, Core.orderValue(s, o)) : ICON.coin + Core.orderValue(s, o);
-  const mark = { event: ICON.flag, showcase: ZICON.showroom }[o.kind];
+  const mark = { event: ICON.flag, showcase: ZICON.showroom, vip: ICON.crown }[o.kind];
   return `<div class="order k-${o.kind}${o.items.length === 1 ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
     (mark ? `<i class="omark">${mark}</i>` : '') + (m.ready ? `<i class="okmark">${ICON.check}</i>` : '') +
     `<span class="wants">${items}</span><span class="oval">${val}</span></div>`;
@@ -1723,15 +1755,54 @@ function stackHTML(line, lvl) {
     `<span class="pl r${top}${s.landRar?.[k] !== undefined ? ' land' : ''}" style="${rv(top)}">${m ? Art.item(line, lvl, false, top, true) : Art.item(line, lvl, true, 0)}${badge(lvl)}` +
     (m ? '' : '<b class="sc-q">?</b>') + '</span>' + (m && on ? rdots(m) : '<span class="rdots5"></span>') + '</button>';
 }
-// награда этапа коллекции картинками: бак, заряд, монеты, звёзды, трофей
-const milePics = rw => [rw.tank && ICON.fuel + rw.tank, rw.charge && Art.item(Core.TRIM, 2, true), rw.coins && ICON.coin + rw.coins, rw.stars && ICON.star + rw.stars,
-  rw.trophy && ICON.trophy].filter(Boolean).map(x => `<span class="alt">${x}</span>`).join('');
+// награда этапа коллекции картинками: бак, заряд, монеты, звёзды, трофей, редкая машина (задание 33: число — редкость из CONFIG,
+// [линейка, уровень, редкость] — выданная машина)
+const milePics = rw => [rw.car !== undefined && (Array.isArray(rw.car) ? `<span class="rtile pl mile-car" style="${rv(rw.car[2])}">${Art.item(rw.car[0], rw.car[1], false, rw.car[2])}${badge(rw.car[1])}</span>` :
+  `${Art.item(0, 4, true)}<i class="rdot" style="background:var(--r${rw.car})"></i>`),
+  rw.tank && ICON.fuel + rw.tank, rw.charge && Art.item(Core.TRIM, 2, true), rw.coins && ICON.coin + rw.coins, rw.stars && ICON.star + rw.stars,
+  rw.trophy && ICON.trophy].filter(Boolean).map(x => x.startsWith('<span class="rtile') ? x : `<span class="alt">${x}</span>`).join('');
+// «Эксклюзивы» (задание 33): три постамента — машина 8-го уровня своей линейки, доход в час и мешок; «Собрать» — все мешки
+const HALL_NAME = ['Седаны', 'Внедорожники', 'Купе'];
+const rate1 = x => (Math.round(x * 10) / 10).toString().replace('.', ',');
+function hallHTML() {
+  const now = Date.now(), bag = Math.floor(Core.hallBag(s, now));
+  const one = c => c ? Core.hallRate(c) * Math.min(C.hall.capH, Math.max(0, now - Math.max(s.hallAt || 0, c.since || 0)) / 3600e3) : 0;
+  return `<div class="hall-head">${ICON.crown}<span>Эксклюзивы</span>${bag > 0 ? `<button class="btn ok hall-get" data-hallget aria-label="Собрать">${ICON.coin}+${bag}</button>` : ''}</div>` +
+    `<div class="hall">${[0, 1, 2].map(l => {
+      const c = s.hall?.[l], r = c?.r || 0;
+      return `<div class="ped${c ? '' : ' empty'}" data-hall="${l}"><span class="pl r${r}" style="${rv(r)}">${c ? Art.item(l, 8, false, r, true) : Art.item(l, 8, true, 0)}${badge(8)}</span>` +
+        `<span class="ped-n">${HALL_NAME[l]}</span>` + (c ? `<span class="rate">${ICON.coin}${rate1(Core.hallRate(c))}/ч</span><span class="bag">${ICON.coin}${Math.floor(one(c))}</span>` : '<span class="rate">—</span>') + '</div>';
+    }).join('')}</div>`;
+}
+// Точка на «Коллекции»: есть что собрать или куда поставить машину 8-го уровня (место пусто или на поле редкость выше)
+function hallDot() {
+  if (Core.hallBag(s, Date.now()) >= 1) return true;
+  return [0, 1, 2].some(l => s.cells.some(c => Core.isCar(c) && c.line === l && c.lvl === 8 && (!s.hall?.[l] || (c.r || 0) > s.hall[l].r)));
+}
+// Поставить машину с клетки i в «Эксклюзивы»: синяя и выше или замена — с подтверждением (миниатюра; при замене — старая → новая)
+function hallAsk(i, quick = false) {
+  const chk = Core.hallCheck(s, i), c = s.cells[i];
+  if (!chk.ok || (!chk.confirm || quick && !chk.swap)) { L(`«Эксклюзивы»: ${chk.ok ? 'ставлю' : 'нельзя'} ${c ? whatH(c) : ''}`); return play(Core.hallPlace(s, i, Date.now())); }
+  const r = c.r || 0, old = chk.swap, tile = (l, rr) => `<span class="rtile pl" style="${rv(rr)}">${Art.item(l, 8, false, rr)}${badge(8)}</span>`;
+  let put = false;
+  queuePopup(`<div class="sheet narrow card hall-ask"><div class="sh-pic">${ICON.crown}</div><div class="hall-row">${old ? tile(old.line, old.r) + ICON.arrow : ''}${tile(c.line, r)}</div>` +
+    `<div class="obtns"><button class="btn ok" data-hallok aria-label="Поставить">${ICON.check}<span>${old ? 'Заменить' : 'Поставить'}</span></button>` +
+    `<button class="btn light" data-close aria-label="Отмена">${ICON.close}<span>Отмена</span></button></div></div>`, 0, 'card', 'panel', el => {
+    el.beforeClose = () => L(put ? '«Эксклюзивы»: подтвердил' : '«Эксклюзивы»: отмена');
+    el.addEventListener('click', ev => {
+      if (!ev.target.closest('[data-hallok]')) return;
+      put = true; el.close();
+      play(Core.hallPlace(s, i, Date.now()));
+    });
+  });
+}
 function renderCollection() {
   const seen = Object.keys(s.seen).length, full = Object.values(s.seen).filter(m => m === 31).length;
   let h = `<div class="view-head">${ICON.cards}<span>${seen}/24</span>${full ? `<span class="bonus on" style="margin-left:auto">${full} ${plural(full, 'полная стопка', 'полные стопки', 'полных стопок')} · ${ICON.coin}+${full}%</span>` : ''}</div>`;
   const bonus = [ICON.coin + '+20%', ICON.fuel + '−', ICON.star + '+20%'];
   // этапы коллекции (задание 17): карточек из 120 и награда следующего этапа
   const cc = Core.cardCount(s), nm = C.late.milestones[s.miles || 0];
+  h += hallHTML();                                                       // задание 33
   h += `<div class="colbar">${ICON.cards}<span>${cc} / 120</span><div class="xpbig"><i style="width:${(cc / 120 * 100).toFixed(0)}%"></i></div>` +
     (nm ? `<span class="nextm">${nm[0]}${ICON.play}${milePics(nm[1])}</span>` : '') + '</div>';
   [0, 1, 2].forEach(line => {
@@ -1781,7 +1852,7 @@ function modelInfo(line, lvl, r) {
   return `<b class="ms-rn r${r}" style="${rv(r)}">${RNAME[r]}</b><span>${RDIFF[r]}</span>` +
     (d ? `<i>Получена ${new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'long' })}</i>` : '');
 }
-function openModel(line, lvl, r0) {
+function openModel(line, lvl, r0, at) {
   const k = Core.key(line, lvl), m = s.seen[k] || 0, on = Core.rarOn(s), [brand, model] = Core.CARS[line][lvl - 1];
   const rs = on ? [0, 1, 2, 3, 4] : [0];
   let cur = Math.min(rs.length - 1, r0 ?? (m ? bestRar(m) : 0));
@@ -1794,8 +1865,11 @@ function openModel(line, lvl, r0) {
     // все пять редкостей сразу — маленькими картинками: полученные в цвете, закрытые силуэтом; нажал — она крупно
     (on ? `<div class="ms-thumbs">${rs.map(r => `<button data-r="${r}" class="${m & (1 << r) ? 'on' : ''}${r === cur ? ' cur' : ''}" style="${rv(r)}" aria-label="${RNAME[r]}">` +
       (m & (1 << r) ? artBox(line, lvl, r, false) : artBox(line, lvl, 0, false, 1)) + '</button>').join('')}</div>` : '') +
-    `<div class="ms-info">${modelInfo(line, lvl, cur)}</div></div>`;
+    `<div class="ms-info">${modelInfo(line, lvl, cur)}</div>` +
+    // задание 33: машину 8-го уровня с поля — в «Эксклюзивы» (экран модели и есть подтверждение; замена — ещё окно «старая → новая»)
+    (at !== undefined ? `<button class="btn ok hall-btn" data-hallput aria-label="В эксклюзивы">${ICON.crown}<span>В эксклюзивы</span></button>` : '') + '</div>';
   queuePopup(html, 0, 'card', 'panel', el => {
+    if (at !== undefined) el.addEventListener('click', e => { if (!e.target.closest('[data-hallput]')) return; el.close(); setTimeout(() => hallAsk(at, true), 200); });
     const show = r => {
       cur = Math.max(0, Math.min(rs.length - 1, r));
       el.querySelector('.ms-track').style.setProperty('--i', cur);
@@ -2175,7 +2249,15 @@ function playFx(ev) {
         anim(cellEl(e.from).querySelector('.car,.thing'), [{ transform: `translate(${x0 - x1}px,${y0 - y1}px)` }, { transform: 'none' }], { duration: 200, easing: 'ease-out' });
         break;
       }
-      case 'reject': if (e.at !== undefined) { shake(cellEl(e.at)); sound('no'); } break;
+      case 'reject': if (e.at !== undefined) { shake(cellEl(e.at)); sound('no'); if (e.why === 'orange') floatText(e.car ?? e.at, `<i class="rdot" style="background:var(--r4)"></i>≤${C.trimOrangeMax}`, 'fl-gold'); } break;
+      case 'hallPut': {                    // задание 33: машина уехала в «Эксклюзивы» — летит в значок «Коллекция»
+        const dockBtn = $('dock').children[3], from = cellEl(e.at);
+        if (from) flyEl(Art.item(e.line, 8, false, e.r), 'fly-card', center(from), center(dockBtn), from.getBoundingClientRect().width, 460, 0, .5, .6);
+        later(() => { pop(dockBtn); buzz(12); }); sound('coin'); break;
+      }
+      case 'hallBack': later(() => { flash(e.at, '#C9962E'); pop(cellEl(e.at)); }); break;
+      case 'hallCollect': bump($('coinPill')); sound('coin'); break;
+      case 'vipGone': break;
       case 'poor': shake($('coinPill')); sound('no'); if (e.at !== undefined) shake(cellEl(e.at)); break;
       case 'full': hop(cellEl(e.at)); sound('no'); if (s.cells[e.at]?.k === 'port') showPlaque('room', `${ICON.grid}+2`); break;
       case 'noFuel': shake(cellEl(e.at)); shake($('fuelPill')); sound('no'); showFuelBub(e.at); break;
@@ -2234,7 +2316,8 @@ function playFx(ev) {
         break;
       case 'milestone':                    // этап коллекции (задание 17): окно с наградой и ✓
         queuePopup(`<div class="sheet narrow card"><div class="sh-pic">${ICON.cards}</div><div class="sh-title">Коллекция: ${e.n} карточек</div>` +
-          `<div class="obtns">${milePics(e.got)}</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 200, 'level', 'panel');
+          (e.got.car ? `<div class="mile-row">${milePics({ car: e.got.car })}</div>` : '') +   // задание 33: редкая машина — крупно, своим рядом
+          `<div class="obtns">${milePics({ ...e.got, car: undefined })}</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, popDelay + 200, 'level', 'panel');
         break;
       case 'alt': later(() => floatText(Core.CONFIG.ports[0].cell, `${ALT_IC[e.kind]}+${e.n}`, 'fl-gold')); sound('coin'); break;
       case 'rarityOn': s.hintSeen.atelier = 1; explain('rarity', popDelay + 120); break;   // Ателье открыто — редкость появилась
@@ -2389,6 +2472,7 @@ function askRare(e) {
 function popName(el) {
   const tx = q => [...el.querySelector(q)?.childNodes || []].map(n => n.textContent.trim()).filter(Boolean).join(' ');
   if (el.querySelector('.rare-ask')) return ['подтверждение', 'отдать редкую машину?'];
+  if (el.querySelector('.hall-ask')) return ['подтверждение', 'поставить в «Эксклюзивы»?'];
   if (el.querySelector('.rcard')) return ['новая машина', `${tx('.rc-head')}: ${tx('.rc-name')}`];
   if (el.querySelector('.mscreen')) return ['экран модели', `экран модели ${tx('.ms-head small')} ${tx('.ms-head b')}`];
   if (el.querySelector('.big .lvl-big')) return ['новый уровень', `новый уровень ${tx('.lvl-big')}`];
@@ -2538,7 +2622,8 @@ const HINTS = [
   { id: 'atelier', t: 'Ателье и редкость', open: () => Core.rarOn(s), lock: `Откроется на уровне ${C.ports.find(q => q.line === Core.TRIM).level}`, ic: () => Art.item(Core.TRIM, 5),
     table: () => `<table class="tbl">${[0, 1, 2, 3].map(r => `<tr><td><i class="rdot" style="background:var(--r${r})"></i> → <i class="rdot" style="background:var(--r${r + 1})"></i></td>` +
       `<td class="tpart">${Art.item(Core.TRIM, r + 2)}<i class="rdot" style="background:var(--r${r + 1})"></i></td><td>${Core.TRIM_NAMES[r + 1].toLowerCase()}</td></tr>`).join('')}</table>`,
-    txt: ['Перетащи деталь Ателье на машину — редкость вырастет на ступень.', `Ателье даёт ${C.atelier.charges} ${plural(C.atelier.charges, 'деталь', 'детали', 'деталей')}, потом по одной ${everyTime(C.atelier.regenMs)}.`] },
+    txt: ['Перетащи деталь Ателье на машину — редкость вырастет на ступень.', `Ателье даёт ${C.atelier.charges} ${plural(C.atelier.charges, 'деталь', 'детали', 'деталей')}, потом по одной ${everyTime(C.atelier.regenMs)}.`,
+      `Оранжевая деталь — только машине до ${C.trimOrangeMax}-го уровня, выше — слиянием.`] },
   { id: 'cert', t: 'Сертификат коллекционера', open: () => Core.portOpen(s, P) || [0, 1, 2].some(l => s.top[l] >= 7), lock: `Откроется на уровне ${C.ports.find(q => q.line === P).level}`, ic: () => Art.certMini,
     pic: () => chainPic(),
     txt: ['Две машины 7-го уровня сливаются в 8-ю, если на поле есть сертификат — в любом месте.', 'Сертификат собирают из деталей: ключ → набор → колесо → двигатель → сертификат.', 'Детали даёт гараж Мастерской.'] },
@@ -3145,6 +3230,7 @@ const itemPair = (a, b) => { if (a?.k !== 'car' || b?.k !== 'car') return false;
 const cellAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest('#board .cell');
 const cardAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest('#orders .order[data-o]');
 const depotAtPoint = (x, y) => s.storeN ? document.elementFromPoint(x, y)?.closest('#depotBtn') : null;
+const hallAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest('#dock button[data-view="cars"]');   // задание 33: «Эксклюзивы»
 const ghostSize = () => { const r = cellEl(press.i).getBoundingClientRect(); return [r.width * 1.3, r.width * 1.3 * 52 / 120]; };
 const ghostPoint = (x, y) => [x, y - ghostSize()[0] * .35];   // машина чуть выше пальца — её видно
 
@@ -3155,7 +3241,7 @@ function longPress(i) {
   L(`долгое нажатие: ${c.k === 'port' ? PORTNAME[c.line].toLowerCase() : what(c)}`);
   if (c.k === 'port' && c.line !== Core.EV) { buzz(10); return openPort(c.line); }
   if (c.k === 'car' && c.line === P && c.lvl < 5) return openHint('bench');
-  if (c.k === 'car' && !c.broken && c.line < P && c.lvl !== 7) return openModel(c.line, c.lvl, c.r || 0);
+  if (c.k === 'car' && !c.broken && c.line < P && c.lvl !== 7) return openModel(c.line, c.lvl, c.r || 0, c.lvl === 8 ? i : undefined);
   const id = c.k === 'lock' ? 'cells' : c.k === 'box' || c.k === 'key' ? 'keys' : c.k === 'bubble' ? 'bubble' : c.k === 'slot' ? 'port' :
     c.k === 'port' ? (c.line === Core.EV ? 'event' : 'port') : c.k === 'chest' ? (c.kind === 'ship' ? 'depot' : c.kind === 'event' ? 'event' : c.kind === 'daily' ? 'daily' : 'chest') :
     c.broken ? 'bench' : c.line === Core.TRIM ? 'atelier' : c.line === P || c.lvl === 7 ? 'cert' : c.line === Core.EV ? 'event' : 'merge';
@@ -3191,11 +3277,12 @@ board.addEventListener('pointermove', e => {
   if (!press.drag) return;
   const [w, h] = ghostSize(), [gx, gy] = ghostPoint(e.clientX, e.clientY);
   ghost.style.transform = `translate(${gx - w / 2}px,${gy - h / 2}px) scale(1.05)`;
-  const t = cellAtPoint(gx, gy) || cardAtPoint(gx, gy) || depotAtPoint(gx, gy);
+  const t = cellAtPoint(gx, gy) || cardAtPoint(gx, gy) || depotAtPoint(gx, gy) || hallAtPoint(gx, gy);
   if (t !== over) {
     over?.classList.remove('over', 'match');
     over = t && t !== cellEl(press.i) ? t : null;
     if (over?.id === 'depotBtn') { if (Core.isCar(c) && s.store.length < s.storeN) over.classList.add('over'); else over = null; }
+    else if (over?.dataset.view === 'cars') { if (Core.isCar(c) && c.line < P && c.lvl === 8) over.classList.add('over'); else over = null; }
     else if (over?.dataset.i !== undefined) {
       const b = s.cells[+over.dataset.i];
       over.classList.add('over');
@@ -3211,6 +3298,7 @@ function endPress(e, cancel) {
   const p = press, gp = p.drag && !cancel ? ghostPoint(e.clientX, e.clientY) : null;
   const drop = gp && cellAtPoint(...gp), card = gp && !drop && cardAtPoint(...gp);
   const depot = gp && !drop && !card && depotAtPoint(...gp);
+  const hallTo = gp && !drop && !card && !depot && hallAtPoint(...gp);   // задание 33: машину 8-го уровня — на значок «Коллекция»
   clearTimeout(p.timer);
   press = null;
   over?.classList.remove('over', 'match');
@@ -3220,6 +3308,7 @@ function endPress(e, cancel) {
     dragging = false;
     cellEl(p.i)?.classList.remove('lifted');
     if (boardDirty) { boardDirty = false; renderBoard(); }
+    if (hallTo) { L(`перетащил ${whatH(s.cells[p.i])} на «Коллекцию»`); return hallAsk(p.i); }
     const to = drop ? +drop.dataset.i : -1, was = s.cells[to];
     const ev = to >= 0 && to !== p.i ? Core.move(s, p.i, to, Date.now()) : card ? Core.giveOne(s, +card.dataset.o, p.i, Date.now()) : depot ? Core.store(s, p.i) : [];
     logDrop(ev, p.i, to, was, card, depot, cancel);
@@ -3250,10 +3339,10 @@ $('orders').addEventListener('click', e => {
   if (Core.match(s, s.orders[oi]).ready) return play(Core.deliver(s, oi, now));
   openOrder(oi);
 });
-const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой' };
+const KIND = { quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой', vip: 'VIP-заказ' };
 function orderSheet(oi) {
   const o = s.orders[oi], m = Core.match(s, o), now = Date.now(), free = Core.refreshFree(s, now) || s.swaps > 0;
-  const kic = { showcase: ZICON.showroom, event: ICON.flag, hunt: ICON.cards }[o.kind];
+  const kic = { showcase: ZICON.showroom, event: ICON.flag, hunt: ICON.cards, vip: ICON.crown }[o.kind];
   const ava = kic ? `<span class="kic k-${o.kind}">${kic}</span>` : '';
   const reward = o.kind === 'event' ? `<span class="chip">${ICON.token}${Core.orderTokens(o)}</span>` : o.reward ?
     (o.kind === 'hunt' ? `<span class="chip">${huntChip(o)}</span> ` : '') + `<span class="chip">${altChip(o.reward, Core.orderValue(s, o))}</span>` +
@@ -3350,6 +3439,7 @@ function setView(v) {
 $('dock').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.view === 'shop' && view !== 'shop') L('магазин из панели'); setView(b.dataset.view); });
 $('help').addEventListener('click', e => { const b = e.target.closest('.hcard[data-h]'); if (b) openHint(b.dataset.h); });
 $('cars').addEventListener('click', e => {
+  if (e.target.closest('[data-hallget]')) { play(Core.hallCollect(s, Date.now())); renderCollection(); return; }   // задание 33
   const b = e.target.closest('.stack');
   if (!b || b.disabled) return;
   const [line, lvl] = b.dataset.k.split('-').map(Number);
@@ -3442,7 +3532,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 28;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 30;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

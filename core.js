@@ -89,6 +89,7 @@ const CONFIG = {
     showcase: { mult: 3.5 },            // две машины одной модели нужной редкости
     event:    { mult: 0 },              // заказ события: вместо монет — жетоны
     hunt:     { mult: 2.1 },            // задание 17: охота за карточкой — стоимость награды (выдаётся не монетами)
+    vip:      { mult: 2.5 },            // задание 33: VIP-заказ на машину 8-го уровня — крупнее, чем у крупного (vip.mult)
   },
   kindWeights: { quick: 2, normal: 5, big: 3 },
   // Заказы растут с уровнем игрока — ступени: до 4-го, с 4-го, с 7-го, с 11-го (задание 7: на поздних уровнях —
@@ -176,8 +177,9 @@ const CONFIG = {
     orderLvl: [2, 2], leadCap: 6,     // 5-я ступень по линиям с машиной ≥ 6-го (подобрано ботом: «лучшая − 1» и 7-й уровень — заказы висят)
     // этапы коллекции: число карточек и награда (редкие машины и детали — нельзя). Шаг после 55 — 6–8 карточек: по боту этап раз в 3–5 дней
     // после 15-го уровня (с шагом 15 — раз в 6–11 дней)
-    milestones: [[40, { tank: 1, stars: 10 }], [55, { charge: 1, stars: 20 }], [62, { stars: 20 }], [70, { coins: 300, stars: 30 }],
-      [76, { charge: 1, stars: 20 }], [82, { tank: 2, stars: 50 }], [87, { coins: 200, stars: 20 }], [100, { trophy: 1 }], [120, { stars: 200 }]],
+    // задание 33: 55 и 70 — готовая синяя машина 4–5-го уровня, 82 и 100 — фиолетовая (car: редкость; вместо звёзд, монет, баков той же цены)
+    milestones: [[40, { tank: 1, stars: 10 }], [55, { charge: 1, car: 2 }], [62, { stars: 20 }], [70, { coins: 150, car: 2 }],
+      [76, { charge: 1, stars: 20 }], [82, { stars: 20, car: 3 }], [87, { coins: 200, stars: 20 }], [100, { trophy: 1, car: 3 }], [120, { stars: 200 }]],
   },
   // Магазин-заглушка (задание 17): цены в ⭐ (Stars), только в тесте монетизации
   shop: {
@@ -193,6 +195,22 @@ const CONFIG = {
       tankplus: { price: 40, fuel: 20 },
     },
   },
+
+  // ── Задание 33: поздние машины 8-го уровня ──
+  // Предел окраски: оранжевую деталью Ателье — только машине не выше этого уровня; выше — только слиянием (уже оранжевые — остаются)
+  trimOrangeMax: 4,
+  // «Эксклюзивы»: три места (легковые, внедорожники, купе), машина 8-го уровня своей линейки приносит монеты в час:
+  // base × rar[редкость]; «мешок» копит не больше capH часов; ставить — бесплатно, снять без замены нельзя
+  hall: { base: 0.55, rar: [1, 1.5, 2.2, 3.2, 5], capH: 8 },   // base по боту: три оранжевые при сборе раз в день — 3 × 5 × 8 × 0,55 = 66 монет (+9,5% к 694), смесь белых–синих — ≈ +3%
+  // VIP-заказ: есть машина 8-го уровня на поле (не деталь, не в «Эксклюзивах»); просит одну такую машину линейки, где она есть,
+  // редкостью из тех, что есть на поле, не выше синей (веса rw), с шансом midChance — ещё одну 5–6-го уровня той же линейки;
+  // один на все слоты, живёт сутки; после показанного (выполнен, заменён, ушёл) — пауза gapMs; шанс — при новом заказе (по боту: 0,5 — промежуток
+  // 13 ч, 0,25 — 19,5 ч, 0,2 — в пределах 20–28 ч, 0,15 — 30,5 ч; пауза почти не влияет: VIP сам забирает 8-ю с поля).
+  // Награда — монеты по kinds.vip.mult; с шансом carChance часть монет (carShare) — готовая редкая машина (зелёная или синяя)
+  vip: { chance: 0.2, gapMs: 14 * 3600e3, liveMs: 24 * 3600e3, midChance: 0.5, rw: { 0: 3, 1: 2, 2: 1 }, carChance: 0.2, carShare: 0.4 },
+  // Редкие машины в наградах: сундук уровня с fromLevel-го уровня с шансом chest — один слот готовой редкой машиной lvls
+  // (не выше «лучшая − 2»), редкость по весам rw (фиолетовая — с purpleFrom-го уровня); оранжевая не выдаётся никогда
+  rareCar: { chest: 0.25, fromLevel: 8, lvls: [3, 5], rw: { 1: 5, 2: 3, 3: 1 }, purpleFrom: 15, mileLvls: [4, 5] },
 
   // Первые заказы — под обучение: [линейка, уровень]
   firstOrders: [[[0, 2]], [[0, 3]]],
@@ -283,8 +301,10 @@ const isCert = c => isCar(c) && c.line === PARTS && c.lvl === 5;
 const toolFor = lvl => Math.ceil(lvl / 2);
 const trimFor = r => r + 2;
 // что нужно машине: сломанной — свой инструмент Мастерской, целой — деталь Ателье на следующую редкость
-const needItem = c => c.broken ? [PARTS, toolFor(c.lvl)] : (c.r || 0) < 4 ? [TRIM, trimFor(c.r || 0)] : null;
-const itemFits = (c, it) => !!it && (c.broken ? it.line === PARTS && it.lvl === toolFor(c.lvl) : it.line === TRIM && it.lvl === trimFor(c.r || 0));
+// задание 33: оранжевую (деталь 5-го уровня на фиолетовую) — только машине не выше trimOrangeMax
+const orangeLocked = c => (c.r || 0) === 3 && c.lvl > C.trimOrangeMax;
+const needItem = c => c.broken ? [PARTS, toolFor(c.lvl)] : (c.r || 0) < 4 && !orangeLocked(c) ? [TRIM, trimFor(c.r || 0)] : null;
+const itemFits = (c, it) => !!it && (c.broken ? it.line === PARTS && it.lvl === toolFor(c.lvl) : it.line === TRIM && it.lvl === trimFor(c.r || 0) && !orangeLocked(c));
 
 function nearestFree(s, from) {
   let best = -1, bestD = Infinity;
@@ -434,6 +454,7 @@ function newGame(now, seed) {
     streak: { n: 0, at: 0 }, refreshAt: 0,
     daily: null, giftDay: null, sound: false, style: 'A',
     store: [], storeN: 0, ship: null, ev: null, prestige: 0, trophies: {},
+    hall: [null, null, null], hallAt: 0,                    // задание 33: «Эксклюзивы» (линейка → машина 8-го уровня) и время последнего сбора
   };
   for (let i = 0; i < N; i++) s.cells.push({ k: 'lock' });
   C.boxes.forEach(i => { s.cells[i] = { k: 'box' }; });
@@ -493,6 +514,7 @@ function migrate(s) {
   s.miles ??= C.late.milestones.filter(([n]) => cardCount(s) >= n).length;
   s.store ??= []; s.storeN ??= 0; s.ship ??= null; s.ev ??= null; s.prestige ??= 0; s.trophies ??= {};
   if (s.daily && !s.daily.goals[0]?.t) s.daily = null;        // задания дня старого вида — пересоздать
+  s.hall ??= [null, null, null]; s.hallAt ??= 0;             // задание 33: «Эксклюзивы» — пусто, без наград задним числом
   return s;
 }
 
@@ -501,6 +523,7 @@ function tick(s, now) {
   const ev = [];
   s.orders.forEach((o, oi) => {                     // охотничий заказ живёт 24 часа, потом молча заменяется
     if (o?.kind === 'hunt' && now >= o.until) { s.orders[oi] = makeOrder(s, oi, now); ev.push({ t: 'huntGone', order: oi }); }
+    if (o?.kind === 'vip' && now >= o.until) { s.vipAfter = now + C.vip.gapMs; s.n.vipGone = (s.n.vipGone || 0) + 1; s.orders[oi] = makeOrder(s, oi, now); ev.push({ t: 'vipGone', order: oi }); }
   });
   s.cells.forEach((c, i) => { if (c?.k === 'bubble' && now >= c.until) { s.cells[i] = null; ev.push({ t: 'bubblePop', at: i }); } });
   if (now < s.fuelAt) s.fuelAt = now;            // часы на телефоне перевели назад
@@ -701,6 +724,10 @@ function giveChest(s, line, kind, items, ev) {
 function levelChest(s, line) {
   const [lo, hi] = C.chestLvl, cars = [];
   for (let k = 0; k < C.chestCars; k++) cars.push([line, randInt(s, lo, hi), line < PARTS ? rollRarity(s, 1) : 0]);
+  // задание 33: с fromLevel-го уровня (при Ателье) один слот — готовая редкая машина
+  if (C.rareCar.chest > 0 && line < PARTS && rarOn(s) && s.level >= C.rareCar.fromLevel && rand(s) < C.rareCar.chest) {
+    cars[0] = rareCar(s, line, C.rareCar.lvls, rareW(s)); s.n.rareChest = (s.n.rareChest || 0) + 1;
+  }
   return cars;
 }
 
@@ -786,6 +813,9 @@ function move(s, from, to, now) {
   }
   if (!b) { s.cells[to] = a; s.cells[from] = null; return [{ t: 'move', from, to }]; }
   if (b.k !== 'car' && b.k !== 'key') return [{ t: 'reject', at: from }];
+  // задание 33: деталь на оранжевую — машине выше trimOrangeMax нельзя: отказ (встряска), а не обмен местами
+  { const [car, it] = isPart(a.line) ? [b, a] : [a, b];
+    if (car?.k === 'car' && !car.broken && car.line < PARTS && it.line === TRIM && it.lvl === trimFor(3) && orangeLocked(car) && rarOn(s)) return [{ t: 'reject', at: from, why: 'orange', car: to }]; }
   const fix = useItem(s, from, to);
   if (fix) return fix;
   if (!isCar(a) || !isCar(b) || a.line !== b.line || a.lvl !== b.lvl || a.lvl >= maxLvl(a.line)) {
@@ -880,6 +910,12 @@ function makeOrder(s, slot, now) {
   const evOrder = !C.firstOrders[seq] && evActive(s) && s.ev.port >= 0 && rand(s) < C.event.orderChance &&
     !s.orders.some((o, i) => o && i !== slot && i < s.slots && o.kind === 'event');
   let kind = C.firstOrders[seq] ? 'quick' : evOrder ? 'event' : pickKind(s, slot);
+  // VIP-заказ (задание 33): есть машина 8-го уровня на поле, пауза прошла, других VIP нет
+  if (!C.firstOrders[seq] && !evOrder && C.vip.chance > 0 && now >= (s.vipAfter || 0) && vipLines(s).length &&
+    !s.orders.some((o, i) => o && i !== slot && i < s.slots && o.kind === 'vip') && rand(s) < C.vip.chance) {
+    const v = vipOrder(s, seq, now);
+    if (v) return v;
+  }
   // охотничий заказ (задание 17): с 15-го уровня при Ателье, один на все слоты, просит карточку, которой ещё нет
   if (!C.firstOrders[seq] && !evOrder && lateOn(s) && hasRar(s, C.late.huntFromRar) && now >= (s.huntAfter || 0) &&
     !s.orders.some((o, i) => o && i !== slot && i < s.slots && o.kind === 'hunt') && rand(s) < C.late.huntChance) {
@@ -954,6 +990,62 @@ function makeOrder(s, slot, now) {
   const o = { id: seq, kind, items, face: Math.floor(rand(s) * 2 ** 31), born: now, acc: 0 };
   if (kind === 'big' && lateOn(s) && rand(s) < C.late.altBig) o.reward = pickAlt(s, ['coins']);   // крупный: иногда не монеты (той же стоимости)
   return o;
+}
+
+// ── VIP-заказ (задание 33) ──
+// Линейки, где на поле есть машина 8-го уровня не выше синей (их и просит VIP: фиолетовые и оранжевые — жалко)
+const vipLines = s => [0, 1, 2].filter(l => s.cells.some(c => isCar(c) && c.line === l && c.lvl === 8 && (c.r || 0) <= 2));
+function vipOrder(s, id, now) {
+  const lines = vipLines(s);
+  if (!lines.length) return null;
+  const line = lines[Math.floor(rand(s) * lines.length)];
+  const rs = [...new Set(s.cells.filter(c => isCar(c) && c.line === line && c.lvl === 8 && (c.r || 0) <= 2).map(c => c.r || 0))];
+  const r = +pickW(s, Object.fromEntries(rs.map(x => [x, C.vip.rw[x]])));           // редкость — из тех, что есть: заказ всегда выполним
+  const items = [{ line, lvl: 8, r: r > 0 ? r : -1, n: 1, got: 0 }];
+  if (rand(s) < C.vip.midChance) items.unshift({ line, lvl: randInt(s, 5, 6), r: -1, n: 1, got: 0 });
+  s.n.vipShown = (s.n.vipShown || 0) + 1;
+  const o = { id, kind: 'vip', items, face: Math.floor(rand(s) * 2 ** 31), born: now, acc: 0, until: now + C.vip.liveMs };
+  if (lateOn(s) && rand(s) < C.late.altBig) o.reward = pickAlt(s, ['coins']);   // «не только монеты» — как у крупного
+  return o;
+}
+// Готовая редкая машина линейки line (задание 33): уровень lvls, но не выше «лучшая − 2»; редкость по весам (не выше фиолетовой)
+function rareCar(s, line, [lo, hi], rw) {
+  const lvl = randInt(s, lo, Math.max(lo, Math.min(hi, s.top[line] - 2)));
+  return [line, lvl, +pickW(s, rw)];
+}
+const rareW = s => Object.fromEntries(Object.entries(C.rareCar.rw).filter(([r]) => +r < 3 || s.level >= C.rareCar.purpleFrom));
+
+// ── «Эксклюзивы» (задание 33): три места, машина 8-го уровня своей линейки, доход в час, мешок до capH часов ──
+const hallRate = c => c ? C.hall.base * C.hall.rar[c.r || 0] : 0;          // монет в час
+const hallBag = (s, now) => (s.hall || []).reduce((a, c) => a + (c ? hallRate(c) * Math.min(C.hall.capH, Math.max(0, now - Math.max(s.hallAt || 0, c.since || 0)) / 3600e3) : 0), 0);
+// машину с клетки i — можно ли поставить и что будет: { ok, why: 'notCar' | 'noRoom', swap: прежняя машина, confirm: нужно ли подтверждение }
+function hallCheck(s, i) {
+  const c = s.cells[i];
+  if (!isCar(c) || c.line >= PARTS || c.lvl !== 8) return { ok: false, why: 'notCar' };
+  const old = (s.hall || [])[c.line];
+  if (old && nearestFree(s, i) < 0) return { ok: false, why: 'noRoom', swap: old };          // прежней машине некуда вернуться
+  return { ok: true, swap: old || null, confirm: !!old || (c.r || 0) >= 2 };
+}
+function hallCollect(s, now) {
+  const n = Math.floor(hallBag(s, now));
+  if (n <= 0) return [];
+  s.coins += n; s.hallAt = now;
+  (s.hall || []).forEach(c => { if (c) c.since = now; });
+  s.n.hallCoins = (s.n.hallCoins || 0) + n;
+  return [{ t: 'hallCollect', n }];
+}
+function hallPlace(s, i, now) {
+  const chk = hallCheck(s, i);
+  if (!chk.ok) return [chk.why === 'noRoom' ? { t: 'full', at: i, why: 'hall' } : { t: 'reject', at: i }];
+  const c = s.cells[i], ev = hallCollect(s, now);                 // мешок — сначала собрать
+  s.hall ||= [null, null, null];
+  const old = s.hall[c.line];
+  if (old) { const to = nearestFree(s, i); s.cells[to] = { k: 'car', line: old.line, lvl: 8, r: old.r }; ev.push({ t: 'hallBack', at: to, line: old.line, r: old.r }); }
+  s.cells[i] = null;
+  s.hall[c.line] = { line: c.line, lvl: 8, r: c.r || 0, since: now };
+  s.n.hallPut = (s.n.hallPut || 0) + 1;
+  ev.push({ t: 'hallPut', at: i, line: c.line, r: c.r || 0, swap: !!old });
+  return ev;
 }
 
 // ── Поздняя игра (задание 17): охота за карточками, награды «не только монеты», этапы коллекции ──
@@ -1034,6 +1126,12 @@ function milestone(s, at, ev, n = cardCount(s)) {
     if (rw.tank) { if (monetOn) { s.reserve = Math.min(C.shop.reserveMax, (s.reserve || 0) + rw.tank); got.tank = rw.tank; } else got.stars = (got.stars || 0) + rw.tank * C.late.tankStars; }
     if (rw.charge && rarOn(s)) { s.atelier.n = Math.min(maxCharges(s), s.atelier.n + rw.charge); got.charge = rw.charge; }
     if (rw.trophy) { s.trophies.collection = 1; got.trophy = 1; }
+    if (rw.car && C.rareCar.mile !== false) {          // задание 33: готовая редкая машина (в сундуке на поле); без Ателье — звёзды
+      if (rarOn(s)) {
+        const lines = carLines(s), line = lines[Math.floor(rand(s) * lines.length)], car = rareCar(s, line, C.rareCar.mileLvls, { [rw.car]: 1 });
+        giveChest(s, line, 'crate', [car], ev); got.car = car; s.n.rareMile = (s.n.rareMile || 0) + 1;
+      } else got.stars = (got.stars || 0) + 20 * rw.car;
+    }
     const st = (rw.stars || 0) + (got.stars || 0);
     ev.push({ t: 'milestone', n: need, got: { ...got, ...(st ? { stars: st } : {}) } });
     if (st) addStars(s, st, at, ev);
@@ -1116,6 +1214,15 @@ function completeOrder(s, oi, now) {
     addStars(s, a + b * o.items[0].lvl, C.ports[0].cell, ev);
     s.n.hunts = (s.n.hunts || 0) + 1; s.huntAfter = now + C.late.huntGapMs;
   }
+  if (o.kind === 'vip') {                           // задание 33: VIP — пауза; иногда часть монет — готовая редкая машина
+    s.vipAfter = now + C.vip.gapMs; s.n.vipDone = (s.n.vipDone || 0) + 1;
+    if (!o.reward && rand(s) < C.vip.carChance) {
+      const back = Math.round(coins * C.vip.carShare), line = o.items[o.items.length - 1].line;
+      s.coins -= back; ev[0].coins -= back;
+      giveChest(s, line, 'crate', [rareCar(s, line, [4, 5], { 1: 3, 2: 1 })], ev);
+      ev.push({ t: 'vipCar', line });
+    }
+  }
   s.orders[oi] = makeOrder(s, oi, now);
   if (C.kinds[o.kind].key && s.level >= 5 && rand(s) < C.kinds[o.kind].key) dropKey(s, C.ports[0].cell, ev);
   return ev;
@@ -1130,6 +1237,7 @@ function refreshOrder(s, oi, now, ad = false) {
   if (!free && !ad && !swap) return [{ t: 'wait', order: oi }];
   if (swap) s.swaps--;
   if (free) s.refreshAt = now + C.refreshMs[fxHas(s, 'refresh') ? 1 : 0];
+  if (o.kind === 'vip') { s.vipAfter = now + C.vip.gapMs; s.n.vipSwap = (s.n.vipSwap || 0) + 1; }   // задание 33: заменённый VIP — тоже пауза
   const back = o.items.flatMap(it => Array(it.got).fill([it.line, it.lvl, 0]));
   const ev = [{ t: 'refresh', order: oi, id: o.id, born: o.born }];
   if (back.length) {
@@ -1477,6 +1585,7 @@ const Core = {
   giveOne, deliver, refreshOrder, refreshFree, buySlot, nextBuy,
   store, unstore, buyStore, arrive, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
+  orangeLocked, vipLines, vipOrder, hallRate, hallBag, hallCheck, hallCollect, hallPlace, levelChest,
 };
 if (typeof module !== 'undefined') module.exports = Core; else window.Core = Core;
 })();
