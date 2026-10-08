@@ -166,11 +166,11 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
   box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0,0,0,.28);
 }
 
-/* Заказы (задание 22): три карточки в ряд под полем, у большого пальца. Карточка выпуклая: сверху плитки машин (те же .pl, что на поле:
+/* Заказы (задание 22; с задания 30 — над полем, сразу под рядом ресурсов: решение владельца 08.10.2026). Три карточки в ряд. Карточка выпуклая: сверху плитки машин (те же .pl, что на поле:
    одна — до 44 px, две-три — до 36, не меньше 32), под ними крупная награда (≥ 19 px на экране). Готов — зелёная неоновая карточка
    с галочкой в углу, охота — золотая неоновая; крупный, событие, витрина — тоном (событие и витрина — ещё значком в углу);
    закрытый слот — вдавленная карточка, замок и цена. «↻» — в листе заказа */
-.orders-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.orders-wrap { position: relative; flex: none; display: flex; flex-direction: column; }
 .orders { --oh: 76px; flex: none; height: var(--oh); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .order {
   position: relative; container-type: inline-size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
@@ -253,8 +253,9 @@ html.tg-old body::after { content: ""; display: block; height: 1px; }
 .tick { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1.5px #fff; }
 .tick .ic { width: 70%; height: 70%; stroke-width: 2.6; }
 
-/* Поле (задание 22): клетки — вдавленные лунки, зазор 3 px */
-.board-wrap { flex: none; display: grid; place-items: start center; }
+/* Поле (задание 22): клетки — вдавленные лунки, зазор 3 px. С задания 30 поле — под карточками заказов; лишняя высота (высокий экран:
+   клетку и так ограничивает ширина, 7 колонок) — ровным отступом под полем, над нижней панелью */
+.board-wrap { flex: 1 1 auto; min-height: 0; display: grid; place-items: start center; }
 .board {
   --bs: calc(var(--cell) * .42);
   display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); gap: 3px;
@@ -1010,8 +1011,8 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   </header>
 
   <section id="field" style="display:contents">
-    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
     <div class="orders-wrap"><div class="orders" id="orders"></div></div>
+    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
   </section>
 
   <section class="view" id="salon" hidden>
@@ -1059,11 +1060,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=26"></script>
-<script src="core.js?v=26"></script>
-<script src="art.js?v=26"></script>
-<script src="salon.js?v=26"></script>
-<script src="monet.js?v=26"></script>
+<script src="tg.js?v=27"></script>
+<script src="core.js?v=27"></script>
+<script src="art.js?v=27"></script>
+<script src="salon.js?v=27"></script>
+<script src="monet.js?v=27"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1169,7 +1170,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 26 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 27 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1902,7 +1903,8 @@ function fit() {
   if (!app.clientWidth) return;
   const vh = TG.on ? TG.height() : innerHeight, hud = app.querySelector('.hud').offsetHeight, ins = TG.on ? TG.insets() : null;
   const cs = getComputedStyle(app), gap = parseFloat(cs.rowGap) || 0, vw = innerWidth;
-  // высота без отступов Telegram и постоянная часть (CSS-пиксели при масштабе 1): отступы, шапка, два зазора, карточки заказов, зазоры поля
+  // высота без отступов Telegram и постоянная часть (CSS-пиксели при масштабе 1): отступы, шапка, два зазора, карточки заказов (над полем,
+  // задание 30), зазоры поля
   const V = ins ? vh - ins.top - ins.bottom : vh;
   const pads = ins ? PAD_T + PAD_B : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
   let oh = 76;
@@ -3405,7 +3407,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 26;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 27;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
