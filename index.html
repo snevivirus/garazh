@@ -1093,11 +1093,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=30"></script>
-<script src="core.js?v=30"></script>
-<script src="art.js?v=30"></script>
-<script src="salon.js?v=30"></script>
-<script src="monet.js?v=30"></script>
+<script src="tg.js?v=31"></script>
+<script src="core.js?v=31"></script>
+<script src="art.js?v=31"></script>
+<script src="salon.js?v=31"></script>
+<script src="monet.js?v=31"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1204,7 +1204,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 30 от 08.10.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 31 от 09.10.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -2584,7 +2584,7 @@ const HINTS = [
     txt: ['1 топливо — одно нажатие гаража.', `+1 каждые ${C.fuelRegenMs / 60000} мин. Пустой бак — подождать или посмотреть ролик.`] },
   { id: 'cells', t: 'Клетки поля', lvl: 1, ic: () => ICON.lock,
     pic: () => `<div class="cell lock can" style="position:relative;width:56px;height:56px">${ICON.lock}<span class="cprice">${ICON.coin}${Core.cellPrice(s)}</span></div>`,
-    txt: ['Клетку рядом с открытыми можно купить за монеты.', 'Ещё клетки дают уровни, салон и новые гаражи.'] },
+    txt: ['Нажми на клетку с ценой — она сразу куплена.', 'Ещё клетки дают уровни, салон и новые гаражи.'] },
   { id: 'chest', t: 'Сундуки', lvl: 1, ic: () => ICON.chest,
     pic: () => `<div class="rule">${Art.thing('level')}${Art.thing('crate')}${Art.thing('gift')}</div>`,
     txt: ['Нажимай на сундук — из него выезжают машины, топливо, монеты.', 'Сундуки дают уровни, задания и подарок дня.'] },
@@ -2819,7 +2819,7 @@ function renderShop() {
   if (!Monet.on) return;
   // что уже видел: точка на «Магазине» — когда товар впервые стал доступен или копилка снова набрала 100
   const ok = Monet.LIST.filter(p => canBuy(p.id).ok).map(p => p.id), ever = s.shopEver || [];
-  if (ok.some(id => !ever.includes(id)) || !!s.shopPig !== ok.includes('piggy')) { s.shopEver = [...new Set([...ever, ...ok])]; s.shopPig = ok.includes('piggy'); save(); }
+  if (ok.some(id => !ever.includes(id)) || !!s.shopPig !== ok.includes('piggy')) { s.shopEver = [...new Set([...ever, ...ok])]; s.shopPig = ok.includes('piggy'); save(); renderHud(); }   // точка гаснет сразу (renderAll рисует панель раньше магазина)
 }
 const shopNew = () => Monet.on && Monet.LIST.some(p => p.id !== 'piggy' && canBuy(p.id).ok && !(s.shopEver || []).includes(p.id)) || Monet.on && canBuy('piggy').ok && !s.shopPig;
 const openShop = () => setView('shop');
@@ -3219,7 +3219,11 @@ function tapCell(i) {
     if (t >= 0) { peek(cellEl(t)); hop(cellEl(t)); } else openWhere(Core.needItem(c));
     return;
   }
-  if (c.k === 'lock' && Core.canOpen(s, i)) return L('нажал закрытую клетку: показана цена'), showPop(i, `${ICON.grid}+1${ICON.coin.replace('class="ic"', 'class="ic coin"')}<b>${Core.cellPrice(s)}</b>`, () => Core.buyCell(s, i));
+  if (c.k === 'lock' && Core.canOpen(s, i)) {    // задание 35 (просьба владельца): клетка покупается сразу, без пузыря с ценой
+    const ev = Core.buyCell(s, i);
+    if (ev[0]?.t !== 'cellBuy') L('нажал закрытую клетку: монет не хватает');
+    return play(ev);
+  }
   if (c.k === 'box') { shake(cellEl(i)); const k = s.cells.findIndex(x => x?.k === 'key'); if (k >= 0) hop(cellEl(k)); return; }
   if (c.k === 'lock' || c.k === 'slot') return;
   if (c.k === 'car' || c.k === 'key') hop(cellEl(i).querySelector('.car,.thing'));
@@ -3532,7 +3536,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 30;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 31;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;

@@ -198,7 +198,7 @@ const CONFIG = {
 
   // ── Задание 33: поздние машины 8-го уровня ──
   // Предел окраски: оранжевую деталью Ателье — только машине не выше этого уровня; выше — только слиянием (уже оранжевые — остаются)
-  trimOrangeMax: 4,
+  trimOrangeMax: 6,
   // «Эксклюзивы»: три места (легковые, внедорожники, купе), машина 8-го уровня своей линейки приносит монеты в час:
   // base × rar[редкость]; «мешок» копит не больше capH часов; ставить — бесплатно, снять без замены нельзя
   hall: { base: 0.55, rar: [1, 1.5, 2.2, 3.2, 5], capH: 8 },   // base по боту: три оранжевые при сборе раз в день — 3 × 5 × 8 × 0,55 = 66 монет (+9,5% к 694), смесь белых–синих — ≈ +3%
@@ -1018,12 +1018,12 @@ const rareW = s => Object.fromEntries(Object.entries(C.rareCar.rw).filter(([r]) 
 // ── «Эксклюзивы» (задание 33): три места, машина 8-го уровня своей линейки, доход в час, мешок до capH часов ──
 const hallRate = c => c ? C.hall.base * C.hall.rar[c.r || 0] : 0;          // монет в час
 const hallBag = (s, now) => (s.hall || []).reduce((a, c) => a + (c ? hallRate(c) * Math.min(C.hall.capH, Math.max(0, now - Math.max(s.hallAt || 0, c.since || 0)) / 3600e3) : 0), 0);
-// машину с клетки i — можно ли поставить и что будет: { ok, why: 'notCar' | 'noRoom', swap: прежняя машина, confirm: нужно ли подтверждение }
+// машину с клетки i — можно ли поставить и что будет: { ok, why: 'notCar', swap: прежняя машина, confirm: нужно ли подтверждение }.
+// Машина берётся с поля и освобождает клетку — прежней всегда есть куда вернуться (задание 35)
 function hallCheck(s, i) {
   const c = s.cells[i];
   if (!isCar(c) || c.line >= PARTS || c.lvl !== 8) return { ok: false, why: 'notCar' };
   const old = (s.hall || [])[c.line];
-  if (old && nearestFree(s, i) < 0) return { ok: false, why: 'noRoom', swap: old };          // прежней машине некуда вернуться
   return { ok: true, swap: old || null, confirm: !!old || (c.r || 0) >= 2 };
 }
 function hallCollect(s, now) {
@@ -1036,12 +1036,14 @@ function hallCollect(s, now) {
 }
 function hallPlace(s, i, now) {
   const chk = hallCheck(s, i);
-  if (!chk.ok) return [chk.why === 'noRoom' ? { t: 'full', at: i, why: 'hall' } : { t: 'reject', at: i }];
+  if (!chk.ok) return [{ t: 'reject', at: i }];
   const c = s.cells[i], ev = hallCollect(s, now);                 // мешок — сначала собрать
   s.hall ||= [null, null, null];
   const old = s.hall[c.line];
-  if (old) { const to = nearestFree(s, i); s.cells[to] = { k: 'car', line: old.line, lvl: 8, r: old.r }; ev.push({ t: 'hallBack', at: to, line: old.line, r: old.r }); }
+  let to = old ? nearestFree(s, i) : -1;
+  if (old && to < 0) to = i;                                       // поле полное — прежняя встаёт в клетку новой (задание 35)
   s.cells[i] = null;
+  if (old) { s.cells[to] = { k: 'car', line: old.line, lvl: 8, r: old.r }; ev.push({ t: 'hallBack', at: to, line: old.line, r: old.r }); }
   s.hall[c.line] = { line: c.line, lvl: 8, r: c.r || 0, since: now };
   s.n.hallPut = (s.n.hallPut || 0) + 1;
   ev.push({ t: 'hallPut', at: i, line: c.line, r: c.r || 0, swap: !!old });

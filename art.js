@@ -202,7 +202,9 @@ const BASES = ['assets/cars/'];
 const slugOf = (line, lvl) => window.Core?.CARS[line]?.[lvl - 1]?.join('-').toLowerCase().replace(/\s+/g, '-');
 // Загрузка по мере надобности: картинки на поле и в заказах браузер грузит сам; остальные 256 px — в фоне по одной,
 // крупные 640 px — когда понадобились. Пока нужная не скачана, показываем уже скачанную: маленькую или белую этой модели.
-const LOADED = new Set(), PENDING = new Map(), QUEUE = [];
+// WANT — картинки, которых ждёт экран (вместо них пока замена): перерисовка только по ним; фоновая загрузка экран не трогает —
+// иначе на медленной сети поле и «Коллекция» перерисовывались раз в секунду минуты две после запуска (задание 35)
+const LOADED = new Set(), PENDING = new Map(), QUEUE = [], WANT = new Set();
 let refresh = () => {}, refreshT = 0;
 // скачать картинку; обещание выполняется, когда она скачана (или не нашлась)
 function fetchImg(url) {
@@ -212,6 +214,7 @@ function fetchImg(url) {
     const im = new Image();
     im.onload = () => {
       LOADED.add(url); PENDING.delete(url); done();
+      if (!WANT.delete(url)) return;
       clearTimeout(refreshT);
       refreshT = setTimeout(() => { Object.keys(cache).forEach(x => delete cache[x]); refresh(); }, 300);
     };
@@ -260,7 +263,7 @@ function carUrl(line, lvl, r, big) {
   const exact = exactUrl(line, lvl, r, big);
   if (!exact) return null;
   if (LOADED.has(exact)) return exact;
-  fetchImg(exact);
+  WANT.add(exact); fetchImg(exact);
   // пока грузится: крупной — она же маленькая (не белая: на карточке редкости белая обманывает), мелкой — белая этой модели
   const sl = slugOf(line, lvl);
   for (const u of big ? [exactUrl(line, lvl, r, false)] : [`${BASE}${sl}-1.webp`]) if (LOADED.has(u)) return u;
