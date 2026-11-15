@@ -66,11 +66,15 @@
     if (!pend || !TG.cloudOn()) return;
     const [json, v] = pend, cs = wa().CloudStorage, n = Math.ceil(json.length / CHUNK) || 1;
     pend = null; lastWrite = Date.now();
-    const done = err => { if (err) TG.cloud.fail++; else TG.cloud.ok++; };
+    // задание 36: сколько запись заняла на главном потоке и когда пришёл ответ — игре (TG.cloudReport), она пишет в журнал
+    const t0 = performance.now(); let main = 0;
+    TG.cloudReport?.({ n, start: true });
+    const done = err => { if (err) TG.cloud.fail++; else TG.cloud.ok++; TG.cloudReport?.({ n, main, resp: performance.now() - t0, err: !!err }); };
     try {
       for (let k = 0; k < n; k++) cs.setItem('s' + k, json.slice(k * CHUNK, (k + 1) * CHUNK));
       cs.setItem('sv', JSON.stringify({ v, n, at: lastWrite }), done);     // ключ версии — последним
     } catch { TG.cloud.fail++; }
+    main = performance.now() - t0;
   }
   if (!on) return;
 
