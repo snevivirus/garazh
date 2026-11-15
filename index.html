@@ -1228,7 +1228,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
 <button class="adplq" id="adPlaque" hidden></button>
 <nav class="dock" id="dock">
   <button data-view="salon" aria-label="Салон"></button>
-  <button data-view="field" aria-label="Поле" aria-current="true"></button>
+  <button data-view="field" aria-label="Гараж" aria-current="true"></button>
   <button data-view="race" aria-label="Заезды" class="go"></button>
   <button data-view="cars" aria-label="Коллекция"></button>
   <button data-view="shop" aria-label="Магазин"></button>
@@ -1242,11 +1242,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=35"></script>
-<script src="core.js?v=35"></script>
-<script src="art.js?v=35"></script>
-<script src="salon.js?v=35"></script>
-<script src="monet.js?v=35"></script>
+<script src="tg.js?v=36"></script>
+<script src="core.js?v=36"></script>
+<script src="art.js?v=36"></script>
+<script src="salon.js?v=36"></script>
+<script src="monet.js?v=36"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1358,7 +1358,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 35 от 15.11.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 36 от 15.11.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1709,8 +1709,11 @@ function renderHud() {
     s.storeN ? `<i class="hbadge">${s.store.length}/${s.storeN}</i>` : '');
   // «Салон»: плашка с числом покупок (престиж — стрелка); Коллекция и Подсказки — плашка поменьше без числа.
   // Меню перерисовывается, только когда изменилось, — иначе покачивание сбрасывалось бы каждую секунду
-  const n = buyN(), prest = canPrestige(), dots = [false, false, false, Object.keys(s.fresh).length > 0 || hallDot(), shopNew()];
+  const gar = garageOn();
+  // точка на «Гараже» — он только что открылся (первая глава пройдена), а в нём ещё не играли
+  const n = buyN(), prest = canPrestige(), dots = [false, gar && !s.n.spawns && !FIELD1, false, Object.keys(s.fresh).length > 0 || hallDot(), shopNew()];
   const dk = $('dock').children;
+  [0, 1, 3].forEach(k => { const was = dk[k].hidden; dk[k].hidden = !gar; if (was && gar) pop(dk[k]); });      // Гараж открылся — его значки «выпрыгивают»
   // «Заезды» — главный экран; номер следующего уровня — в углу; зовёт (пульсирует), когда бак пуст: заезды топлива не тратят и дают его
   dk[2].classList.toggle('call', view !== 'race' && s.fuel < 1);
   DOCK.forEach(([icon, label], k) => {
@@ -2175,6 +2178,10 @@ function renderSettings() {
 }
 
 let view = 'field', dragging = false, boardDirty = false;
+// Гараж (поле с заказами, Салон, Коллекция) открывается после первой главы заездов: на старте в панели только «Заезды» и «Магазин»
+// (решение владельца, ОТЧЁТ-38). Кто уже играл в Гараже (старое сохранение), у того он открыт; ?view=field — открыт сразу (проверки поля)
+const FIELD1 = new URLSearchParams(location.search).get('view') === 'field';
+const garageOn = () => FIELD1 || s.n.spawns > 0 || (s.race?.lvl || 1) > C.race.per;
 function renderAll() {
   document.querySelectorAll('.overlay [data-art]').forEach(el => { el.innerHTML = artOf(el.dataset.art); });
   renderHud();
@@ -2666,6 +2673,7 @@ function raceCard(n, e) {
   const again = `<button class="btn light" data-race="${n}" aria-label="Ещё раз">${ICON.refresh}</button>`, close = `<button class="btn light" data-close aria-label="Закрыть">${ICON.close}</button>`;
   return `<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="rflag">${ICON.race}<b>${n}</b></span>` + (e ?
     raceStarsHTML(e.stars, 's3') + (e.chapter >= 0 ? `<div class="sh-title">Глава пройдена: ${ZNAME[e.chapter]}</div>` : '') +
+      (e.chapter === 0 && !s.n.spawns ? `<div class="sh-txt">Открылся Гараж — награды уже там.</div>` : '') +
       (e.fuel || e.coins ? `<div class="rrew">${e.fuel ? `<span class="chip fuel">${ICON.fuel}+${e.fuel}</span>` : ''}${e.coins ? `<span class="chip">${ICON.coin}+${e.coins}</span>` : ''}</div>` : '') +
       `<div class="obtns"><button class="btn ok" data-race="${n + 1}" aria-label="Следующий заезд">${ICON.play}${n + 1}</button>${e.stars < 3 ? again : ''}${close}</div>` :
     `<span class="bigic" style="color:#E5484D">${ICON.clock}</span><div class="sh-title">Время вышло</div><div class="obtns">${again.replace('btn light', 'btn ok')}${close}</div>`) + '</div>';
@@ -2711,7 +2719,7 @@ function renderRace() {
     `<span class="chip">${ICON.clock}${lv.secs} с</span></div>` +
     `<div class="obig">${raceTiles(lv.items)}${'<span class="rq">?</span>'.repeat(lv.waves.length - 1)}</div><button class="btn ok rgo" data-race="${z.lvl}">${ICON.play}Старт</button>` +
     `<div class="sh-txt">${CHRULE[lv.ch]}</div>` +
-    `<div class="sh-txt">Новая звезда — <span class="chip fuel">${ICON.fuel}+${R.fuel}</span> <span class="chip">${ICON.coin}+${R.coins * (lv.ch + 1)}</span> в Гараж</div></div>${chapters}${more}`;
+    `<div class="sh-txt">Новая звезда — <span class="chip fuel">${ICON.fuel}+${R.fuel}</span> <span class="chip">${ICON.coin}+${R.coins * (lv.ch + 1)}</span>${garageOn() ? ' в Гараж' : ''}</div></div>${chapters}${more}`;
 }
 const openRace = () => setView('race');
 // Старт уровня; перед первым уровнем новой главы один раз — карточка с её правилом
@@ -3963,7 +3971,7 @@ Art.loadRasters(() => { act('загрузка картинок'); renderAll(); }
 renderAll();
 fit();
 // Главный экран — карта заездов (ОТЧЁТ-38); ?view=field — сразу Гараж (поле с заказами): так открывают игру проверки поля
-if (new URLSearchParams(location.search).get('view') !== 'field') setView('race');
+if (!FIELD1) setView('race');
 
 // Telegram: сохранение на телефоне пустое или старше облачной копии — берём облачную
 if (TG.on) TG.cloudLoad((str, at) => {
@@ -3977,7 +3985,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 35;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 36;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
