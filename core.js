@@ -158,27 +158,28 @@ const CONFIG = {
         ['office', 280, { trim: 2 }], ['lighthouse', 300, { tier: 1 }]],
     ],
     // уровень: w — цели по очереди (цель — список [вид, уровень, штук, редкость «не ниже»]); start — машины на поле со старта
-    // [вид, уровень, редкость, сломана]; s — секунды без улучшений бака (подобраны по check-levels.js для игрока, который купил улучшения
+    // [вид, уровень, редкость, сломана]; r3 — финал главы «три в ряд» (машины сливаются не парой, а тройкой в строке или столбце);
+    // s — секунды без улучшений бака (подобраны по check-levels.js для игрока, который купил улучшения
     // прошлых зон). Сломанная на старте — в уровне стоит Мастерская, цель с редкостью — стоит Ателье. После последнего уровня —
     // последняя глава по кругу, время −step за уровень (не ниже floor)
     levels: [
       { w: [[[0, 3, 1]]], s: 17 }, { w: [[[0, 4, 1]]], s: 24 }, { w: [[[0, 4, 1], [0, 3, 1]]], s: 34 },
-      { w: [[[0, 5, 1]]], s: 41 }, { w: [[[0, 5, 1], [0, 4, 1]]], s: 58 }, { w: [[[0, 6, 1]]], s: 75 },
+      { w: [[[0, 5, 1]]], s: 41 }, { w: [[[0, 5, 1], [0, 4, 1]]], s: 58 }, { r3: 1, w: [[[0, 3, 1]]], s: 24 },
 
       { w: [[[0, 4, 1]]], start: [[0, 4, 0, 1]], s: 14 }, { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1], [0, 4, 0, 1]], s: 18 },
       { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1]], s: 25 }, { w: [[[0, 5, 1], [0, 4, 1]]], start: [[0, 4, 0, 1], [0, 3, 0, 1], [0, 3, 0, 1]], s: 34 },
-      { w: [[[0, 6, 1]]], start: [[0, 5, 0, 1]], s: 40 }, { w: [[[0, 6, 1], [0, 5, 1]]], start: [[0, 5, 0, 1], [0, 5, 0, 1], [0, 4, 0, 1]], s: 41 },
+      { w: [[[0, 6, 1]]], start: [[0, 5, 0, 1]], s: 40 }, { r3: 1, w: [[[0, 4, 1]]], start: [[0, 3, 0, 1], [0, 3, 0, 1]], s: 24 },
 
       { w: [[[0, 4, 1]], [[0, 4, 1]]], s: 27 }, { w: [[[0, 4, 1]], [[0, 5, 1]]], s: 35 }, { w: [[[0, 5, 1]], [[0, 4, 1]], [[0, 4, 1]]], s: 46 },
-      { w: [[[0, 4, 2]], [[0, 5, 1]]], s: 44 }, { w: [[[0, 5, 1]], [[0, 6, 1]]], s: 64 }, { w: [[[0, 5, 1]], [[0, 4, 2]], [[0, 6, 1]]], s: 79 },
+      { w: [[[0, 5, 1]], [[0, 6, 1]]], s: 64 }, { w: [[[0, 5, 1]], [[0, 4, 2]], [[0, 6, 1]]], s: 82 }, { r3: 1, w: [[[0, 4, 1]], [[0, 3, 1]]], s: 33 },
 
       { w: [[[0, 4, 1, 1]]], start: [[0, 4]], s: 17 }, { w: [[[0, 5, 1, 1]]], start: [[0, 4, 1]], s: 32 },
       { w: [[[0, 5, 1, 2]]], start: [[0, 5, 1]], s: 20 }, { w: [[[0, 5, 1, 1], [0, 4, 1, 1]]], s: 45 },
-      { w: [[[0, 6, 1, 1]]], start: [[0, 5, 1]], s: 51 }, { w: [[[0, 6, 1, 2], [0, 5, 1, 1]]], start: [[0, 5, 1], [0, 5, 1]], s: 42 },
+      { w: [[[0, 6, 1, 1]]], start: [[0, 5, 1]], s: 51 }, { r3: 1, w: [[[0, 4, 1, 1]]], start: [[0, 3, 1], [0, 3, 1]], s: 20 },
 
       { w: [[[0, 4, 1], [1, 4, 1]]], s: 35 }, { w: [[[0, 5, 1], [1, 5, 1]]], s: 50 }, { w: [[[0, 4, 1], [1, 4, 1], [2, 4, 1]]], s: 45 },
-      { w: [[[1, 5, 1, 1], [0, 5, 1]]], s: 63 }, { w: [[[0, 6, 1]], [[1, 5, 1]], [[2, 4, 1]]], start: [[1, 4, 0, 1]], s: 80 },
-      { w: [[[0, 7, 1]], [[1, 5, 1, 1]]], start: [[0, 6, 0, 1], [1, 4, 0, 1]], s: 103 },
+      { w: [[[1, 5, 1, 1], [0, 5, 1]]], s: 63 }, { w: [[[0, 7, 1]], [[1, 5, 1, 1]]], start: [[0, 6, 0, 1], [1, 4, 0, 1]], s: 107 },
+      { r3: 1, w: [[[0, 4, 1], [1, 3, 1]]], s: 41 },
     ] },
   washBonus: 0.15,                    // пост мойки: заказы +15% монет
   lineBonus: 0.2,                     // полная линейка: легковые +20% монет, купе +20% звёзд
@@ -748,6 +749,7 @@ function tapPort(s, i, now) {
     return ev;
   }
   place(s, to, [kind, lvl, r], i, ev);
+  if (s.row3) tri(s, to, now, ev);      // «три в ряд»: выехавшая машина могла достроить тройку
   return ev;
 }
 
@@ -872,6 +874,74 @@ function claimDaily(s) {
 const certAt = s => s.cells.findIndex(isCert);
 const canKey = (s, i) => s.cells[i]?.k === 'box' && canOpen(s, i);
 
+// ── «Три в ряд» (ОТЧЁТ-40: идея владельца — «может появиться другая механика»; уровни с r3 — финалы глав) ──────────────
+// Такие же машины (вид, уровень; целые), что встанут в одну линию с клеткой t, если поставить туда машину: лучшая из строки и столбца.
+// skip — клетка, откуда машину берут
+function runAt(s, t, line, lvl, skip = -1) {
+  const same = i => i !== skip && isCar(s.cells[i]) && s.cells[i].line === line && s.cells[i].lvl === lvl;
+  const run = step => { const out = [];
+    for (const d of [-step, step]) for (let i = t + d; i >= 0 && i < N && (step !== 1 || Math.floor(i / C.cols) === Math.floor(t / C.cols)) && same(i); i += d) out.push(i);
+    return out; };
+  const row = run(1), col = run(C.cols);
+  return row.length >= col.length ? row : col;
+}
+// Три одинаковые машины подряд в строке или столбце сливаются в одну уровнем выше — на клетке at (той, что изменилась). Редкость — младшая
+// из трёх. Новая машина может сразу собрать следующую тройку — серия. Детали и инструменты сливаются как обычно, парой
+function tri(s, at, now, ev) {
+  for (;;) {
+    const c = s.cells[at];
+    if (!isCar(c) || c.line >= PARTS || c.lvl >= maxLvl(c.line)) return;
+    const two = runAt(s, at, c.line, c.lvl).sort((a, b) => dist2(a, at) - dist2(b, at)).slice(0, 2);
+    if (two.length < 2) return;
+    let r = Math.min(c.r || 0, ...two.map(i => s.cells[i].r || 0));
+    const lucky = rarOn(s) && r < 4 && rand(s) < C.luckyChance + (s.lucky || 0);
+    if (lucky) { r++; s.n.lucky++; }
+    two.forEach(i => { s.cells[i] = null; });
+    s.cells[at] = { k: 'car', line: c.line, lvl: c.lvl + 1, r };
+    s.n.merges++;
+    const z = s.nitro ||= { n: 0, free: 0, chain: 0, at: 0 };
+    z.chain = now - z.at <= C.nitro.comboMs ? z.chain + 1 : 1; z.at = now;
+    ev.push({ t: 'merge', from: two[0], from2: two[1], to: at, line: c.line, lvl: c.lvl + 1, r, lucky, same: true, chain: z.chain, tri: true });
+    addStars(s, Math.round(C.mergeStars[c.lvl + 1] * C.rarityCoins[r]), at, ev);
+    discover(s, c.line, c.lvl + 1, r, at, ev);
+  }
+}
+// Куда поставить машину i, чтобы собралась тройка: свободные клетки и клетки с другими машинами (обмен местами)
+function row3Targets(s, i) {
+  const c = s.cells[i], out = [];
+  if (!s.row3 || !isCar(c) || c.line >= PARTS || c.lvl >= maxLvl(c.line)) return out;
+  s.cells.forEach((b, t) => {
+    if (t === i || (b && (b.k !== 'car' || (isCar(b) && b.line === c.line && b.lvl === c.lvl)))) return;
+    if (runAt(s, t, c.line, c.lvl, i).length >= 2) out.push(t);
+  });
+  return out;
+}
+// Подсказка для «трёх в ряд»: ход, который собирает тройку; если две одинаковые ещё не стоят так, чтобы третья могла встать в линию, —
+// поставить одну рядом с другой. Машины, которые цель ждёт как есть, не трогаем
+function row3Hint(s) {
+  const need = {}, by = {};
+  s.orders.forEach((o, oi) => { if (o && oi < s.slots) o.items.forEach(it => { const k = key(it.line, it.lvl); need[k] = (need[k] || 0) + it.n - it.got; }); });
+  s.cells.forEach((c, i) => { if (isCar(c) && c.line < PARTS && c.lvl < maxLvl(c.line)) (by[key(c.line, c.lvl)] ||= []).push(i); });
+  const free = s.cells.map((c, i) => c ? -1 : i).filter(i => i >= 0);
+  const keys = Object.keys(by).sort((a, b) => s.cells[by[a][0]].lvl - s.cells[by[b][0]].lvl);
+  for (const k of keys) {
+    const cells = by[k], spare = cells.length - (need[k] || 0), { line, lvl } = s.cells[cells[0]];
+    if (spare >= 3) for (const m of cells) for (const t of free) if (runAt(s, t, line, lvl, m).length >= 2) return { t: 'drag', from: m, to: t };
+    if (spare < 2 || free.some(t => runAt(s, t, line, lvl).length >= 2)) continue;      // пара уже стоит так, что третьей есть куда встать
+    for (const a of cells) for (const b of cells) {
+      if (a === b) continue;
+      for (const t of around(a, false)) {
+        if (s.cells[t] || t === b) continue;
+        const was = s.cells[b]; s.cells[b] = null; s.cells[t] = was;               // примерить: b рядом с a — третьей найдётся место?
+        const good = s.cells.some((c, u) => !c && u !== b && runAt(s, u, line, lvl).length >= 2);
+        s.cells[t] = null; s.cells[b] = was;
+        if (good) return { t: 'drag', from: b, to: t };
+      }
+    }
+  }
+  return null;
+}
+
 function move(s, from, to, now) {
   const a = s.cells[from], b = s.cells[to];
   if (from === to || (a?.k !== 'car' && a?.k !== 'key')) return [];
@@ -882,16 +952,19 @@ function move(s, from, to, now) {
     openCell(s, to, ev);
     return ev;
   }
-  if (!b) { s.cells[to] = a; s.cells[from] = null; return [{ t: 'move', from, to }]; }
+  if (!b) { s.cells[to] = a; s.cells[from] = null; const ev = [{ t: 'move', from, to }]; if (s.row3) tri(s, to, now, ev); return ev; }
   if (b.k !== 'car' && b.k !== 'key') return [{ t: 'reject', at: from }];
   // задание 33: деталь на оранжевую — машине выше trimOrangeMax нельзя: отказ (встряска), а не обмен местами
   { const [car, it] = isPart(a.line) ? [b, a] : [a, b];
     if (car?.k === 'car' && !car.broken && car.line < PARTS && it.line === TRIM && it.lvl === trimFor(3) && orangeLocked(car) && rarOn(s)) return [{ t: 'reject', at: from, why: 'orange', car: to }]; }
   const fix = useItem(s, from, to);
-  if (fix) return fix;
-  if (!isCar(a) || !isCar(b) || a.line !== b.line || a.lvl !== b.lvl || a.lvl >= maxLvl(a.line)) {
+  if (fix) { if (s.row3) tri(s, to, now, fix); return fix; }
+  // «три в ряд»: машины парой не сливаются — меняются местами; тройка, которая при этом встала в ряд, сливается
+  if (!isCar(a) || !isCar(b) || a.line !== b.line || a.lvl !== b.lvl || a.lvl >= maxLvl(a.line) || (s.row3 && a.line < PARTS)) {
     s.cells[from] = b; s.cells[to] = a;
-    return [{ t: 'swap', from, to }];
+    const ev = [{ t: 'swap', from, to }];
+    if (s.row3) { tri(s, to, now, ev); tri(s, from, now, ev); }
+    return ev;
   }
   // Две машины 7-го уровня сливаются в 8-й, только если на поле есть сертификат (в любом месте)
   let cert = -1;
@@ -1574,7 +1647,7 @@ function dragHint(s, mode) {   // mode: 'same' — только одной ре�
     const c = s.cells.find(x => isCar(x) && x.line === it.line && x.lvl === it.lvl && (x.r || 0) === it.r - 1);
     if (c) { const k = key(TRIM, trimFor(c.r || 0)); need[k] = (need[k] || 0) + 1; }
   }); });
-  s.cells.forEach((c, i) => { if (isCar(c) && c.lvl < maxLvl(c.line)) (byKey[key(c.line, c.lvl)] ||= []).push(i); });
+  s.cells.forEach((c, i) => { if (isCar(c) && c.lvl < maxLvl(c.line) && (!s.row3 || c.line >= PARTS)) (byKey[key(c.line, c.lvl)] ||= []).push(i); });   // «три в ряд»: парой — только детали
   const keys = Object.keys(byKey).sort((a, b) => s.cells[byKey[a][0]].lvl - s.cells[byKey[b][0]].lvl);
   for (const k of keys) {
     const cells = byKey[k].sort((a, b) => s.cells[a].r - s.cells[b].r);
@@ -1623,7 +1696,7 @@ function keyHint(s) {
 function nextHint(s, now) {
   const ready = s.orders.findIndex((o, oi) => o && oi < s.slots && match(s, o).ready);
   if (ready >= 0) return { t: 'order', i: ready };
-  const same = dragHint(s, 'same');
+  const same = (s.row3 && row3Hint(s)) || dragHint(s, 'same');
   if (same) return same;
   const k = keyHint(s);
   if (k) return k;
@@ -1694,7 +1767,7 @@ function raceLevel(n, main) {
   const R = C.race, L = R.levels, k = n - 1, d = L[k < L.length ? k : L.length - R.per + (k - L.length) % R.per];
   const start = d.start || [], all = d.w.flat();
   return { n, ch: Math.min(Math.floor(k / R.per), R.chapters.length - 1), waves: d.w, items: d.w[0], start,
-    kinds: Math.max(...all.map(it => it[0]), ...start.map(it => it[0])) + 1, tools: start.some(it => it[3]), trims: all.some(it => it[3] > 0),
+    kinds: Math.max(...all.map(it => it[0]), ...start.map(it => it[0])) + 1, tools: start.some(it => it[3]), trims: all.some(it => it[3] > 0), row3: !!d.r3,
     secs: Math.round(d.s * Math.max(R.floor, 1 - R.step * Math.max(0, n - L.length)) * (1 + perk(main, 'tank'))) };
 }
 const raceOrder = (lv, w, now) => ({ id: w, kind: 'race', face: 0, born: now, acc: 0,
@@ -1705,7 +1778,7 @@ const raceOrder = (lv, w, now) => ({ id: w, kind: 'race', face: 0, born: now, ac
 // уровня на старте, удача. Коллекция пустая: что собрал в заезде — отмечается, новые карточки покажет итог. В сохранение не идёт
 function newRace(n, now, seed, main) {
   const lv = raceLevel(n, main), s = newGame(now, seed), P = C.ports[0].cell;
-  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1, seen: {}, lucky: perk(main, 'lucky') });
+  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1, seen: {}, lucky: perk(main, 'lucky'), row3: lv.row3 });
   s.n.spawns = C.tutorialSpawns;                    // без «обучения»: сразу все виды машин уровня
   s.tiers[0] = Math.min(5, perk(main, 'tier')); s.tiers[PARTS] = Math.min(5, perk(main, 'tool')); s.tiers[TRIM] = Math.min(5, perk(main, 'trim'));
   s.cells = s.cells.map((c, i) => i === P ? c : RING[i] <= 2 ? null : { k: 'lock' });
@@ -1765,7 +1838,7 @@ const Core = {
   store, unstore, buyStore, arrive, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
   orangeLocked, vipLines, vipOrder, hallRate, hallBag, hallCheck, hallCollect, hallPlace, levelChest,
-  raceLevel, newRace, raceStars, raceDone, raceCards, racePay, raceBuy, raceTotal, chapterOpen, perk, nitroTaps,
+  raceLevel, newRace, raceStars, raceDone, raceCards, racePay, raceBuy, raceTotal, chapterOpen, perk, nitroTaps, row3Targets, row3Hint,
 };
 if (typeof module !== 'undefined') module.exports = Core; else window.Core = Core;
 })();
