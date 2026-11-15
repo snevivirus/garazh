@@ -325,7 +325,7 @@ html.ng #streak, html.ng #cal, html.ng #evBtn, html.ng #depotBtn { display: none
 .rprize > .ic { width: 20px; height: 20px; flex: none; color: var(--coin-ink); }
 .rprize > span:first-of-type { flex: 1; text-align: left; }
 /* Главы (ОТЧЁТ-38): блок главы — значок зоны, название, звёзды главы, правило одной строкой, её уровни по три в ряд; закрытая — бледная, без уровней */
-.rgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 .rch { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 14px; border-radius: 24px; background: var(--raise); box-shadow: var(--sh-out-s), inset 0 0 0 1px rgba(255,255,255,.7); }
 .rch.locked { background: var(--well2); box-shadow: var(--sh-in); color: #7C8190; }
 .rch.now { box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.35), var(--sh-out-s); }
@@ -334,6 +334,48 @@ html.ng #streak, html.ng #cal, html.ng #evBtn, html.ng #depotBtn { display: none
 .rch .sh-txt { text-align: left; margin: 0; }
 .rlv { background: var(--well2); box-shadow: var(--sh-in); }
 .rlv.done { background: var(--raise); box-shadow: var(--sh-out-s); }
+/* ── Мини-игры и круги (ОТЧЁТ-41) ── плитка уровня: значок мини-игры и номер, под ними звёзды; круг — 10 плиток */
+.rgrid { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
+.rlv.locked { flex-direction: column; gap: 2px; }
+.rch.mini { flex-direction: row; align-items: center; gap: 8px; padding: 10px 12px; font-size: 16px; font-weight: 700; text-align: left; }
+.rch.mini .chip { margin-left: auto; }
+#race .rch.mini > .ic { width: max(22px, calc(18.5px / var(--k, 1))); height: max(22px, calc(18.5px / var(--k, 1))); }
+/* цель цепочки и гонки на карточках: маленькие плитки в ряд */
+.rgchain, .rgm3 { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px; }
+.rhero .obig .rgchain .rtile, .rhero .obig .rgm3 .rtile { width: 48px; }
+.racecard .obig .rgchain .rtile, .racecard .obig .rgm3 .rtile { width: 40px; }
+/* цепочка в заезде: под звёздами — очередь следующих машин */
+.oq { display: flex; align-items: center; justify-content: center; gap: 4px; flex: none; }
+.oq .rtile { width: clamp(26px, 14cqh, 40px); max-width: none; flex: none; opacity: .85; }
+.oq > i { font-style: normal; font-size: 14px; font-weight: 800; color: #7FD3FF; }
+html.racing .order:has(.oq) .want { --ts: clamp(36px, min(100cqh - 46px - clamp(26px, 14cqh, 40px) - clamp(22px, 16cqh, 40px), (100cqw - 40px) / 2), 130px); }
+/* гонка «три в ряд»: трасса с двумя машинами и поле плиток */
+html.m3on .orders-wrap, html.m3on .board-wrap, html.m3on #raceFuel, html.m3on .rtime, html.m3on #raceSec { display: none; }
+.m3wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.m3wrap[hidden] { display: none; }
+.m3track { flex: none; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 22px; background: var(--navy); box-shadow: 0 0 0 1.5px var(--neon), 0 0 12px rgba(56,182,255,.4); }
+.lane { --p: 0; position: relative; height: 40px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.12)); overflow: hidden; }
+.lane::before { content: ""; position: absolute; left: 0; top: 50%; right: 34px; border-top: 2px dashed rgba(255,255,255,.22); }
+.lane::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p) * (100% - 34px)); background: linear-gradient(90deg, transparent, rgba(31,209,127,.35)); transition: width .25s linear; }
+.lane.foe::after { background: linear-gradient(90deg, transparent, rgba(229,72,77,.35)); }
+.lane-car { position: absolute; z-index: 1; top: 2px; left: calc(var(--p) * (100% - 34px - 58px)); width: 58px; height: 36px; transition: left .25s linear; }
+.lane-car .car { position: static; display: block; width: 100%; height: 100%; object-fit: contain; }
+.lane-car.flip .car { transform: scaleX(-1); }
+.lane-flag { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: grid; color: #EAF6FF; }
+.lane-flag .ic { width: 22px; height: 22px; }
+.m3area { flex: 1 1 auto; min-height: 0; display: grid; place-items: start center; }
+.m3board { position: relative; touch-action: none; border-radius: 18px; }
+.m3t { position: absolute; left: 0; top: 0; box-sizing: border-box; padding: 2px; transition: transform .15s ease-out; will-change: transform; }
+.m3p { display: grid; place-items: end center; width: 100%; height: 100%; box-sizing: border-box; padding: 0 3% 8%; border-radius: 26%; background: var(--tc, #EEF0F4);
+  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.06), 2px 3px 6px rgba(150,156,170,.45), -2px -2px 5px rgba(255,255,255,.9); }
+.m3p .car { position: static; display: block; width: 100%; height: auto; pointer-events: none; }
+.m3t.t0 { --tc: #FBE3DC; } .m3t.t1 { --tc: #E3E5EA; } .m3t.t2 { --tc: #DDF3E4; } .m3t.t3 { --tc: #DCE8FB; } .m3t.t4 { --tc: #F3ECD9; } .m3t.t5 { --tc: #EADFF7; }
+.m3t.sel .m3p { box-shadow: 0 0 0 2.5px var(--neon), 0 0 12px rgba(56,182,255,.7); }
+.m3t.hint .m3p { animation: m3Hint .7s ease-in-out infinite alternate; }
+@keyframes m3Hint { to { transform: scale(1.1); box-shadow: 0 0 0 2.5px var(--neon-ok), 0 0 14px rgba(31,209,127,.8); } }
+.m3t.burn { z-index: 2; }
+.m3t.burn .m3p { transition: transform .19s ease-in, opacity .19s ease-in, box-shadow .1s; transform: scale(.2) rotate(20deg); opacity: 0; box-shadow: 0 0 0 3px #FFB347, 0 0 18px rgba(255,138,48,.9); }
+@media (prefers-reduced-motion: reduce) { .m3t, .m3t.burn .m3p, .lane::after, .lane-car { transition: none; } .m3t.hint .m3p { animation: none; box-shadow: 0 0 0 2.5px var(--neon-ok); } }
 /* финал главы «три в ряд»: значок на плитке уровня и чип на главной карточке */
 .rl-n { display: flex; align-items: center; gap: 4px; }
 #race .rl-n .ic { width: max(20px, calc(18.5px / var(--k, 1))); height: max(20px, calc(18.5px / var(--k, 1))); color: #2F8FD8; }
@@ -1308,6 +1350,7 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <section id="field" style="display:contents">
     <div class="orders-wrap"><div class="orders" id="orders"></div></div>
     <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+    <div class="m3wrap" id="m3wrap" hidden><div class="m3track" id="m3track"></div><div class="m3area"><div class="m3board" id="m3board"></div></div></div>
   </section>
 
   <section class="view" id="salon" hidden>
@@ -1358,11 +1401,11 @@ svg.trim { border-radius: 30%; background: color-mix(in srgb, var(--tc) 16%, #ff
   <path d="M12.2 10.2V13M15.4 11v2.4M18.6 12v1.8" fill="none" stroke="#1D1F22" stroke-width="1.1" stroke-linecap="round"/>
 </svg></div>
 
-<script src="tg.js?v=38"></script>
-<script src="core.js?v=38"></script>
-<script src="art.js?v=38"></script>
-<script src="salon.js?v=38"></script>
-<script src="monet.js?v=38"></script>
+<script src="tg.js?v=39"></script>
+<script src="core.js?v=39"></script>
+<script src="art.js?v=39"></script>
+<script src="salon.js?v=39"></script>
+<script src="monet.js?v=39"></script>
 <script>
 'use strict';
 const C = Core.CONFIG, P = Core.PARTS, $ = id => document.getElementById(id);
@@ -1377,6 +1420,7 @@ const ICON = {
   fuel: ic('<rect class="d" x="4.5" y="3.5" width="9.5" height="17" rx="2.8"/><path d="M7.6 8.2h3.3M14 9.5h2.4a1.7 1.7 0 0 1 1.7 1.7v4.6a1.5 1.5 0 0 0 3 0V9l-2.4-2.6"/>'),
   coin: ic('<circle class="dg" cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'),
   star: ic('<path class="dg" d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>'),
+  chain: ic('<circle class="d" cx="5" cy="12" r="3"/><circle class="d" cx="12" cy="12" r="3"/><circle class="d" cx="19" cy="12" r="3"/><path d="M8 12h1M15 12h1"/>'),   // цепочка клиентов
   row3: ic('<rect class="d" x="2.5" y="8" width="5.4" height="8" rx="1.6"/><rect class="d" x="9.3" y="8" width="5.4" height="8" rx="1.6"/><rect class="d" x="16.1" y="8" width="5.4" height="8" rx="1.6"/>'),   // три в ряд — финал главы
   race: ic('<path d="M5 21V3.8"/><path class="d" d="M5 4h14v9.5H5z"/><path d="M5 4h14v9.5H5M9.7 4v9.5M14.3 4v9.5M5 8.75h14"/>'),   // клетчатый флаг — заезды
   bolt: ic('<path class="dg" d="M13.4 3 5.8 13.2H11L10 21l7.9-10.5h-5.3z"/>'),          // заряд Ателье (вместо эмодзи)
@@ -1475,7 +1519,7 @@ Core.tick(s, Date.now());
 // ── Журнал наблюдателя: что игрок делал и где завис. Лежит на телефоне, сам никуда не отправляется ──
 // Строка — секунды от запуска страницы и событие словами. Сводка копится на ходу: старые строки её не уносят.
 // Личного нет: ни имени, ни почты, ни времени суток.
-const BUILD = 'сборка 38 от 15.11.2026';                 // build-public.js подставляет номер и дату сборки
+const BUILD = 'сборка 39 от 15.11.2026';                 // build-public.js подставляет номер и дату сборки
 const LOG_KEY = 'garazh.log', LOG_MAX = 500, T0 = Date.now();
 let LOG = { n: 0, ev: [], sum: null, cut: 0 };          // n — номер запуска страницы
 try { const v = JSON.parse(localStorage.getItem(LOG_KEY)); if (v?.ev) LOG = v; } catch {}
@@ -1795,14 +1839,15 @@ const canPrestige = () => Core.salonDone(s) && s.stars >= Core.prestigePrice(s);
 const DOCK = [[ICON.salon, 'Салон'], [ICON.field, 'Гараж'], [ICON.race, 'Заезды'], [ICON.cards, 'Коллекция'], [ICON.bag, 'Магазин']];
 // ── Новая игра (ОТЧЁТ-39): улучшения салона за монеты, репутация ─────────────────────
 const perkList = () => C.race.perks.flatMap((z, zi) => z.map(([id, price, fx]) => ({ id, price, fx, zone: zi, got: !!s.rs?.[id], open: Core.chapterOpen(s, zi) })));
-const perkNext = () => perkList().filter(p => p.open && !p.got).sort((a, b) => a.price - b.price)[0];       // ближайшая покупка — полоска под монетами
-const perkCan = () => perkList().filter(p => p.open && !p.got && s.coins >= p.price).length;                // на сколько улучшений хватает монет
+const garCan = () => Core.garageLvl(s) < C.race.garage.max;                                                 // гараж ещё можно улучшать
+const perkNext = () => [...perkList().filter(p => p.open && !p.got), ...(garCan() ? [{ price: Core.garagePrice(s) }] : [])].sort((a, b) => a.price - b.price)[0];   // ближайшая покупка — полоска под монетами
+const perkCan = () => perkList().filter(p => p.open && !p.got && s.coins >= p.price).length + (garCan() && s.coins >= Core.garagePrice(s) ? 1 : 0);   // на сколько улучшений хватает монет
 function repCard() {
   const tot = Core.raceTotal(s), ev = C.race.chest.every;
-  queuePopup(`<div class="sheet narrow card"><span class="bigic" style="color:#F2C14E">${ICON.star}</span><div class="sh-title">Репутация: ${tot} из ${C.race.levels.length * 3}</div>` +
+  queuePopup(`<div class="sheet narrow card"><span class="bigic" style="color:#F2C14E">${ICON.star}</span><div class="sh-title">Репутация: ${tot}</div>` +
     `<div class="sh-txt">Звёзды за заезды — репутация салона. Они не тратятся.</div>` +
     `<div class="sh-txt">Каждые ${ev} звёзд — сундук с монетами. Следующий — на ${((s.race?.chests || 0) + 1) * ev}.</div>` +
-    `<div class="sh-txt">Новые главы открываются по звёздам.</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, 0, 'card', 'panel');
+    `<div class="sh-txt">Новые круги открываются по звёздам.</div><button class="btn ok" data-close aria-label="Понятно">${ICON.check}</button></div>`, 0, 'card', 'panel');
 }
 // кольцо-волна от слияния и вспышка по краям экрана на длинной серии (заезд)
 function ring(i, color, cn = 1) {
@@ -1895,7 +1940,7 @@ function cellHTML(c, i, hl) {
     // деталь Ателье (задание 20): рамка, заливка и цифра — цвета редкости, которую она даёт (уровень 1 — серый, как у обычной)
     const trim = c.line === Core.TRIM, r = trim ? c.lvl - 1 : c.r || 0;
     // значок сертификата на каждой седьмой: серый — сертификата нет, зелёный и пульсирует — можно сливать
-    const cert = (c.lvl === 7 && c.line < P && !c.broken ? `<i class="needcert${hasCert ? ' on' : ''}">${Art.certMini}</i>` : '') +
+    const cert = (c.lvl === 7 && c.line < P && !c.broken && !s.raceN ? `<i class="needcert${hasCert ? ' on' : ''}">${Art.certMini}</i>` : '') +
       (i === goalCell ? '<i class="goalmark"></i>' : '');
     // сломанная машина: значок нужного инструмента (перетащить его на машину)
     const fix = c.broken ? `<i class="needtool">${Art.item(P, Core.toolFor(c.lvl))}</i>` : '';
@@ -1991,7 +2036,8 @@ function orderHTML(o, oi) {
   const mark = o.kind === 'race' ? (race?.lv.waves.length > 1 ? `${o.id + 1}/${race.lv.waves.length}` : '') : { event: ICON.flag, showcase: ZICON.showroom, vip: ICON.crown, goal: ICON.up }[o.kind];   // заказ-цель — стрелка: собери новую машину
   return `<div class="order k-${o.kind}${o.items.length === 1 ? ' single' : ''}${m.ready ? ' ready' : ''}" data-o="${oi}" role="button" tabindex="0" aria-label="Заказ">` +
     (mark ? `<i class="omark">${mark}</i>` : '') + (m.ready ? `<i class="okmark">${ICON.check}</i>` : '') +
-    `<span class="wants">${items}</span><span class="oval">${val}</span></div>`;
+    `<span class="wants">${items}</span><span class="oval">${val}</span>${o.kind === 'race' && race?.lv.waves.length > o.id + 1 ? `<span class="oq">${race.lv.waves.slice(o.id + 1, o.id + 7).map(raceTiles).join('')}` +
+      `${race.lv.waves.length > o.id + 7 ? `<i>+${race.lv.waves.length - o.id - 7}</i>` : ''}</span>` : ''}</div>`;
 }
 function renderOrders() {
   $('orders').innerHTML = s.orders.slice(0, C.slotPrices.length).map(orderHTML).join('');   // задание 28: карточек — не больше слотов
@@ -2248,7 +2294,7 @@ let zoneSel = null;
 // каждая покупка включает ещё одну лампу — зона на глазах становится светлее. Картинки зон из папки «Салон» (ПРОМТЫ-САЛОНА.md) встанут
 // фоном сцены, когда владелец их сделает. Ниже — улучшения зоны: что дают в заездах и цена в монетах
 const pct = v => Math.round(v * 100);
-const PERK_TXT = fx => fx.tank ? `Бак +${pct(fx.tank)}%: больше топлива на заезд` : fx.tier ? 'Гараж выдаёт машины выше уровнем' : fx.head ? 'Машина 2-го уровня на старте заезда' :
+const PERK_TXT = fx => fx.tank ? `Бак +${pct(fx.tank)}%: больше топлива на заезд` : fx.tier ? 'Гараж: ещё одна ступень' : fx.head ? 'Машина 2-го уровня на старте заезда' :
   fx.pay ? `Клиенты платят на ${pct(fx.pay)}% больше` : fx.tip ? `Чаевые +${pct(fx.tip)}%` : fx.tool ? 'Мастерская чаще даёт инструмент 2-го уровня' :
   fx.trim ? 'Ателье чаще даёт деталь 2-го уровня' : fx.lucky ? `Удачное слияние: шанс +${pct(fx.lucky)}%` : 'Серия слияний возвращает топливо';
 const PERK_IC = fx => fx.tank || fx.nitro ? ICON.fuel : fx.tier ? ICON.up : fx.head ? ICON.plus : fx.pay || fx.tip ? ICON.coin : fx.tool ? ICON.wrench : fx.trim ? ZICON.showroom : ICON.bolt;
@@ -2264,7 +2310,7 @@ function renderSalonNG() {
   $('zoneTabs').innerHTML = R.chapters.map((zid, k) => { const it = list.filter(p => p.zone === k), g = it.filter(p => p.got).length, op = Core.chapterOpen(s, k);
     return `<button class="ztab${k === zi ? ' on' : ''}${g === it.length ? ' done' : ''}${op ? '' : ' locked'}" data-z="${k}" aria-label="${ZNAME[k]}">${op ? ZICON[zid] : ICON.lock}<b class="zn">${g}/${it.length}</b></button>`; }).join('');
   // что салон уже даёт в заездах — одной строкой чипов
-  const sum = [['tank', v => `${ICON.fuel}+${pct(v)}%`], ['tier', v => `${ICON.up}${v}`], ['head', v => `${ICON.plus}${v}`], ['pay', v => `${ICON.coin}+${pct(v)}%`], ['nitro', v => `${ICON.flame}${v}`]]
+  const sum = [['tank', v => `${ICON.fuel}+${pct(v)}%`], ['head', v => `${ICON.plus}${v}`], ['pay', v => `${ICON.coin}+${pct(v)}%`], ['nitro', v => `${ICON.flame}${v}`]]
     .map(([k, f]) => { const v = Core.perk(s, k); return v ? `<span class="chip">${f(v)}</span>` : ''; }).join('');
   const img = Art.item(car[0], car[1], false, car[2], true);
   const stage = `<div class="stg z${zi}${got === items.length ? ' full' : ''}${open ? '' : ' shut'}" style="--lit:${(got / items.length).toFixed(2)}"><i class="stg-wall"></i>` +
@@ -2276,8 +2322,13 @@ function renderSalonNG() {
     `<span class="dc-txt"><b>${ITEM_NAME[p.id]}</b><span>${PERK_TXT(p.fx)}</span></span>` +
     (p.got ? `<i class="pk-ok">${ICON.check}</i>` : open ? `<button class="btn gold pk-buy${s.coins >= p.price ? '' : ' off'}" data-buy="${p.id}" aria-label="Купить за ${p.price}"><span class="price">${ICON.coin}${p.price}</span></button>` :
       `<span class="price off">${ICON.lock}${p.price}</span>`) + '</div>').join('');
-  $('scene').innerHTML = stage + (sum ? `<div class="pk-sum"><span>Сейчас в заездах:</span>${sum}</div>` : '') +
-    (open ? '' : `<div class="sh-txt">Зона откроется вместе с главой «${ZNAME[zi]}».</div>`) + rows;
+  // гараж — улучшение без конца (до max): с какого уровня выезжают машины; цена растёт
+  const g = Core.garageLvl(s), gp = Core.garagePrice(s), gb = 1 + Math.floor(g / 3);
+  const gar = `<div class="card-row perk gar" data-perk="gar"><span class="tic">${GARAGE_IC}</span><span class="dc-txt"><b>Гараж · ступень ${g}</b>` +
+    `<span>Машины выезжают ${g % 3 ? `${gb}–${gb + 1}` : gb}-го уровня. Выше ступень — старше машины.</span></span>` +
+    (garCan() ? `<button class="btn gold pk-buy${s.coins >= gp ? '' : ' off'}" data-buy="gar" aria-label="Улучшить гараж за ${gp}"><span class="price">${ICON.coin}${gp}</span></button>` : `<i class="pk-ok">${ICON.check}</i>`) + '</div>';
+  $('scene').innerHTML = stage + gar + (sum ? `<div class="pk-sum"><span>Сейчас в заездах:</span>${sum}</div>` : '') +
+    (open ? '' : `<div class="sh-txt">Зона откроется вместе с кругом «${ZNAME[zi]}».</div>`) + rows;
 }
 function renderSalon() {
   if (NEW) return renderSalonNG();
@@ -2808,24 +2859,52 @@ function playFx(ev) {
   }
 }
 
-// ── Заезды (ОТЧЁТ-37): уровень на время — отдельная маленькая игра на месте поля. s на время заезда — состояние заезда (Core.newRace),
-// основная игра ждёт в race.main и не сохраняется заново. Цель — карточка заказа: собрал машины — нажал — финиш ──
+// ── Заезды (ОТЧЁТ-37…41): уровень — отдельная маленькая игра на месте поля. s на время заезда — состояние заезда (Core.newRace),
+// основная игра ждёт в race.main и не сохраняется заново. Мини-игры: слияние, «три в ряд» слиянием, цепочка клиентов и гонка
+// «три в ряд» с обменом и сгоранием (у неё своё поле #m3board, s не подменяется) ──
 const raceStarsHTML = (n, cls) => `<span class="rstars ${cls}">${[1, 2, 3].map(k => `<i class="${k <= n ? 'on' : ''}">${ICON.star}</i>`).join('')}</span>`;
+const MODE_NAME = { merge: 'Слияние', row3: 'Три в ряд', chain: 'Цепочка', m3: 'Гонка' };
+const MODE_IC = m => ({ merge: ICON.merge, row3: ICON.row3, chain: ICON.chain, m3: ICON.race }[m]);
+const MODE_RULE = { merge: 'Сливай одинаковые машины.', row3: 'Пара не сливается: поставь три одинаковые в ряд.', chain: 'Сдавай машины по очереди, одну за другой.',
+  m3: 'Меняй соседние машины местами: три в ряд сгорают и везут тебя к финишу.' };
+// что нового в круге: первые пять кругов открывают зоны салона и по одному правилу
+const CYNEW = ['Четыре мини-игры по кругу.', 'Новое: сломанные машины.', 'Новое: внедорожники.', 'Новое: редкость.', 'Новое: купе.'];
+const cycleName = c => c < C.race.chapters.length ? ZNAME[c] : `Круг ${c + 1}`, cycleIcon = c => c < C.race.chapters.length ? ZICON[C.race.chapters[c]] : ICON.race;
+const R3HOW = ['Здесь машины не сливаются парой.', 'Поставь три одинаковые в ряд — в строку или в столбец.', 'Взял машину — подходящие клетки засветятся.'];
+const FIXHOW = ['Сломанную машину нельзя слить и сдать.', 'Мастерская (слева от гаража) даёт инструменты — их тоже сливают.', 'Перетащи на машину инструмент, как на её значке.'];
+const RARHOW = ['Цель в цветной рамке — нужна редкая машина.', 'Ателье (справа от гаража) даёт детали: слей две и перетащи на машину.', 'Редкая + обычная = обычная.'];
+const CHAINHOW = ['Клиенты идут один за другим.', 'Сдал машину — сразу следующая. Очередь видна на карточке.', 'С каждым кругом цепочка длиннее.'];
+const M3HOW = ['Меняй местами соседние машины.', 'Три одинаковые в ряд сгорают — твоя машина едет вперёд.', 'Приедь к финишу раньше соперника.'];
+// карточки-знакомства (один раз, перед уровнем, где мини-игра или правило встречается впервые): [ключ, значок, заголовок, строки]
+const introOf = lv => [lv.mode === 'row3' && ['m-row3', ICON.row3, 'Три в ряд', R3HOW], lv.mode === 'chain' && ['m-chain', ICON.chain, 'Цепочка', CHAINHOW], lv.m3 && ['m-m3', ICON.race, 'Гонка: три в ряд', M3HOW],
+  lv.tools && ['x-fix', ICON.wrench, 'Сломанные машины', FIXHOW], lv.kinds > 1 && ['x-kind', GARAGE_IC, 'Разные виды машин', ['Гараж выдаёт разные виды машин.', 'Сливаются только одинаковые.']],
+  lv.trims && ['x-rar', ZICON.showroom, 'Редкость', RARHOW]].filter(Boolean).find(x => !s.hintSeen[x[0]]);
 function raceStart(n) {
   if (race) return;
-  const lv = Core.raceLevel(n, s), now = Date.now(), main = s;
+  const lv = Core.raceLevel(n, s), now = Date.now(), main = s, seed = (Math.random() * 2 ** 31) | 0, root = document.documentElement;
+  // первые уровни и первый уровень круга, пока не пройдены, — «обучение»: подсказка показывается сразу; дальше — после паузы
+  const teach = !main.race?.best[n] && (n <= 7 || lv.pos === 0);
   popups.length = 0; popupOpen?.close(); hidePop(); hideFinger(); clearPairs();
-  s = Core.newRace(n, now, (Math.random() * 2 ** 31) | 0, main);
+  // end — когда кончится топливо; 0 — ещё не пошло (пойдёт с первого нажатия гаража); nitro — улучшение «серия возвращает топливо»
+  race = { n, lv, main, end: 0, stars: 3, nitro: Core.perk(main, 'nitro'), teach };
+  L(`заезд ${n}: старт — ${MODE_NAME[lv.mode].toLowerCase()}, ${lv.m3 ? `трасса ${lv.m3.len}, видов машин ${lv.m3.types}, соперник — ${lv.m3.foe} с` : `${lv.secs} с, цель: ` +
+    lv.waves.map(w => w.map(([line, lvl, cnt, r = 0]) => `${['легковая', 'внедорожник', 'купе'][line]} ${lvl} ур.${r > 0 ? ' ' + ['', 'зелёная', 'синяя', 'фиолетовая', 'оранжевая'][r] : ''}${cnt > 1 ? ' ×' + cnt : ''}`).join(', ')).join(' → ') +
+    `${lv.start.length ? `; на старте машин: ${lv.start.length}` : ''}`}`);
+  root.classList.add('racing');
+  $('raceQuit').innerHTML = ICON.close; $('raceLvl').innerHTML = MODE_IC(lv.mode) + n; $('raceFuel').innerHTML = ICON.fuel;
+  if (lv.m3) {                             // гонка «три в ряд»: своё поле, основная игра (s) не подменяется
+    Object.assign(race, { m3: Core.m3New(lv, seed), me: 0, foe: 0, t0: 0, at: now });
+    root.classList.add('m3on'); $('m3wrap').hidden = false;
+    if (view !== 'field') setView('field');
+    fit(); m3Render(); m3Last = now; sound('unlock');
+    // картинки машин поля и соперника могли ещё не загрузиться (вместо них — серые силуэты): догрузить и перерисовать плитки
+    Promise.all([...M3CARS.slice(0, lv.m3.types), [2, Math.min(8, zoneBest(0)[1] + 1)]].map(([l, v]) => Art.preload(l, v, 0))).then(() => { if (race?.m3) { if (m3busy) m3Stale = true; else m3Render(); } });
+    return;
+  }
+  s = Core.newRace(n, now, seed, main);
   Object.assign(s, { sound: main.sound, day0: main.day0, giftDay: todayKey(), fresh: {}, hintSeen: Object.fromEntries(HINTS.map(h => [h.id, 1])) });
   s.hintRead = { ...s.hintSeen };
-  // первый уровень главы, пока не пройден, — «обучение»: палец показывает сразу; дальше — после паузы, как в обычной игре
-  s.n.orders = (n === lv.ch * C.race.per + 1 || lv.row3) && !main.race?.best[n] ? 0 : 2;      // и на финале «три в ряд»
-  // end — когда кончится топливо; 0 — ещё не пошло (пойдёт с первого нажатия гаража); nitro — улучшение «серия возвращает топливо»
-  race = { n, lv, main, end: 0, stars: 3, nitro: Core.perk(main, 'nitro') };
-  L(`заезд ${n}: старт — ${lv.secs} с, цель: ${lv.waves.map(w => w.map(([line, lvl, cnt, r = 0]) => `${['легковая', 'внедорожник', 'купе'][line]} ${lvl} ур.${r > 0 ? ' ' + ['', 'зелёная', 'синяя', 'фиолетовая', 'оранжевая'][r] : ''}${cnt > 1 ? ' ×' + cnt : ''}`).join(', ')).join(' → ')}` +
-    `${lv.start.length ? `; на старте машин: ${lv.start.length}` : ''}`);
-  document.documentElement.classList.add('racing');
-  $('raceQuit').innerHTML = ICON.close; $('raceLvl').innerHTML = (lv.row3 ? ICON.row3 : ZICON[C.race.chapters[lv.ch]]) + n; $('raceFuel').innerHTML = ICON.fuel;
+  s.n.orders = teach ? 0 : 2;
   readyIds = new Set(); viewKey = '';
   if (view !== 'field') setView('field'); else renderAll();
   fit(); raceTick();
@@ -2834,25 +2913,26 @@ function raceStart(n) {
   anim(orderEl(0), [{ transform: 'translateY(-34px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
   sound('unlock');
 }
-// stars: 1–3 — финиш, 0 — топливо кончилось, −1 — вышел сам. Финиш: клиенты платят, остаток бака — чаевые, новые карточки — в коллекцию
+// stars: 1–3 — финиш, 0 — топливо кончилось (в гонке — соперник приехал первым), −1 — вышел сам. Финиш: оплата, чаевые за остаток бака
+// (в гонке — за отрыв от соперника), новые карточки — в коллекцию
 function raceEnd(stars) {
-  const { n, main, lv } = race, rs = s, left = stars > 0 ? Math.max(0, raceLeft()) / (lv.secs * 1000) : 0;
+  const { n, main, lv, m3 } = race, rs = m3 ? null : s, left = stars <= 0 ? 0 : m3 ? Math.max(0, 1 - race.foe) : Math.max(0, raceLeft()) / (lv.secs * 1000);
   race = null; s = main;
-  document.documentElement.classList.remove('racing'); $('vig').className = '';
+  document.documentElement.classList.remove('racing', 'm3on'); $('vig').className = ''; $('m3wrap').hidden = true; $('m3board').innerHTML = '';
   popups.length = 0; popupOpen?.close(); hidePop(); hideFinger(); clearPairs();
   document.querySelectorAll('.floater, .spark, .fly, .ring').forEach(el => el.remove());      // отклик заезда не висит над основной игрой
   if (press) { clearTimeout(press.timer); press = null; ghost?.remove(); ghost = null; over = null; dragging = false; }
   readyIds = readyNow(); viewKey = '';
   const coins0 = s.coins, e = stars > 0 ? Core.raceDone(s, n, stars, left)[0] : null;
   if (e) {
-    e.left = left; e.cards = Core.raceCards(s, rs);
+    e.left = left; e.cards = rs ? Core.raceCards(s, rs) : [];
     e.cards.forEach(c => { const k = Core.key(c.line, c.lvl); s.fresh[k] = 1; (s.seenAt ||= {})[`${k}:${c.r}`] = todayKey(); if (!c.model) (s.landRar ||= {})[k] = c.r; });
     s.coins = coins0;      // монеты на счётчике «доезжают» вместе с цифрами итога
   }
   Core.tick(s, Date.now()); setView('race'); fit();      // после заезда — снова карта уровней
   if (e) s.coins = coins0 + e.coins;
-  L(`заезд ${n}: ${stars > 0 ? `финиш, звёзд ${stars}, бака осталось ${Math.round(left * 100)}%; клиенты ${e.pay}, чаевые ${e.tips}${e.prize ? `, приз главы ${e.prize}` : ''}${e.chest ? `, сундук ${e.chest}` : ''}` +
-    `; новых карточек ${e.cards.length}` : stars < 0 ? 'вышел сам' : 'топливо кончилось'}`);
+  L(`заезд ${n}: ${stars > 0 ? `финиш, звёзд ${stars}, ${m3 ? 'отрыв' : 'бака осталось'} ${Math.round(left * 100)}%; оплата ${e.pay}, чаевые ${e.tips}${e.prize ? `, приз круга ${e.prize}` : ''}${e.chest ? `, сундук ${e.chest}` : ''}` +
+    `; новых карточек ${e.cards.length}` : stars < 0 ? 'вышел сам' : m3 ? 'соперник приехал первым' : 'топливо кончилось'}`);
   if (stars < 0) return;
   if (e) { save(); buzz([20, 40, 20]); vigFlash('31,209,127'); pop(document.querySelector('#race .rlv.next')); } else sound('no');
   queuePopup(raceCard(n, e), 250, e ? 'level' : 'card', 'panel', el => {
@@ -2877,34 +2957,51 @@ function countUp(el, to, ms = 300) {
 }
 // уровень, который стоит переиграть ради звёзд: первый пройденный не на три звезды
 const raceRetry = () => { const z = s.race || { lvl: 1, best: {} }; for (let n = 1; n < z.lvl; n++) if ((z.best[n] || 0) < 3) return n; return Math.max(1, z.lvl - 1); };
-// цель уровня плитками (и «?» — следующие клиенты очереди)
-const raceGoal = lv => raceTiles(lv.items) + '<span class="rq">?</span>'.repeat(lv.waves.length - 1);
-// Итог заезда: e — событие raceDone (звёзды, оплата, чаевые, приз, сундук, карточки) или null — топливо кончилось.
-// Внизу — следующий уровень: его машины и время, а не только кнопка (правка владельца)
+const raceTiles = items => items.map(([line, lvl, n, r = -1]) => { const q = Math.max(0, r);
+  return `<span class="rtile pl${r > 0 ? ' req' : ''}" style="${rv(q)}">${Art.item(line, lvl, false, q)}${badge(lvl)}${n > 1 ? `<i class="cnt2">×${n}</i>` : ''}</span>`; }).join('');
+// цель уровня плитками: слияние и «три в ряд» — машины цели; цепочка — её первые машины и «+N»; гонка — машины поля и длина трассы
+const raceGoal = lv => lv.m3 ? `<span class="rgm3">${M3CARS.slice(0, lv.m3.types).map(([l, v]) => `<span class="rtile pl" style="${rv(0)}">${Art.item(l, v)}</span>`).join('')}</span>` :
+  lv.mode === 'chain' ? `<span class="rgchain">${lv.waves.slice(0, 5).map(raceTiles).join('')}${lv.waves.length > 5 ? `<span class="chip">+${lv.waves.length - 5}</span>` : ''}</span>` : raceTiles(lv.items);
+const modeChip = lv => lv.mode === 'merge' ? '' : `<span class="chip r3">${MODE_IC(lv.mode)}${MODE_NAME[lv.mode]}${lv.mode === 'chain' ? ' · ' + lv.waves.length : ''}</span>`;
+// Итог заезда: e — событие raceDone (звёзды, оплата, чаевые, приз, сундук, карточки) или null — топливо кончилось / соперник первым.
+// Внизу — следующий уровень: его мини-игра, машины и время, а не только кнопка (правка владельца)
 function raceCard(n, e) {
   const again = `<button class="btn light" data-race="${n}" aria-label="Ещё раз">${ICON.refresh}</button>`, close = `<button class="btn light" data-close aria-label="Закрыть">${ICON.close}</button>`;
-  if (!e) return `<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="rflag">${ICON.race}<b>${n}</b></span><span class="bigic" style="color:#E5484D">${ICON.fuel}</span>` +
-    `<div class="sh-title">Топливо кончилось</div><div class="obig">${raceGoal(Core.raceLevel(n, s))}</div><div class="obtns">${again.replace('btn light', 'btn ok')}${close}</div></div>`;
+  const lv = Core.raceLevel(n, s);
+  if (!e) return `<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="rflag">${ICON.race}<b>${n}</b></span><span class="bigic" style="color:#E5484D">${lv.m3 ? ICON.race : ICON.fuel}</span>` +
+    `<div class="sh-title">${lv.m3 ? 'Соперник приехал первым' : 'Топливо кончилось'}</div><div class="obig">${raceGoal(lv)}</div><div class="obtns">${again.replace('btn light', 'btn ok')}${close}</div></div>`;
   const row = (ic, name, v) => v ? `<span class="rrow">${ic}<span>${name}</span><b data-n="${v}">+0</b></span>` : '';
-  const nx = Core.raceLevel(n + 1, s), open = Core.chapterOpen(s, nx.ch), need = C.race.gate * nx.ch, retry = raceRetry();
+  const nx = Core.raceLevel(n + 1, s), open = Core.chapterOpen(s, nx.cycle), need = C.race.gate * nx.cycle, retry = raceRetry();
   const cards = e.cards.slice(0, 8).map((c, k) => `<span class="ncard pl" style="${rv(c.r)};--d:${k}">${Art.item(c.line, c.lvl, false, c.r)}${badge(c.lvl)}</span>`).join('') +
     (e.cards.length > 8 ? `<span class="chip">+${e.cards.length - 8}</span>` : '');
   return `<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="rflag">${ICON.race}<b>${n}</b></span>` + raceStarsHTML(e.stars, 's3') +
-    (e.chapter >= 0 ? `<div class="sh-title">Глава пройдена: ${ZNAME[e.chapter]}</div>` : '') +
+    (e.chapter >= 0 ? `<div class="sh-title">Круг пройден: ${cycleName(e.chapter)}</div>` : '') +
     `<div class="rpay"><span class="rtank"><i style="width:${Math.round(e.left * 100)}%"></i></span>` +
-      row(ICON.card, 'Клиенты', e.pay) + row(ICON.fuel, 'Чаевые за остаток бака', e.tips) + row(ICON.flag, 'Приз главы', e.prize) + row(ICON.chest, 'Сундук репутации', e.chest) +
+      row(ICON.card, 'Оплата', e.pay) + row(lv.m3 ? ICON.race : ICON.fuel, lv.m3 ? 'Чаевые за отрыв' : 'Чаевые за остаток бака', e.tips) + row(ICON.flag, 'Приз круга', e.prize) + row(ICON.chest, 'Сундук репутации', e.chest) +
       `<span class="rsum">${ICON.coin}<b data-n="${e.coins}">+0</b></span></div>` +
     (cards ? `<div class="rcards-t">Новые карточки: ${e.cards.length}</div><div class="rcards">${cards}</div>` : '') +
-    (open ? `<div class="rnext"><span class="rn-t">Дальше · заезд ${n + 1}<span class="chip">${ICON.fuel}${nx.secs} с</span>${nx.row3 ? `<span class="chip">${ICON.row3}</span>` : ''}</span><div class="obig">${raceGoal(nx)}</div></div>` +
+    (open ? `<div class="rnext"><span class="rn-t">Дальше · заезд ${n + 1}<span class="chip">${nx.m3 ? ICON.race : ICON.fuel}${nx.secs} с</span></span>${modeChip(nx)}<div class="obig">${raceGoal(nx)}</div></div>` +
         `<div class="obtns"><button class="btn ok rnx" data-race="${n + 1}" aria-label="Следующий заезд">${ICON.play}Старт</button>${e.stars < 3 ? again : ''}${close}</div>` :
-      `<div class="sh-txt">Глава «${ZNAME[nx.ch]}» откроется при ${need} звёздах репутации. Сейчас ${Core.raceTotal(s)}.</div>` +
+      `<div class="sh-txt">«${cycleName(nx.cycle)}» откроется при ${need} звёздах репутации. Сейчас ${Core.raceTotal(s)}.</div>` +
         `<div class="obtns"><button class="btn ok" data-race="${retry}" aria-label="Переиграть заезд ${retry}">${ICON.refresh}${retry}</button>${close}</div>`) + '</div>';
 }
 const raceClicks = el => el.addEventListener('click', e => { const b = e.target.closest('[data-race]'); if (b) { el.close(); raceGo(+b.dataset.race); } });
-// полоса времени, секунды и звёзды на карточке цели; время вышло — проигрыш (машину в руке даём опустить)
+// полоса времени, секунды и звёзды на карточке цели; время вышло — проигрыш (машину в руке даём опустить).
+// Гонка «три в ряд»: соперник едет по времени (быстрее, когда ты далеко впереди), подсказка хода — после паузы
 const raceLeft = () => race.end ? race.end - Date.now() : race.lv.secs * 1000;
 function raceTick() {
   if (!race) return;
+  if (race.m3) {
+    const now = Date.now(), M = C.race.m3;
+    if (race.t0) {
+      const lead = race.me - race.foe;
+      race.foe += (now - race.at) / 1000 / race.lv.m3.foe * (lead > M.lead ? M.band[0] : lead < 0 ? M.band[1] : 1); race.at = now;
+      m3Track();
+      if (race.foe >= 1 && !m3busy) return raceEnd(0);
+    }
+    if (!m3busy && !popupOpen && now - m3Last > (race.teach ? 2200 : 6000)) m3ShowHint();
+    return;
+  }
   const left = raceLeft(), st = left > 0 ? Core.raceStars(race.lv, left) : 1;
   $('raceBar').style.width = Math.max(0, left / (race.lv.secs * 10)).toFixed(1) + '%';
   const sec = Math.max(0, Math.ceil(left / 1000));
@@ -2916,62 +3013,139 @@ function raceTick() {
   if (left <= 0 && !dragging) raceEnd(0);
 }
 setInterval(raceTick, 100);
-// Экран «Заезды» — главный экран игры (ОТЧЁТ-38): карточка следующего уровня (глава, цель, время, большая кнопка «Старт») и главы —
-// зоны салона; у главы своё правило (одной строкой), её уровни со звёздами (пройденный можно переиграть); закрытая глава — без уровней
-const CHRULE = ['Сливай одинаковые машины.', 'Сломанную чини инструментом.', 'Клиенты идут один за другим.', 'Редкость поднимают детали Ателье.', 'Внедорожники, купе и все правила сразу.'];
-// карточка главы (один раз, перед её первым уровнем): правило — 2–3 короткие строки
-const CHHOW = [[], ['Сломанную машину нельзя слить и сдать.', 'Мастерская (слева от гаража) даёт инструменты — их тоже сливают.', 'Перетащи на машину инструмент, как на её значке.'],
-  ['Клиенты идут один за другим.', 'Сдал машину — сразу следующая цель.', 'Время — одно на всех.'],
-  ['Цель в цветной рамке — нужна редкая машина.', 'Ателье (справа от гаража) даёт детали: слей две и перетащи на машину.', 'Редкая + обычная = обычная.'],
-  ['Гараж выдаёт разные виды машин.', 'Сливаются только одинаковые.', 'Дальше — все правила сразу.']];
-const R3HOW = ['В финале машины не сливаются парой.', 'Поставь три одинаковые в ряд — в строку или в столбец.', 'Взял машину — подходящие клетки засветятся.'];
-const raceTiles = items => items.map(([line, lvl, n, r = -1]) => { const q = Math.max(0, r);
-  return `<span class="rtile pl${r > 0 ? ' req' : ''}" style="${rv(q)}">${Art.item(line, lvl, false, q)}${badge(lvl)}${n > 1 ? `<i class="cnt2">×${n}</i>` : ''}</span>`; }).join('');
+
+// ── Гонка «три в ряд» (ОТЧЁТ-41): поле из машин; обмен соседних — пальцем по машине в сторону соседки или два нажатия подряд.
+// Правила — Core.m3Swap; здесь — плитки (каждая — свой элемент, двигается transform), трасса с двумя машинами и подсказка хода
+const M3CARS = [[0, 1], [0, 2], [1, 1], [2, 1], [0, 3], [1, 2]];      // виды плиток — разные модели: по картинке и по цвету подложки
+let m3busy = false, m3Last = 0, m3Sel = -1, m3Cell = 0, m3Down = null, m3Stale = false;
+const m3El = id => $('m3board').querySelector(`[data-id="${id}"]`);
+const m3Pos = (i, up = 0) => `translate(${(i % race.m3.w) * m3Cell}px,${(Math.floor(i / race.m3.w) - up) * m3Cell}px)`;
+const m3Tile = (c, i, up = 0) => `<div class="m3t t${c.t}" data-id="${c.id}" style="width:${m3Cell}px;height:${m3Cell}px;transform:${m3Pos(i, up)}"><span class="m3p">${Art.item(...M3CARS[c.t])}</span></div>`;
+function m3Render() {
+  const st = race.m3, area = $('m3board').parentNode;
+  m3Cell = Math.floor(Math.min(area.clientWidth / st.w, area.clientHeight / st.h, 72));
+  Object.assign($('m3board').style, { width: m3Cell * st.w + 'px', height: m3Cell * st.h + 'px' });
+  $('m3board').innerHTML = st.cells.map((c, i) => m3Tile(c, i)).join('');
+  const me = zoneBest(0), flip = l => Core.CAR_FACE.line[l] === 'left' ? ' flip' : '';      // машины едут вправо: смотрящих влево — отразить
+  $('m3track').innerHTML = `<div class="lane me"><i class="lane-car${flip(me[0])}">${Art.item(me[0], me[1], false, me[2])}</i><i class="lane-flag">${ICON.race}</i></div>` +
+    `<div class="lane foe"><i class="lane-car${flip(2)}">${Art.item(2, Math.min(8, me[1] + 1), false, 0)}</i><i class="lane-flag">${ICON.race}</i></div>`;
+  m3Track();
+}
+function m3Track() {
+  if (!race?.m3) return;
+  [...$('m3track').children].forEach((lane, k) => lane.style.setProperty('--p', Math.min(1, k ? race.foe : race.me).toFixed(4)));
+}
+const m3Wait = ms => new Promise(r => setTimeout(r, RM.matches ? Math.min(ms, 60) : ms));
+// сыграть события обмена: обмен, сгорание, падение — по очереди; ida, idb — плитки, которые стояли на клетках a и b
+async function m3Play(ev, ida, idb, a, b) {
+  m3busy = true; m3Hide();
+  const st = race.m3;
+  for (const e of ev) {
+    if (!race?.m3) return;
+    if (e.t === 'swap' || e.t === 'no') {
+      m3El(ida).style.transform = m3Pos(b); m3El(idb).style.transform = m3Pos(a); await m3Wait(150);
+      if (e.t === 'no') { sound('no'); buzz(8); m3El(ida).style.transform = m3Pos(a); m3El(idb).style.transform = m3Pos(b); await m3Wait(150); }
+    } else if (e.t === 'burn') {
+      e.ids.forEach(id => m3El(id)?.classList.add('burn'));
+      race.me = Math.min(1, st.dist / st.len); m3Track();
+      sound(e.combo > 1 ? 'coin' : 'merge', e.combo - 1); buzz(e.combo > 1 ? [15, 30, 15] : 12);
+      if (e.combo > 1) { vigFlash(); floatText($('m3track'), `<span class="mul combo">${ICON.flame}${e.combo}</span>`, 'fl-nitro'); }
+      await m3Wait(190);
+      e.ids.forEach(id => m3El(id)?.remove());
+    } else if (e.t === 'fall') {
+      $('m3board').insertAdjacentHTML('beforeend', e.born.map(x => m3Tile(x, x.to, x.drop)).join(''));
+      $('m3board').offsetWidth;                                        // новые плитки встали над полем — теперь едут вниз
+      e.moves.forEach(([id, to]) => { const el = m3El(id); if (el) el.style.transform = m3Pos(to); });
+      e.born.forEach(x => { m3El(x.id).style.transform = m3Pos(x.to); });
+      await m3Wait(210);
+    } else if (e.t === 'shuffle') { $('m3board').innerHTML = st.cells.map((c, i) => m3Tile(c, i)).join(''); anim($('m3board'), [{ opacity: .2 }, { opacity: 1 }], { duration: 300 }); await m3Wait(300); }
+  }
+  m3busy = false; m3Last = Date.now();
+  if (race?.m3 && m3Stale) { m3Stale = false; m3Render(); }
+  if (race?.m3 && race.me >= 1) { const lead = 1 - race.foe; raceEnd(lead >= C.race.stars[0] ? 3 : lead >= C.race.stars[1] ? 2 : 1); }
+}
+function m3Try(a, b) {
+  const st = race?.m3;
+  if (!st || m3busy || b < 0 || b >= st.cells.length) return;
+  const ida = st.cells[a].id, idb = st.cells[b].id, ev = Core.m3Swap(st, a, b);
+  if (!ev.length) return;
+  if (!race.t0 && ev[0].t === 'swap') race.t0 = race.at = Date.now();      // гонка началась с первого удачного обмена
+  L(`гонка: обмен ${a}↔${b} — ${ev[0].t === 'no' ? 'ряда нет' : `сгорело ${ev.filter(e => e.t === 'burn').reduce((n, e) => n + e.cells.length, 0)}, по трассе ${Math.round(st.dist)} из ${st.len}`}`);
+  m3Play(ev, ida, idb, a, b);
+}
+const m3Hide = () => { m3Sel = -1; $('m3board').querySelectorAll('.hint, .sel').forEach(el => el.classList.remove('hint', 'sel')); };
+function m3ShowHint() {
+  const st = race.m3, h = Core.m3Hint(st);
+  m3Last = Date.now();
+  if (h) [h.a, h.b].forEach(i => m3El(st.cells[i].id)?.classList.add('hint'));
+}
+const m3Index = el => race.m3.cells.findIndex(c => c.id === +el.dataset.id);
+$('m3board').addEventListener('pointerdown', e => {
+  const el = e.target.closest('.m3t');
+  if (!el || !race?.m3 || m3busy) return;
+  m3Down = { i: m3Index(el), x: e.clientX, y: e.clientY }; m3Last = Date.now();
+  $('m3board').querySelectorAll('.hint').forEach(x => x.classList.remove('hint'));
+});
+$('m3board').addEventListener('pointermove', e => {
+  if (!m3Down || !race?.m3) return;
+  const dx = e.clientX - m3Down.x, dy = e.clientY - m3Down.y, k = +getComputedStyle(document.documentElement).getPropertyValue('--k') || 1, th = m3Cell * k * .3, w = race.m3.w;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < th) return;
+  const i = m3Down.i, j = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? (i % w < w - 1 ? i + 1 : -1) : (i % w ? i - 1 : -1)) : i + (dy > 0 ? w : -w);
+  m3Down = null; m3Hide(); m3Try(i, j);
+});
+addEventListener('pointerup', () => {      // нажатие без движения: выбрать машину; вторым нажатием по соседке — обмен
+  if (!m3Down || !race?.m3) { m3Down = null; return; }
+  const i = m3Down.i; m3Down = null;
+  if (m3Sel >= 0 && m3Sel !== i) { const a = m3Sel; m3Hide(); return m3Try(a, i); }
+  m3Hide(); m3Sel = i; m3El(race.m3.cells[i].id)?.classList.add('sel');
+});
+
+// Экран «Заезды» — главный экран игры (ОТЧЁТ-38, 41): карточка следующего уровня (круг, мини-игра, цель, время, «Старт») и круги.
+// Круг — per уровней, мини-игры по очереди; первые пять кругов — зоны салона. Показаны текущий круг, прошлый и следующий (закрыт);
+// более ранние — строкой, нажатие раскрывает
+let mapOpen = -1;
 function renderRace() {
-  const R = C.race, z = s.race || { lvl: 1, best: {} }, total = Core.raceTotal(s);
-  // глава следующего уровня закрыта по звёздам — на главной карточке уровень, который стоит переиграть
-  const gated = !Core.chapterOpen(s, Core.raceLevel(z.lvl).ch), heroN = gated ? raceRetry() : z.lvl, lv = Core.raceLevel(heroN, s);
-  const btn = n => n > z.lvl || !Core.chapterOpen(s, Core.raceLevel(n).ch) ? `<div class="rlv locked">${ICON.lock}</div>` :
-    `<button class="rlv${n === z.lvl ? ' next' : ' done'}" data-race="${n}" aria-label="Заезд ${n}"><span class="rl-n">${Core.raceLevel(n).row3 ? ICON.row3 : ''}${n}</span>${raceStarsHTML(z.best[n] || 0, 's1')}</button>`;
-  const chapters = R.chapters.map((id, ch) => {
-    const from = ch * R.per + 1, open = Core.chapterOpen(s, ch), ns = Array.from({ length: R.per }, (_, k) => from + k), got = ns.reduce((a, n) => a + (z.best[n] || 0), 0);
-    const done = !!z.best[from + R.per - 1], need = R.gate * ch, wait = !open && z.lvl >= from;      // уровни пройдены, а звёзд на главу не хватает
-    return `<div class="rch${open ? '' : ' locked'}${open && Core.raceLevel(z.lvl).ch === ch && z.lvl <= R.levels.length ? ' now' : ''}" data-ch="${ch}"><div class="rch-h">${ZICON[id]}<b>${ZNAME[ch]}</b>` +
+  const R = C.race, z = s.race || { lvl: 1, best: {} }, total = Core.raceTotal(s), cur = Math.floor((z.lvl - 1) / R.per);
+  // круг следующего уровня закрыт по звёздам — на главной карточке уровень, который стоит переиграть
+  const gated = !Core.chapterOpen(s, cur), heroN = gated ? raceRetry() : z.lvl, lv = Core.raceLevel(heroN, s);
+  const btn = n => { const l = Core.raceLevel(n);
+    return n > z.lvl || !Core.chapterOpen(s, l.cycle) ? `<div class="rlv locked"><span class="rl-n">${MODE_IC(l.mode)}</span>${ICON.lock}</div>` :
+      `<button class="rlv${n === z.lvl ? ' next' : ' done'}" data-race="${n}" aria-label="Заезд ${n}: ${MODE_NAME[l.mode]}"><span class="rl-n">${MODE_IC(l.mode)}${n}</span>${raceStarsHTML(z.best[n] || 0, 's1')}</button>`; };
+  const block = c => {
+    const from = c * R.per + 1, open = Core.chapterOpen(s, c), ns = Array.from({ length: R.per }, (_, k) => from + k), got = ns.reduce((a, n) => a + (z.best[n] || 0), 0);
+    const done = !!z.best[from + R.per - 1], need = R.gate * c, wait = !open && z.lvl >= from;      // уровни пройдены, а звёзд на круг не хватает
+    if (c < cur - 1 && c !== mapOpen) return `<button class="rch mini" data-cycle="${c}">${cycleIcon(c)}<b>${cycleName(c)}</b><span class="chip star">${ICON.star}${got}/${R.per * 3}</span></button>`;
+    return `<div class="rch${open ? '' : ' locked'}${open && c === cur ? ' now' : ''}" data-ch="${c}"><div class="rch-h">${cycleIcon(c)}<b>${cycleName(c)}</b>` +
       `<span class="chip${open ? ' star' : ''}">${open ? `${ICON.star}${got}/${R.per * 3}` : wait ? `${ICON.star}${total}/${need}` : ICON.lock}</span></div>` +
-      `<div class="sh-txt">${wait ? `Нужно ${need} звёзд репутации: переиграй уровни быстрее.` : CHRULE[ch]}</div>` +
-      (done ? '' : `<div class="rprize">${ICON.chest}<span>Приз главы</span><span class="chip">${ICON.coin}${R.chapter * (ch + 1)}</span></div>`) +
+      `<div class="sh-txt">${wait ? `Нужно ${need} звёзд репутации: переиграй уровни быстрее.` : CYNEW[c] || 'Всё вместе: машины старше, топлива меньше.'}</div>` +
+      (done ? '' : `<div class="rprize">${ICON.chest}<span>Приз круга${c < R.chapters.length ? ' и зона салона' : ''}</span><span class="chip">${ICON.coin}${R.chapter * (c + 1)}</span></div>`) +
       (open ? `<div class="rgrid">${ns.map(btn).join('')}</div>` : '') + '</div>';
-  }).join('');
-  // после последнего уровня — последняя глава по кругу, время короче
-  const more = z.lvl > R.levels.length ? `<div class="rch now"><div class="rch-h">${ICON.clock}<b>Ещё быстрее</b></div><div class="sh-txt">Те же уровни, топлива меньше.</div>` +
-    `<div class="rgrid">${Array.from({ length: z.lvl - R.levels.length }, (_, k) => btn(R.levels.length + 1 + k)).join('')}</div></div>` : '';
-  $('race').innerHTML = `<div class="view-head">${ICON.race}<span>Заезды</span><span class="chip star rtot">${ICON.star}${total}/${R.levels.length * 3}</span></div>` +
-    `<div class="rhero"><i class="rcheck"></i><div class="rh-top"><span class="chip">${ZICON[R.chapters[lv.ch]]}${ZNAME[lv.ch]}</span><span class="rflag">${ICON.race}<b>${heroN}</b></span>` +
-    `<span class="chip">${ICON.fuel}${lv.secs} с</span>${lv.row3 ? `<span class="chip r3">${ICON.row3}Три в ряд</span>` : ''}</div>` +
+  };
+  $('race').innerHTML = `<div class="view-head">${ICON.race}<span>Заезды</span><span class="chip star rtot">${ICON.star}${total}</span></div>` +
+    `<div class="rhero"><i class="rcheck"></i><div class="rh-top"><span class="chip">${cycleIcon(lv.cycle)}${cycleName(lv.cycle)}</span><span class="rflag">${ICON.race}<b>${heroN}</b></span>` +
+    `<span class="chip">${lv.m3 ? ICON.race : ICON.fuel}${lv.secs} с</span>${modeChip(lv)}</div>` +
     `<div class="obig">${raceGoal(lv)}</div><button class="btn ok rgo" data-race="${heroN}">${gated ? ICON.refresh : ICON.play}${gated ? 'Ещё раз' : 'Старт'}</button>` +
-    `<div class="sh-txt">${gated ? `Для главы «${ZNAME[Core.raceLevel(z.lvl).ch]}» нужно ${R.gate * Core.raceLevel(z.lvl).ch} звёзд. Сейчас ${total}.` : lv.row3 ? 'Финал главы: поставь три одинаковые машины в ряд.' : CHRULE[lv.ch]}</div>` +
-    `<div class="sh-txt rpayline">Оплата <span class="chip">${ICON.coin}${Core.racePay(s, lv)}</span> и чаевые за скорость</div></div>${chapters}${more}`;
+    `<div class="sh-txt">${gated ? `Для круга «${cycleName(cur)}» нужно ${R.gate * cur} звёзд. Сейчас ${total}.` : MODE_RULE[lv.mode]}</div>` +
+    `<div class="sh-txt rpayline">Оплата <span class="chip">${ICON.coin}${Core.racePay(s, lv)}</span> и чаевые за скорость</div></div>` +
+    Array.from({ length: cur + 2 }, (_, k) => cur + 1 - k).map(block).join('');      // следующий (закрыт), текущий, прошлые
 }
 const openRace = () => setView('race');
-// Старт уровня; перед первым уровнем новой главы один раз — карточка с её правилом
+// Старт уровня; перед уровнем, где мини-игра или правило встречается впервые, один раз — карточка-знакомство
 function raceGo(n) {
-  const lv = Core.raceLevel(n), k = 'ch' + lv.ch;
-  if (n > (s.race?.lvl || 1) || !Core.chapterOpen(s, lv.ch)) return;      // уровень ещё закрыт (не пройден прошлый или не хватает звёзд)
-  if (!race && lv.row3 && !s.hintSeen.r3) {      // первый финал «три в ряд» — карточка с правилом
-    s.hintSeen.r3 = 1; save();
-    return queuePopup(`<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="bigic">${ICON.row3}</span><div class="sh-title">Финал главы: три в ряд</div>` +
-      R3HOW.map(t => `<div class="sh-txt">${t}</div>`).join('') +
-      `<div class="obtns"><button class="btn ok" data-race="${n}">${ICON.play}Старт</button><button class="btn light" data-close aria-label="Закрыть">${ICON.close}</button></div></div>`,
-      0, 'level', 'panel', raceClicks);
-  }
-  if (race || !lv.ch || n !== lv.ch * C.race.per + 1 || s.hintSeen[k]) return raceStart(n);
-  s.hintSeen[k] = 1; save();
-  queuePopup(`<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="bigic">${ZICON[C.race.chapters[lv.ch]]}</span><div class="sh-title">Глава ${lv.ch + 1}: ${ZNAME[lv.ch]}</div>` +
-    CHHOW[lv.ch].map(t => `<div class="sh-txt">${t}</div>`).join('') +
+  const lv = Core.raceLevel(n), it = introOf(lv);
+  if (race || n > (s.race?.lvl || 1) || !Core.chapterOpen(s, lv.cycle)) return;      // уровень ещё закрыт (не пройден прошлый или не хватает звёзд)
+  if (!it) return raceStart(n);
+  s.hintSeen[it[0]] = 1; save();
+  queuePopup(`<div class="sheet narrow card racecard"><i class="rcheck"></i><span class="bigic">${it[1]}</span><div class="sh-title">${it[2]}</div>` +
+    it[3].map(t => `<div class="sh-txt">${t}</div>`).join('') +
     `<div class="obtns"><button class="btn ok" data-race="${n}">${ICON.play}Старт</button><button class="btn light" data-close aria-label="Закрыть">${ICON.close}</button></div></div>`,
     0, 'level', 'panel', raceClicks);
 }
-$('race').addEventListener('click', e => { const b = e.target.closest('[data-race]'); if (b) raceGo(+b.dataset.race); });
+$('race').addEventListener('click', e => {
+  const b = e.target.closest('[data-race]'), c = e.target.closest('[data-cycle]');
+  if (b) raceGo(+b.dataset.race);
+  else if (c) { mapOpen = +c.dataset.cycle; renderRace(); }
+});
 $('raceQuit').addEventListener('click', () => { if (race) raceEnd(-1); });
 
 // «Готово»: плакат на сцене законченной зоны
@@ -3265,11 +3439,12 @@ if (NEW) HINTS.splice(0, HINTS.length,
   { id: 'fuel', t: 'Топливо', lvl: 1, ic: () => ICON.fuel, txt: ['Топливо — это время заезда: бак полон на старте и убывает.', 'Чем больше осталось на финише, тем больше звёзд и чаевых.'] },
   { id: 'money', t: 'Монеты', lvl: 1, ic: () => ICON.coin, txt: ['Клиент платит за каждую сданную машину: чем выше уровень и редкость, тем больше.', 'Монеты тратятся в Салоне на улучшения.'] },
   { id: 'rep', t: 'Репутация', lvl: 1, ic: () => ICON.star, txt: ['Звёзды за заезды — репутация салона. Они не тратятся.', `Каждые ${C.race.chest.every} звёзд — сундук с монетами.`, 'Новые главы открываются по звёздам.'] },
-  { id: 'salon', t: 'Салон', lvl: 1, ic: () => ICON.salon, txt: ['Улучшения работают в заездах: бак больше, гараж сильнее, клиенты щедрее.', 'Зона салона открывается вместе со своей главой.'] },
-  { id: 'bench', t: 'Ремонт', lvl: 1, ic: () => ICON.wrench, txt: CHHOW[1] },
+  { id: 'salon', t: 'Салон', lvl: 1, ic: () => ICON.salon, txt: ['Улучшения работают в заездах: бак больше, гараж сильнее, клиенты щедрее.', 'Гараж можно улучшать без конца: машины выезжают выше уровнем.', 'Зона салона открывается вместе со своим кругом.'] },
+  { id: 'bench', t: 'Ремонт', lvl: 1, ic: () => ICON.wrench, txt: FIXHOW },
   { id: 'r3', t: 'Три в ряд', lvl: 1, ic: () => ICON.row3, txt: R3HOW },
-  { id: 'queue', t: 'Очередь клиентов', lvl: 1, ic: () => ZICON.wash, txt: CHHOW[2] },
-  { id: 'rarity', t: 'Редкость', lvl: 1, ic: () => ZICON.showroom, txt: CHHOW[3] },
+  { id: 'queue', t: 'Цепочка', lvl: 1, ic: () => ICON.chain, txt: CHAINHOW },
+  { id: 'm3', t: 'Гонка: три в ряд', lvl: 1, ic: () => ICON.race, txt: M3HOW },
+  { id: 'rarity', t: 'Редкость', lvl: 1, ic: () => ZICON.showroom, txt: RARHOW },
   { id: 'collection', t: 'Коллекция', lvl: 1, ic: () => ICON.cards, txt: ['Каждая машина, собранная в заезде впервые, — новая карточка.', 'У модели пять карточек — по одной на редкость.'] });
 const hintOpen = h => !!s.hintSeen[h.id] || (h.open ? h.open() : s.level >= h.lvl);
 const freshHints = () => s.hintRead ? HINTS.filter(h => hintOpen(h) && !s.hintRead[h.id]) : [];
@@ -3825,7 +4000,7 @@ function showHint() {
 }
 setInterval(() => {
   const now = Date.now();
-  if (dragging || popupOpen || (view !== 'field' && view !== 'salon') || now < busyUntil) { if (hintShown) hideFinger(); return; }
+  if (dragging || popupOpen || (view !== 'field' && view !== 'salon') || now < busyUntil || race?.m3) { if (hintShown) hideFinger(); return; }
   const tutorial = s.n.orders === 0 || (!s.hintSeen.daily && !$('cal').hidden);   // обучение и знакомство с заданиями дня — палец сразу
   if (!hintShown && now - lastInput > (tutorial ? 600 : 5000)) showHint();
 }, 200);
@@ -3905,7 +4080,7 @@ function targets(i) {
     if (j === i || !b || !c) return;
     if (c.k === 'key') { if (Core.canKey(s, j)) out.push([j, false]); return; }
     if (itemPair(c, b)) return out.push([j, false]);
-    if (Core.isCar(c) && Core.isCar(b) && b.line === c.line && b.lvl === c.lvl && c.lvl < Core.maxLvl(c.line) && !(c.lvl === 7 && c.line < P && Core.certAt(s) < 0) && !(s.row3 && c.line < P))
+    if (Core.isCar(c) && Core.isCar(b) && b.line === c.line && b.lvl === c.lvl && c.lvl < Core.maxLvl(c.line) && !(c.lvl === 7 && c.line < P && Core.certAt(s) < 0 && !s.raceN) && !(s.row3 && c.line < P))
       out.push([j, (b.r || 0) !== (c.r || 0)]);
   });
   if (s.row3) Core.row3Targets(s, i).forEach(j => out.push([j, false]));      // «три в ряд»: куда поставить, чтобы собралась тройка
@@ -4031,7 +4206,8 @@ $('orders').addEventListener('click', e => {
   const oi = +b.dataset.o;
   // готовый заказ — сдать сразу; иначе — раскрыть крупно: что нужно, что уже есть на поле, награда
   if (Core.match(s, s.orders[oi]).ready) return play(Core.deliver(s, oi, now));
-  if (race) return hop(b);              // цель заезда не готова — окна заказа (с заменой) у неё нет
+  // цель заезда не готова: нажатие сдаёт те машины цели, что уже стоят на поле; нечего сдать — карточка подпрыгивает (окна заказа у неё нет)
+  if (race) { const ev = Core.deliver(s, oi, now); return ev[0]?.t === 'notReady' ? hop(b) : play(ev); }
   openOrder(oi);
 });
 const KIND = { race: 'Цель заезда', goal: 'Цель: новая машина', quick: 'Быстрый заказ', normal: 'Заказ', big: 'Крупный заказ', showcase: 'Заказ на витрину', event: 'Заказ события', hunt: 'Охота за карточкой', vip: 'VIP-заказ' };
@@ -4101,7 +4277,7 @@ $('scene').addEventListener('click', e => {
   if (buy) {      // новая игра: улучшение салона за монеты
     const ev = Core.raceBuy(s, buy.dataset.buy);
     if (ev[0].t !== 'perk') { shake(buy); shake($('coinPill')); sound('no'); return; }
-    L(`салон: куплено «${ITEM_NAME[ev[0].id]}» за ${ev[0].price} — ${PERK_TXT(ev[0].fx)}`);
+    L(`салон: куплено «${ev[0].id === 'gar' ? `гараж, ступень ${ev[0].lvl}` : ITEM_NAME[ev[0].id]}» за ${ev[0].price} — ${PERK_TXT(ev[0].fx)}`);
     play(ev);
     const st = $('scene').querySelector('.stg'), full = st.classList.contains('full');
     anim(st, [{ filter: 'brightness(1.9)' }, { filter: 'none' }], { duration: 600, easing: 'ease-out' });
@@ -4252,7 +4428,7 @@ if (TG.on) TG.cloudLoad((str, at) => {
 
 // Обновление: страница могла остаться в кэше (Telegram держит старую) — сверить номер сборки с сайтом
 // и один раз перезагрузиться; отметка в sessionStorage не даёт зациклиться. Нет сети или файла — ничего не происходит
-const BUILD_N = 38;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
+const BUILD_N = 39;                        // build-public.js подставляет номер сборки; 0 — прототип, не проверяется
 if (BUILD_N) fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(v => {
   L(`проверка версии: на сайте сборка ${v.build}, запущена ${BUILD_N}`);
   if (!(v.build > BUILD_N)) return;
