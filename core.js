@@ -132,35 +132,53 @@ const CONFIG = {
   // Нитро (ОТЧЁТ-37, просьба владельца «азарт»): каждое слияние наполняет полоску под основным гаражом на 1, слияние в серии
   // (не позже comboMs после прошлого) — на 2. Полная полоска (need) — taps бесплатных выездов основного гаража
   nitro: { need: 20, taps: 3, comboMs: 3000 },
-  // Заезды — основа игры (ОТЧЁТ-37, главы — ОТЧЁТ-38): уровни на время на отдельном поле 5 × 5 — собрать машины цели. Выезды бесплатные,
-  // ящиков, пузырей, случайных сломанных и редких нет. Звёзды: осталось не меньше stars[0] времени — три, stars[1] — две, иначе одна.
-  // Награда (один раз за каждую новую звезду уровня): fuel топлива и coins × номер главы монет; последний уровень главы впервые —
-  // ещё chapter × номер главы монет
-  race: { per: 6, stars: [0.5, 0.25], fuel: 5, coins: 4, chapter: 30, step: 0.02, floor: 0.45,
+  // Заезды — основа игры (ОТЧЁТ-37, главы — ОТЧЁТ-38, ресурсы и салон — ОТЧЁТ-39): уровни на время на отдельном поле 5 × 5 — собрать
+  // машины цели. Топливо — это время заезда: полный бак на старте, остаток на финише — чаевые. Ящиков, пузырей, случайных сломанных и
+  // редких нет. Звёзды (репутация, не тратятся): осталось не меньше stars[0] бака — три, stars[1] — две, иначе одна.
+  race: { per: 6, stars: [0.4, 0.15], step: 0.02, floor: 0.45,
+    pay: 2, tip: 0.5,                        // клиент платит pay монет за единицу машины цели (× редкость); чаевые — до tip от оплаты, по остатку бака
+    chapter: 60,                             // приз главы (последний уровень главы впервые): chapter × номер главы монет
+    gate: 10,                                // глава k открыта, когда пройдены уровни до неё и репутация не меньше gate × (k − 1) звёзд
+    chest: { every: 10, coins: [40, 10] },   // сундук репутации: каждые every звёзд — coins[0] + coins[1] × номер сундука монет
+    nitroMs: 500,                            // улучшение «нитро»: слияние в серии возвращает столько мс топлива (за каждую ступень)
     // главы — зоны салона; в главе per уровней. Правило главы: Бокс — слияние, Мастерская — ремонт, Мойка — очередь клиентов,
     // Шоурум — редкость, Порт — внедорожники и купе и всё вместе
     chapters: ['box', 'workshop', 'wash', 'showroom', 'depot'],
+    // улучшения салона: зона = глава, покупаются за монеты, работают в заездах. [предмет, цена, эффект]:
+    // tank — бак (время) +доля; tier — ступень гаража (машины выезжают выше уровнем); head — машина 2-го уровня на старте;
+    // pay — оплата +доля; tip — чаевые +доля; tool / trim — ступень Мастерской / Ателье (инструмент / деталь сразу 2-го уровня чаще);
+    // lucky — шанс удачного слияния +; nitro — слияние в серии возвращает топливо
+    perks: [
+      [['trash', 20, { tank: 0.05 }], ['walls', 30, { pay: 0.1 }], ['light', 40, { tier: 1 }], ['gate', 50, { head: 1 }], ['sign', 60, { pay: 0.1 }]],
+      [['lift', 80, { tier: 1 }], ['bench', 100, { tool: 2 }], ['tires', 120, { tank: 0.05 }], ['compressor', 140, { tool: 2 }], ['tools', 160, { head: 1 }]],
+      [['washpost', 140, { nitro: 1 }], ['hoses', 160, { tip: 0.25 }], ['dryer', 180, { tank: 0.05 }], ['washlight', 200, { nitro: 1 }], ['mats', 220, { pay: 0.1 }]],
+      [['window', 150, { pay: 0.15 }], ['podium', 170, { lucky: 0.05 }], ['chairs', 190, { tip: 0.25 }], ['desk', 210, { trim: 2 }], ['plants', 230, { tank: 0.05 }],
+        ['chandelier', 250, { lucky: 0.05 }]],
+      [['shelves', 180, { head: 1 }], ['forklift', 200, { tier: 1 }], ['crane', 220, { tier: 1 }], ['pier', 240, { pay: 0.2 }], ['containers', 260, { tank: 0.05 }],
+        ['office', 280, { trim: 2 }], ['lighthouse', 300, { tier: 1 }]],
+    ],
     // уровень: w — цели по очереди (цель — список [вид, уровень, штук, редкость «не ниже»]); start — машины на поле со старта
-    // [вид, уровень, редкость, сломана]; s — секунды (подобраны по check-levels.js). Сломанная на старте — в уровне стоит Мастерская,
-    // цель с редкостью — стоит Ателье. После последнего уровня — последняя глава по кругу, время −step за уровень (не ниже floor)
+    // [вид, уровень, редкость, сломана]; s — секунды без улучшений бака (подобраны по check-levels.js для игрока, который купил улучшения
+    // прошлых зон). Сломанная на старте — в уровне стоит Мастерская, цель с редкостью — стоит Ателье. После последнего уровня —
+    // последняя глава по кругу, время −step за уровень (не ниже floor)
     levels: [
-      { w: [[[0, 3, 1]]], s: 24 }, { w: [[[0, 4, 1]]], s: 34 }, { w: [[[0, 3, 2]]], s: 33 },
-      { w: [[[0, 4, 1], [0, 3, 1]]], s: 46 }, { w: [[[0, 5, 1]]], s: 56 }, { w: [[[0, 5, 1], [0, 4, 1]]], s: 78 },
+      { w: [[[0, 3, 1]]], s: 17 }, { w: [[[0, 4, 1]]], s: 24 }, { w: [[[0, 4, 1], [0, 3, 1]]], s: 34 },
+      { w: [[[0, 5, 1]]], s: 41 }, { w: [[[0, 5, 1], [0, 4, 1]]], s: 58 }, { w: [[[0, 6, 1]]], s: 75 },
 
-      { w: [[[0, 4, 1]]], start: [[0, 4, 0, 1]], s: 20 }, { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1], [0, 4, 0, 1]], s: 25 },
-      { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1]], s: 42 }, { w: [[[0, 4, 2]]], start: [[0, 3, 0, 1], [0, 3, 0, 1], [0, 3, 0, 1], [0, 3, 0, 1]], s: 39 },
-      { w: [[[0, 5, 1], [0, 4, 1]]], start: [[0, 5, 0, 1]], s: 45 }, { w: [[[0, 6, 1]]], start: [[0, 5, 0, 1], [0, 4, 0, 1]], s: 52 },
+      { w: [[[0, 4, 1]]], start: [[0, 4, 0, 1]], s: 14 }, { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1], [0, 4, 0, 1]], s: 18 },
+      { w: [[[0, 5, 1]]], start: [[0, 4, 0, 1]], s: 25 }, { w: [[[0, 5, 1], [0, 4, 1]]], start: [[0, 4, 0, 1], [0, 3, 0, 1], [0, 3, 0, 1]], s: 34 },
+      { w: [[[0, 6, 1]]], start: [[0, 5, 0, 1]], s: 40 }, { w: [[[0, 6, 1], [0, 5, 1]]], start: [[0, 5, 0, 1], [0, 5, 0, 1], [0, 4, 0, 1]], s: 41 },
 
-      { w: [[[0, 3, 1]], [[0, 3, 1]]], s: 36 }, { w: [[[0, 3, 1]], [[0, 4, 1]]], s: 44 }, { w: [[[0, 4, 1]], [[0, 3, 1]], [[0, 3, 1]]], s: 55 },
-      { w: [[[0, 3, 2]], [[0, 4, 1]]], s: 55 }, { w: [[[0, 4, 1]], [[0, 5, 1]]], s: 78 }, { w: [[[0, 4, 1]], [[0, 3, 2]], [[0, 5, 1]]], s: 99 },
+      { w: [[[0, 4, 1]], [[0, 4, 1]]], s: 27 }, { w: [[[0, 4, 1]], [[0, 5, 1]]], s: 35 }, { w: [[[0, 5, 1]], [[0, 4, 1]], [[0, 4, 1]]], s: 46 },
+      { w: [[[0, 4, 2]], [[0, 5, 1]]], s: 44 }, { w: [[[0, 5, 1]], [[0, 6, 1]]], s: 64 }, { w: [[[0, 5, 1]], [[0, 4, 2]], [[0, 6, 1]]], s: 79 },
 
-      { w: [[[0, 3, 1, 1]]], start: [[0, 3]], s: 22 }, { w: [[[0, 4, 1, 1]]], start: [[0, 3, 1]], s: 40 },
-      { w: [[[0, 4, 1, 2]]], start: [[0, 4, 1]], s: 26 }, { w: [[[0, 4, 1, 1], [0, 3, 1, 1]]], s: 59 },
-      { w: [[[0, 5, 1, 1]]], start: [[0, 4, 1]], s: 64 }, { w: [[[0, 5, 1, 2], [0, 4, 1, 1]]], start: [[0, 4, 1], [0, 4, 1]], s: 57 },
+      { w: [[[0, 4, 1, 1]]], start: [[0, 4]], s: 17 }, { w: [[[0, 5, 1, 1]]], start: [[0, 4, 1]], s: 32 },
+      { w: [[[0, 5, 1, 2]]], start: [[0, 5, 1]], s: 20 }, { w: [[[0, 5, 1, 1], [0, 4, 1, 1]]], s: 45 },
+      { w: [[[0, 6, 1, 1]]], start: [[0, 5, 1]], s: 51 }, { w: [[[0, 6, 1, 2], [0, 5, 1, 1]]], start: [[0, 5, 1], [0, 5, 1]], s: 42 },
 
-      { w: [[[0, 3, 1], [1, 3, 1]]], s: 44 }, { w: [[[0, 4, 1], [1, 4, 1]]], s: 65 }, { w: [[[0, 3, 1], [1, 3, 1], [2, 3, 1]]], s: 57 },
-      { w: [[[1, 4, 1, 1], [0, 4, 1]]], s: 72 }, { w: [[[0, 4, 1]], [[1, 4, 1]], [[2, 3, 1]]], start: [[1, 3, 0, 1]], s: 78 },
-      { w: [[[0, 4, 1], [1, 3, 1]], [[1, 4, 1, 1]], [[2, 4, 1]]], start: [[2, 3, 0, 1], [2, 3, 0, 1]], s: 107 },
+      { w: [[[0, 4, 1], [1, 4, 1]]], s: 35 }, { w: [[[0, 5, 1], [1, 5, 1]]], s: 50 }, { w: [[[0, 4, 1], [1, 4, 1], [2, 4, 1]]], s: 45 },
+      { w: [[[1, 5, 1, 1], [0, 5, 1]]], s: 63 }, { w: [[[0, 6, 1]], [[1, 5, 1]], [[2, 4, 1]]], start: [[1, 4, 0, 1]], s: 80 },
+      { w: [[[0, 7, 1]], [[1, 5, 1, 1]]], start: [[0, 6, 0, 1], [1, 4, 0, 1]], s: 103 },
     ] },
   washBonus: 0.15,                    // пост мойки: заказы +15% монет
   lineBonus: 0.2,                     // полная линейка: легковые +20% монет, купе +20% звёзд
@@ -373,6 +391,7 @@ function addStars(s, n, at, ev) {
 function discover(s, line, lvl, r, at, ev) {
   s.top[line] = Math.max(s.top[line] || 0, lvl);
   if (line >= PARTS) return;
+  if (s.raceN) { s.seen[key(line, lvl)] |= 1 << r; return; }   // заезд: только отметка «собрал» — карточки покажет итог (raceCards)
   goal(s, 'lvl', lvl, true);
   const k = key(line, lvl), prev = s.seen[k] || 0, bit = 1 << r;
   if (prev & bit) return;
@@ -882,7 +901,7 @@ function move(s, from, to, now) {
   }
   const lvl = a.lvl + 1;
   let r = Math.min(a.r || 0, b.r || 0);
-  const lucky = a.line < PARTS && rarOn(s) && r < 4 && rand(s) < C.luckyChance;
+  const lucky = a.line < PARTS && rarOn(s) && r < 4 && rand(s) < C.luckyChance + (s.lucky || 0);   // s.lucky — улучшения салона (в заезде)
   if (lucky) { r++; s.n.lucky++; }
   if ((a.r || 0) !== (b.r || 0)) s.n.mixed++;
   s.cells[from] = null;
@@ -1655,44 +1674,74 @@ function nextHint(s, now) {
   return null;
 }
 
-// ── Заезды: уровни на время (ОТЧЁТ-37), главы (ОТЧЁТ-38) ──────────────────────
+// ── Заезды: уровни на время (ОТЧЁТ-37), главы (ОТЧЁТ-38), ресурсы и улучшения салона (ОТЧЁТ-39) ───────────────
+// Улучшения салона: что куплено (s.rs), сумма эффекта по купленным
+const PERKS = C.race.perks.flat();
+const perk = (s, name) => PERKS.reduce((a, [id, , fx]) => a + (s?.rs?.[id] && fx[name] || 0), 0);
+const raceTotal = s => Object.values(s.race?.best || {}).reduce((a, b) => a + b, 0);   // репутация: звёзды всех уровней
+// Глава ch (с 0) открыта: уровни до неё пройдены и репутации хватает. Вместе с главой открыта её зона салона
+const chapterOpen = (s, ch) => (s.race?.lvl || 1) > ch * C.race.per && raceTotal(s) >= C.race.gate * ch;
+// Купить улучшение салона за монеты: зона открыта, не куплено, монет хватает
+function raceBuy(s, id) {
+  const zone = C.race.perks.findIndex(z => z.some(p => p[0] === id)), p = PERKS.find(p => p[0] === id);
+  if (!p || s.rs?.[id] || !chapterOpen(s, zone) || s.coins < p[1]) return [{ t: 'reject' }];
+  s.coins -= p[1]; (s.rs ||= {})[id] = 1;
+  return [{ t: 'perk', id, zone, price: p[1], fx: p[2] }];
+}
 // Уровень n (с 1): глава ch, цели по очереди waves (items — первая), машины со старта, сколько видов машин даёт гараж,
-// нужны ли Мастерская (tools) и Ателье (trims), сколько секунд
-function raceLevel(n) {
+// нужны ли Мастерская (tools) и Ателье (trims), сколько секунд (main — основная игра: улучшения бака)
+function raceLevel(n, main) {
   const R = C.race, L = R.levels, k = n - 1, d = L[k < L.length ? k : L.length - R.per + (k - L.length) % R.per];
   const start = d.start || [], all = d.w.flat();
   return { n, ch: Math.min(Math.floor(k / R.per), R.chapters.length - 1), waves: d.w, items: d.w[0], start,
     kinds: Math.max(...all.map(it => it[0]), ...start.map(it => it[0])) + 1, tools: start.some(it => it[3]), trims: all.some(it => it[3] > 0),
-    secs: Math.round(d.s * Math.max(R.floor, 1 - R.step * Math.max(0, n - L.length))) };
+    secs: Math.round(d.s * Math.max(R.floor, 1 - R.step * Math.max(0, n - L.length)) * (1 + perk(main, 'tank'))) };
 }
 const raceOrder = (lv, w, now) => ({ id: w, kind: 'race', face: 0, born: now, acc: 0,
   items: lv.waves[w].map(([line, lvl, cnt, r = -1]) => ({ line, lvl, r, n: cnt, got: 0 })) });
-// Состояние заезда — отдельная маленькая игра: поле 5 × 5 вокруг гаража, одна цель (сдал — следующая из очереди), бак без дна,
-// уровень игрока — под виды машин (опыт не растёт), коллекция «вся видна» — карточек новой машины нет. Случайных сломанных и редких нет:
-// что чинить и какую редкость собрать, задаёт уровень. Мастерская и Ателье — на своих клетках, зарядов Ателье хватает. В сохранение не идёт
-function newRace(n, now, seed) {
-  const lv = raceLevel(n), s = newGame(now, seed), P = C.ports[0].cell;
-  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1 });
+// Состояние заезда — отдельная маленькая игра: поле 5 × 5 вокруг гаража, одна цель (сдал — следующая из очереди), уровень игрока — под
+// виды машин (опыт не растёт). Случайных сломанных и редких нет: что чинить и какую редкость собрать, задаёт уровень. Мастерская и
+// Ателье — на своих клетках, зарядов Ателье хватает. Улучшения салона (main.rs): ступени гаража, Мастерской и Ателье, машины 2-го
+// уровня на старте, удача. Коллекция пустая: что собрал в заезде — отмечается, новые карточки покажет итог. В сохранение не идёт
+function newRace(n, now, seed, main) {
+  const lv = raceLevel(n, main), s = newGame(now, seed), P = C.ports[0].cell;
+  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1, seen: {}, lucky: perk(main, 'lucky') });
   s.n.spawns = C.tutorialSpawns;                    // без «обучения»: сразу все виды машин уровня
+  s.tiers[0] = Math.min(5, perk(main, 'tier')); s.tiers[PARTS] = Math.min(5, perk(main, 'tool')); s.tiers[TRIM] = Math.min(5, perk(main, 'trim'));
   s.cells = s.cells.map((c, i) => i === P ? c : RING[i] <= 2 ? null : { k: 'lock' });
   if (lv.tools) s.cells[portOf(PARTS).cell] = { k: 'port', line: PARTS };
   if (lv.trims) { s.cells[portOf(TRIM).cell] = { k: 'port', line: TRIM }; s.atelier = { n: 999, at: now }; }
   lv.start.forEach(([line, lvl, r = 0, broken]) => { s.cells[nearestFree(s, P)] = { k: 'car', line, lvl, r, ...(broken ? { broken: true, since: now } : {}) }; });
+  for (let k = perk(main, 'head'); k > 0; k--) s.cells[nearestFree(s, P)] = { k: 'car', line: 0, lvl: 2, r: 0 };
   s.orders = [raceOrder(lv, 0, now)];
-  CARS.forEach((m, line) => m.forEach((_, i) => { s.seen[key(line, i + 1)] = 31; }));
   return s;
 }
 const raceStars = (lv, leftMs) => { const p = leftMs / (lv.secs * 1000); return p >= C.race.stars[0] ? 3 : p >= C.race.stars[1] ? 2 : 1; };
-// Заезд пройден (в основной игре): лучшие звёзды уровня; за каждую новую звезду — топливо и монеты (монет больше в старших главах);
-// последний уровень главы пройден впервые — премия главы; следующий уровень открыт
-function raceDone(s, n, stars) {
-  const R = C.race, z = s.race ||= { lvl: 1, best: {} }, was = z.best[n] || 0, add = Math.max(0, stars - was), ch = raceLevel(n).ch;
-  const chapter = !was && n % R.per === 0 && n <= R.levels.length ? ch : -1;
-  const fuel = add * R.fuel, coins = add * R.coins * (ch + 1) + (chapter >= 0 ? R.chapter * (ch + 1) : 0);
+// Сколько платят клиенты уровня: единицы машин цели × редкость × pay, с улучшениями оплаты
+const racePay = (s, lv) => Math.round(lv.waves.flat().reduce((a, [line, lvl, cnt, r = 0]) => a + units(line, lvl) * cnt * C.rarityCoins[Math.max(0, r)], 0)
+  * C.race.pay * (1 + perk(s, 'pay')));
+// Заезд пройден (в основной игре). left — доля бака, что осталась (0…1). Монеты: оплата клиентов (каждый раз) и чаевые за остаток
+// топлива; последний уровень главы впервые — приз главы; каждые chest.every звёзд репутации — сундук. Звёзды — лучшие за уровень
+function raceDone(s, n, stars, left = 0) {
+  const R = C.race, z = s.race ||= { lvl: 1, best: {} }, was = z.best[n] || 0, lv = raceLevel(n, s);
+  const pay = racePay(s, lv), tips = Math.round(pay * R.tip * Math.max(0, Math.min(1, left)) * (1 + perk(s, 'tip')));
+  const chapter = !was && n % R.per === 0 && n <= R.levels.length ? lv.ch : -1, prize = chapter >= 0 ? R.chapter * (chapter + 1) : 0;
   z.best[n] = Math.max(was, stars);
   z.lvl = Math.max(z.lvl, n + 1);
-  s.fuel += fuel; s.coins += coins;
-  return [{ t: 'raceDone', n, stars, was, fuel, coins, chapter }];
+  let chest = 0, chests = 0;
+  while (((z.chests || 0) + 1) * R.chest.every <= raceTotal(s)) { z.chests = (z.chests || 0) + 1; chests++; chest += R.chest.coins[0] + R.chest.coins[1] * z.chests; }
+  s.coins += pay + tips + prize + chest;
+  return [{ t: 'raceDone', n, stars, was, pay, tips, prize, chapter, chest, chests, coins: pay + tips + prize + chest }];
+}
+// Новые карточки по итогам заезда: что собрано в заезде (rs.seen), а в коллекции (s.seen) ещё нет. Отмечает их в коллекции
+function raceCards(s, rs) {
+  const out = [];
+  for (const k in rs.seen) {
+    const [line, lvl] = k.split('-').map(Number), fresh = rs.seen[k] & ~(s.seen[k] || 0);
+    for (let r = 0; r < 5; r++) if (fresh & (1 << r)) out.push({ line, lvl, r, model: !s.seen[k] });
+    s.seen[k] = (s.seen[k] || 0) | rs.seen[k];
+  }
+  return out.sort((a, b) => a.line - b.line || a.lvl - b.lvl || a.r - b.r);
 }
 
 // «Стена»: некуда поставить, нечего слить, нечего отдать, не на что потратить
@@ -1716,7 +1765,7 @@ const Core = {
   store, unstore, buyStore, arrive, shipMs, eventTick, evActive, prestigePrice, salonDone, buyPrestige,
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
   orangeLocked, vipLines, vipOrder, hallRate, hallBag, hallCheck, hallCollect, hallPlace, levelChest,
-  raceLevel, newRace, raceStars, raceDone, nitroTaps,
+  raceLevel, newRace, raceStars, raceDone, raceCards, racePay, raceBuy, raceTotal, chapterOpen, perk, nitroTaps,
 };
 if (typeof module !== 'undefined') module.exports = Core; else window.Core = Core;
 })();
