@@ -136,20 +136,25 @@ const CONFIG = {
   // на финише — чаевые. Звёзды (репутация, не тратятся): осталось не меньше stars[0] бака — три, stars[1] — две, иначе одна.
   // Уровни бесконечные и случайные (ОТЧЁТ-41, владелец: «уровни повторяются — нужно генерить случайные комбинации с постоянным
   // усложнением», «мини-игры внутри игры»): уровень n собирает генератор Core.raceLevel — всегда одинаково для одного n.
-  // Круг — per уровней, мини-игры по cycle: merge — слияние парой; chain — цепочка клиентов (длина растёт); eco — «Запас ограничен»:
-  // гараж выдаёт ровно столько машин, сколько нужно цели, а цель просит несколько одинаковых — лишнее слияние губит заезд;
+  // Круг — per уровней, мини-игры по cycle: merge — слияние парой; chain — цепочка клиентов (длина растёт; в круге дважды —
+  // на месте убранного «Запаса»: ОТЧЁТ-44, владелец: «убрать игру, где ограниченное количество машин из гаража — не имеет смысла»);
   // m3 — «три в ряд» с обменом и сгоранием, гонка с соперником. Первые пять кругов открывают новое правило (chapters — сколько таких кругов):
   // 2-й — сломанные машины, 3-й — внедорожники, 4-й — редкость, 5-й — купе.
   race: { per: 10, stars: [0.4, 0.15], tip: 0.5,
-    cycle: ['merge', 'chain', 'pairs', 'eco', 'm3', 'g48', 'sort', 'road', 'merge', 'park'],
-    pay: [8, 2], payMode: { merge: 1, chain: 1.2, eco: 1.2, m3: 1.2, pairs: 1.1, g48: 1.2, sort: 1.2, road: 1.2, park: 1.3 },   // оплата уровня n: (pay[0] + pay[1] × n) × множитель мини-игры (+ улучшения)
+    cycle: ['merge', 'chain', 'pairs', 'chain', 'm3', 'g48', 'sort', 'road', 'merge', 'park'],
+    // Игра на выбор (ОТЧЁТ-44): пройден круг k — открыта k-я игра этого списка; в ней идут только её уровни
+    solo: ['m3', 'g48', 'pairs', 'road', 'sort', 'park', 'chain', 'merge'],
+    pay: [8, 2], payMode: { merge: 1, chain: 1.2, m3: 1.2, pairs: 1.1, g48: 1.2, sort: 1.2, road: 1.2, park: 1.3 },   // оплата уровня n: (pay[0] + pay[1] × n) × множитель мини-игры (+ улучшения)
     chapter: 60,                             // приз круга (последний уровень круга впервые): chapter × номер круга монет
     gate: 12,                                // круг k открыт, когда пройдены уровни до него и репутация не меньше gate × (k − 1) звёзд
     chest: { every: 10, coins: [40, 10] },   // сундук репутации: каждые every звёзд — coins[0] + coins[1] × номер сундука монет
     // Ступени гаража (покупаются в салоне без конца, до max): машины выезжают выше уровнем — средний уровень 1 + ступень / 3.
     // Цена ступени g: price[0] × price[1]^g. Генератор считает, что игрок поднимает гараж на ступень каждые every уровней (до expect):
     // от этого уровня машин растут цели. Не улучшаешь гараж — уровни становятся длиннее бака: вот куда уходят монеты
-    garage: { price: [40, 130], max: 15, every: 5, expect: 12 },      // цена ступени: 40 + 130 × ступень — под доход «ступень за пять уровней» (ОТЧЁТ-43: гараж — единственная трата монет)
+    // цена ступени: 40 + 130 × ступень — под доход «ступень за пять уровней» (ОТЧЁТ-43). Уровень выезда: 1 + ступень / per
+    // (ОТЧЁТ-44, правка владельца: «15-я ступень даёт сразу 6-й уровень — очень много»: per 3 → 5, последняя ступень — 4-й уровень;
+    // expect 12 → 15: «ожидаемый» игрок доходит до последней ступени к 76-му уровню — тогда цели дорастают до 8-го уровня)
+    garage: { price: [40, 130], max: 15, every: 5, expect: 15, per: 5 },
     // время уровня: (base + pace × секунды действий) × сложность; действия: нажатие tap, перетаскивание drag, сдача give;
     // каждый вид машин сверх первого — +kind к времени; сложность −hard за круг, не ниже floor
     time: { base: 8, pace: 1.5, tap: 0.5, drag: 1.1, give: 0.8, kind: 0.1, hard: 0.01, floor: 0.7 },
@@ -161,16 +166,21 @@ const CONFIG = {
     // Мини-игры круга (ОТЧЁТ-43, выбор владельца: «найди пару, 2048, сортировка по боксам, дорога, парковка»):
     // pairs — «Найди пару», гонка с соперником: пар pairs[круг] (дальше — последнее), соперник находит пару за foe секунд;
     // g48 — «2048 на машинах»: поле 4 × 4, свайп сдвигает все машины, одинаковые сливаются; собрать машину на up уровней выше выезда
-    //   (up[круг % 3] — в круге по три ступени), выезд — с уровня 1 + круг / 3; новая машина иногда (two) уровнем выше; бак — sec секунд на ход;
-    // sort — «Сортировка по боксам»: видов kinds[круг], в боксе cap машин, свободных боксов 2; перемешивание mix[0] + mix[1] × круг ходов;
+    //   (up[круг]), выезд — с уровня 1 + круг / 3 (но цель не выше 8-го); новая машина иногда (two) уровнем выше; бак — sec секунд на ход;
+    // sort — «Сортировка по боксам»: видов kinds[круг], в боксе cap машин, свободных боксов 2; расклад — самый перемешанный из runs блужданий
+    //   обратными ходами по steps шагов (решение не длиннее len ходов);
     // road — «Дорога»: три полосы; длина len[0] + len[1] × круг рядов (до len[2]), скорость speed[0] + speed[1] × круг рядов в секунду
     //   (до speed[2]); помеха каждые gap рядов; бак — время пути × tank; канистра +can секунд, удар −crash секунд;
-    // park — «Парковка»: стоянка 6 × 6, вывести свою машину к выезду; решение — около want[0] + want[1] × круг ходов (до want[2])
-    pairs: { n: [6, 8, 10, 10, 12, 12, 15], foe: 5.5 },
-    g48: { up: [4, 5, 5], two: 0.1, sec: [12, 1.25] },
-    sort: { kinds: [3, 4, 4, 5, 5, 6], cap: 4, mix: [10, 4], sec: [15, 3.2] },
+    // park — «Парковка»: стоянка 6 × 6, вывести свою машину к выезду; решение — want[0] + want[1] × круг ходов (до want[2]), если такая
+    //   расстановка нашлась за tries попыток (связки больше cap расстановок не перебираются);
+    // pairs — «Найди пару»: пар n[круг]; соперник едет foe[0] + foe[1] × пар секунд на каждую пару.
+    // ОТЧЁТ-44, владелец: «Боксы, 2048 — очень простые, парковка тоже, найти 2 одинаковые — наоборот сложно». Было: pairs n 6…15, foe 5,5;
+    // g48 up 4–5, sec 12 + 1,25; sort kinds 3…6, перемешивание 10 + 4 × круг ходов без возврата, sec 15 + 3,2; park want 4 + 2 × круг, sec 16 + 3
+    pairs: { n: [4, 6, 6, 8, 8, 10], foe: [4.2, 0.5] },
+    g48: { up: [5, 6], two: 0.1, sec: [8, 0.85] },
+    sort: { kinds: [4, 4, 5, 5, 6], cap: 4, runs: 4, steps: 120, len: 40, sec: [12, 2.6] },
     road: { len: [30, 6, 78], speed: [2.4, 0.15, 3.9], gap: 3, tank: 1.35, can: 2, crash: 3, cans: 0.3 },
-    park: { want: [4, 2, 18], cars: [6, 1, 12], sec: [16, 3] },
+    park: { want: [8, 2, 16], cars: [11, 1, 13], sec: [20, 3.5], tries: 12, cap: 6000 },
     // главы — зоны салона: открываются с первыми пятью кругами
     chapters: ['box', 'workshop', 'wash', 'showroom', 'depot'],
     // улучшения салона: зона = круг, покупаются за монеты, работают в заездах. [предмет, цена, эффект]:
@@ -180,11 +190,15 @@ const CONFIG = {
     // Бонусы игр (ОТЧЁТ-43, правка владельца: «не салон, порт, мойка — а бонусы от игр»): у каждой мини-игры свой бонус, он растёт
     // со звёздами, набранными в уровнях этой игры: [что даёт, сколько за одну звезду, потолок].
     // nitro — слияние в серии возвращает столько секунд топлива; head — машин на старте заезда-слияния (целая часть); tip, pay — чаевые
-    // и оплата; sale — скидка на гараж; chest, prize — сундук репутации и приз круга; tank — бак и время (соперник едет дольше);
+    // и оплата; chest, prize — сундук репутации и приз круга; tank — бак и время (соперник едет дольше);
     // reserve — бак пуст: ещё столько секунд, раз за заезд
-    bonus: { merge: ['nitro', 0.05, 1], chain: ['head', 1 / 3, 3], pairs: ['tip', 0.02, 0.6], eco: ['sale', 0.01, 0.3], m3: ['pay', 0.02, 0.6],
+    bonus: { merge: ['nitro', 0.05, 1], chain: ['head', 1 / 3, 3], pairs: ['tip', 0.02, 0.6], m3: ['pay', 0.02, 0.6],
       g48: ['chest', 0.05, 1], sort: ['prize', 0.05, 1], road: ['tank', 0.01, 0.25], park: ['reserve', 0.3, 6] },
     // улучшения салона сборок 37–40 убраны: купленные возвращаются монетами по этим ценам (s.perkRefund — для журнала)
+    // Усиление бонуса за монеты (ОТЧЁТ-44): одно усиление — как stars звёзд этой игры, и выше потолка; до max на бонус;
+    // цена price[0] + price[1] × (сколько усилений уже куплено, всех бонусов вместе). 100 + 250 — расчёт: 1 усиление к 10-му уровню,
+    // 2–3 к 30-му, 5–11 к 70-му, все 45 — к 180–215-му (при 100 + 100 — уже к 120–150-му)
+    boost: { stars: 3, max: 5, price: [100, 250] },
     perkOld: { trash: 20, walls: 30, light: 40, gate: 50, sign: 60, lift: 80, bench: 100, tires: 120, compressor: 140, tools: 160, washpost: 140, hoses: 160, dryer: 180,
       washlight: 200, mats: 220, window: 150, podium: 170, chairs: 190, desk: 210, plants: 230, chandelier: 250, shelves: 180, forklift: 200, crane: 220, pier: 240,
       containers: 260, office: 280, lighthouse: 300 },
@@ -679,7 +693,7 @@ function rollRarity(s, tier) {
 }
 function spawnLvl(s, line) {
   const t = s.tiers[line];
-  if (s.raceN && !isPart(line)) { const g = s.gl || 0; return 1 + Math.floor(g / 3) + (rand(s) < (g % 3) / 3 ? 1 : 0); }   // заезд: ступень гаража
+  if (s.raceN && !isPart(line)) { const g = s.gl || 0, per = C.race.garage.per; return 1 + Math.floor(g / per) + (rand(s) < (g % per) / per ? 1 : 0); }   // заезд: ступень гаража
   if (isPart(line)) return (rand(s) < (line === TRIM ? C.trimTierLvl2 : C.partTierLvl2)[Math.min(t, 5)] ? 2 : 1) + (fxHas(s, 'toolUp') && rand(s) < C.toolUp ? 1 : 0);
   const r = rand(s), l3 = C.tierLvl3[Math.min(t, C.tierLvl3.length - 1)], l2 = C.tierLvl2[Math.min(t, C.tierLvl2.length - 1)];
   return r < l3 ? 3 : r < l3 + l2 ? 2 : 1;
@@ -737,7 +751,7 @@ function tapPort(s, i, now) {
   if (c?.k !== 'port') return [];
   tick(s, now);
   const nitro = !freeTap(s, c.line) && nitroTap(s, c.line), cost = tapCost(s, c.line);   // и так бесплатное касание нитро не тратит
-  if (s.fuel < cost || (s.eco && c.line === 0 && s.supply <= 0)) return [{ t: 'noFuel', at: i }];      // «Запас ограничен»: машины в гараже кончились
+  if (s.fuel < cost) return [{ t: 'noFuel', at: i }];
   if (c.line === TRIM && charges(s, now) < 1) return [{ t: 'noCharge', at: i }];
   const to = nearestFree(s, i);
   if (to < 0) return [{ t: 'full', at: i }];
@@ -746,15 +760,14 @@ function tapPort(s, i, now) {
   if (c.line === TRIM) { if (s.atelier.n >= maxCharges(s)) s.atelier.at = now; s.atelier.n--; }
   const ev = cost ? [] : [{ t: 'freeTap', at: i, nitro }];
   const tutorial = s.n.spawns++ < C.tutorialSpawns;
-  const eco = s.eco && c.line === 0 ? s.eco[s.eco.length - s.supply--] : -1;      // «Запас ограничен»: вид очередной машины задан уровнем
-  const kind = c.line === 0 ? (tutorial ? 0 : eco >= 0 ? eco : pickLine(s)) : c.line;      // основной гараж: какой вид машины выехал
+  const kind = c.line === 0 ? (tutorial ? 0 : pickLine(s)) : c.line;      // основной гараж: какой вид машины выехал
   if (!tutorial && c.line !== EV && !s.raceN && rand(s) < C.crateChance[fxHas(s, 'crates') ? 1 : 0]) {
     const items = [];
     for (let k = randInt(s, 2, 3); k > 0; k--) items.push([kind, 1 + (rand(s) < 0.4 ? 1 : 0), isPart(c.line) ? 0 : rollRarity(s, s.tiers[c.line])]);
     s.cells[to] = { k: 'chest', kind: 'crate', cars: items };
     return [...ev, { t: 'spawn', from: i, to }, { t: 'crate', at: to }];
   }
-  const lvl = tutorial ? 1 : eco >= 0 ? s.ecoLvl : spawnLvl(s, c.line);
+  const lvl = tutorial ? 1 : spawnLvl(s, c.line);
   const r = tutorial || c.line >= PARTS ? 0 : rollRarity(s, s.tiers[c.line]);
   if (!tutorial && c.line < PARTS && !s.raceN && portOpen(s, PARTS) && s.cells.filter(x => x?.broken).length < C.broken.max && rand(s) < C.broken.chance) {
     s.cells[to] = { k: 'car', line: kind, lvl: Math.min(7, lvl + randInt(s, ...C.broken.up)), r, broken: true, since: now };
@@ -1679,11 +1692,11 @@ function nextHint(s, now) {
     s.orders.forEach((o, oi) => { if (o && oi < s.slots) o.items.forEach(it => {
       if (it.r >= 1 && it.got < it.n && s.cells.some(c => isCar(c) && c.line === it.line && c.lvl === it.lvl && (s.raceN ? (c.r || 0) < it.r : (c.r || 0) === it.r - 1))) need[TRIM] += s.raceN ? 2 * (it.n - it.got) : 2;   // заезд: редких нужно несколько — деталей столько же
     }); });
-    const ports = s.cells.map((c, i) => c?.k === 'port' && s.fuel >= tapCost(s, c.line) && (c.line !== TRIM || charges(s, now) > 0) && !(s.eco && c.line === 0 && s.supply <= 0) ? i : -1).filter(i => i >= 0);
+    const ports = s.cells.map((c, i) => c?.k === 'port' && s.fuel >= tapCost(s, c.line) && (c.line !== TRIM || charges(s, now) > 0) ? i : -1).filter(i => i >= 0);
     const pneed = l => l === 0 ? Math.max(need[0], need[1], need[2]) : need[l];   // основной гараж — самый нужный из видов машин
     if (ports.length) return { t: 'port', i: ports.sort((a, b) => pneed(s.cells[b].line) - pneed(s.cells[a].line))[0] };
   }
-  const mixed = dragHint(s, 'mixed') || (!s.eco && dragHint(s, 'force'));      // «Запас ограничен»: нужные цели машины не сливаем
+  const mixed = dragHint(s, 'mixed') || dragHint(s, 'force');
   if (mixed) return mixed;
   return null;
 }
@@ -1693,16 +1706,30 @@ function nextHint(s, now) {
 const modeOf = n => C.race.cycle[(n - 1) % C.race.per];
 const modeStars = (s, mode) => Object.entries(s?.race?.best || {}).reduce((a, [n, st]) => a + (modeOf(+n) === mode ? st : 0), 0);
 const BONUS = Object.entries(C.race.bonus);
-const perk = (s, name) => { const b = BONUS.find(([, v]) => v[0] === name); return b ? Math.min(b[1][2], Math.round(b[1][1] * modeStars(s, b[0]) * 1000) / 1000) : 0; };
+const boostLvl = (s, mode) => Math.min(C.race.boost.max, s?.rs?.['b-' + mode] || 0);        // усилений бонуса игры mode куплено
+const perk = (s, name) => { const b = BONUS.find(([, v]) => v[0] === name); if (!b) return 0;
+  const [mode, [, per, cap]] = b; return Math.round((Math.min(cap, per * modeStars(s, mode)) + per * C.race.boost.stars * boostLvl(s, mode)) * 1000) / 1000; };
 const raceTotal = s => Object.values(s.race?.best || {}).reduce((a, b) => a + b, 0);   // репутация: звёзды всех уровней
 // Круг ch (с 0) открыт: уровни до него пройдены и репутации хватает. Вместе с первыми пятью кругами открываются зоны салона
 const chapterOpen = (s, ch) => (s.race?.lvl || 1) > ch * C.race.per && raceTotal(s) >= C.race.gate * ch;
-// Ступень гаража — купленные ступени (s.rs.gar); цена следующей (бонус «скидка» её снижает)
+// Ступень гаража — купленные ступени (s.rs.gar); цена следующей
 const garageLvl = s => Math.min(C.race.garage.max, s?.rs?.gar || 0);
-const garagePrice = s => Math.round((C.race.garage.price[0] + C.race.garage.price[1] * (s?.rs?.gar || 0)) * (1 - perk(s, 'sale')));
+const garagePrice = s => C.race.garage.price[0] + C.race.garage.price[1] * (s?.rs?.gar || 0);
 const expectG = n => Math.min(C.race.garage.expect, Math.floor((n - 1) / C.race.garage.every));      // ступень «ожидаемого» игрока на уровне n
-// Купить улучшение салона за монеты (зона открыта, не куплено, монет хватает) или ступень гаража ('gar', пока не максимум)
+// Усиление бонуса игры mode за монеты. Цена общая на все бонусы и растёт с каждым купленным.
+// boostWhy: 'ok' — можно; 'stars' — бонус ещё не открыт звёздами; 'max'; 'garage' — гараж отстаёт от уровней (сначала он); 'coins'
+const boostN = s => Object.keys(C.race.bonus).reduce((a, m) => a + boostLvl(s, m), 0);
+const boostPrice = s => C.race.boost.price[0] + C.race.boost.price[1] * boostN(s);
+const boostWhy = (s, mode) => !C.race.bonus[mode] || !modeStars(s, mode) ? 'stars' : boostLvl(s, mode) >= C.race.boost.max ? 'max' :
+  garageLvl(s) < expectG(s.race?.lvl || 1) ? 'garage' : s.coins < boostPrice(s) ? 'coins' : 'ok';
+// Купить за монеты ступень гаража ('gar', пока не максимум) или усиление бонуса (id — мини-игра)
 function raceBuy(s, id) {
+  if (C.race.bonus[id]) {
+    const price = boostPrice(s), why = boostWhy(s, id);
+    if (why !== 'ok') return [{ t: 'reject', why }];
+    s.coins -= price; (s.rs ||= {})['b-' + id] = boostLvl(s, id) + 1;
+    return [{ t: 'perk', id, price, lvl: boostLvl(s, id) }];
+  }
   const price = garagePrice(s);
   if (id !== 'gar' || garageLvl(s) >= C.race.garage.max || s.coins < price) return [{ t: 'reject' }];
   s.coins -= price; (s.rs ||= {}).gar = (s.rs.gar || 0) + 1;
@@ -1715,36 +1742,47 @@ const rng32 = seed => () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(
 // машин даёт гараж; tools / trims — нужны ли Мастерская и Ателье; secs — бак в секундах (main — основная игра: улучшения бака);
 // m3 — гонка «три в ряд»: длина трассы, видов машин, за сколько секунд её проезжает соперник.
 // Уровни машин считаются от уровня, с которого они выезжают у «ожидаемого» игрока (expectG): цель «на k слияний выше».
-function raceLevel(n, main) {
-  const R = C.race, T = R.time, c = Math.floor((n - 1) / R.per), pos = (n - 1) % R.per, mode = R.cycle[pos], rnd = rng32(n * 7919 + 13);
-  const base = 1 + Math.floor(expectG(n) / 3), kinds = c >= 4 ? 3 : c >= 2 ? 2 : 1, line = () => Math.floor(rnd() * kinds), lvlOf = k => Math.min(8, base + k);
-  const first = pos === 0, hard = Math.max(T.floor, 1 - T.hard * c), out = { n, cycle: c, ch: Math.min(c, R.chapters.length - 1), pos, mode, waves: [], start: [], m3: null, eco: null };
+function raceLevel(n, main, own) {      // own — уровень игры на выбор: свой расклад
+  const R = C.race, T = R.time, c = Math.floor((n - 1) / R.per), pos = (n - 1) % R.per, mode = R.cycle[pos], rnd = rng32(n * 7919 + 13 + (own ? 500009 : 0));
+  const G = R.garage.per, base = 1 + Math.floor(expectG(n) / G), kinds = c >= 4 ? 3 : c >= 2 ? 2 : 1, line = () => Math.floor(rnd() * kinds), lvlOf = k => Math.min(8, base + k);
+  const first = pos === 0, hard = Math.max(T.floor, 1 - T.hard * c), out = { n, cycle: c, ch: Math.min(c, R.chapters.length - 1), pos, mode, waves: [], start: [], m3: null, solo: !!own };
   let t = 0;                                         // секунды действий «ожидаемого» игрока
-  const eff = 1 / (1 + (expectG(n) % 3) / 3);        // дробная часть ступени: часть машин выезжает уровнем выше — работы меньше
+  const eff = 1 / (1 + (expectG(n) % G) / G);        // дробная часть ступени: часть машин выезжает уровнем выше — работы меньше
   const pair = k => (2 ** k * T.tap + (2 ** k - 1) * T.drag) * eff;
   const fix = lvl => { const tl = toolFor(lvl); return (2 ** (tl - 1) * T.tap + (2 ** (tl - 1) - 1) * T.drag) * 0.75 + T.drag; };   // инструмент нужного уровня (Мастерская иногда даёт 2-й сразу) и ремонт
   const rare = r => r === 1 ? 2 * T.tap + 2 * T.drag : 6 * T.tap + 6 * T.drag;                                            // детали Ателье до зелёной / синей
   const at = (arr, i) => arr[Math.min(i, arr.length - 1)], solo = () => { out.kinds = 1; out.tools = out.trims = false; out.items = []; return out; };
   if (mode === 'pairs') {
     const n = at(R.pairs.n, c);
-    out.pairs = { n, foe: Math.round(n * R.pairs.foe * hard * (1 + perk(main, 'tank'))) }; out.vs = out.secs = out.pairs.foe;
+    out.pairs = { n, foe: Math.round(n * (R.pairs.foe[0] + R.pairs.foe[1] * n) * hard * (1 + perk(main, 'tank'))) }; out.vs = out.secs = out.pairs.foe;      // чем больше карточек, тем дольше ищется каждая пара
     return solo();
   }
   if (mode === 'g48') {
-    const b = 1 + Math.floor(c / 3), goal = Math.min(8, b + R.g48.up[c % 3]), up = goal - b;
+    const up = at(R.g48.up, c), b = Math.min(1 + Math.floor(c / 3), 8 - up), goal = b + up;
     out.g48 = { base: b, goal }; out.secs = Math.round((R.g48.sec[0] + R.g48.sec[1] * 1.7 * 2 ** up) * hard * (1 + perk(main, 'tank')));   // ходов — около 1,7 на каждую выехавшую машину
     return solo();
   }
   if (mode === 'sort') {
-    // перемешивание — обратными ходами от разложенного: снять верхнюю машину можно, только если под ней такая же (или бокс опустеет), —
-    // тогда тот же ход в обратную сторону разрешён. Решение существует всегда: sol — ходы [откуда, куда]
-    const S = R.sort, k = at(S.kinds, c), boxes = Array.from({ length: k + 2 }, (_, i) => i < k ? Array(S.cap).fill(i) : []), sol = [], mix = S.mix[0] + S.mix[1] * c;
-    for (let tries = 0, last = -1; sol.length < mix && tries < mix * 30; tries++) {
-      const x = Math.floor(rnd() * boxes.length), y = Math.floor(rnd() * boxes.length), X = boxes[x], Y = boxes[y];
-      if (x === y || !X.length || Y.length >= S.cap || x === last || (X.length > 1 && X[X.length - 2] !== X[X.length - 1])) continue;
-      if (!Y.length && X.length === 1) continue;        // переставить последнюю машину в пустой бокс — пустой ход
-      Y.push(X.pop()); sol.unshift([y, x]); last = y;
-    }
+    // расклад — блуждание обратными ходами от разложенного: снять верхнюю машину можно, только если под ней такая же (или бокс
+    // опустеет), — тогда тот же ход в обратную сторону в игре разрешён, и решение существует всегда (sol — ходы [откуда, куда]).
+    // Из тупика — шаг назад; из всех пройденных раскладов берётся самый перемешанный (больше стыков разных видов, меньше пустых боксов)
+    const S = R.sort, k = at(S.kinds, c);
+    let boxes = null, sol = [], top = -1;
+    for (let run = 0; run < S.runs; run++) { const B = Array.from({ length: k + 2 }, (_, i) => i < k ? Array(S.cap).fill(i) : []), path = [], seen = new Set([B.join('|')]);
+     for (let step = 0; step < S.steps; step++) {
+      const opts = [];
+      for (let x = 0; x < B.length; x++) { const X = B[x]; if (!X.length || (X.length > 1 && X[X.length - 2] !== X[X.length - 1])) continue;
+        for (let y = 0; y < B.length; y++) if (y !== x && B[y].length < S.cap && (B[y].length || X.length > 1)) opts.push([x, y]); }      // последнюю машину в пустой бокс — пустой ход
+      let moved = false;
+      if (path.length < S.len) for (let m = opts.length; m > 0 && !moved; m--) {
+        const i = Math.floor(rnd() * m), [x, y] = opts[i]; opts[i] = opts[m - 1];
+        B[y].push(B[x].pop());
+        if (seen.has(B.join('|'))) B[x].push(B[y].pop()); else { seen.add(B.join('|')); path.push([x, y]); moved = true; }
+      }
+      if (!moved) { if (!path.length) break; const [x, y] = path.pop(); B[x].push(B[y].pop()); continue; }
+      const score = 10 * B.reduce((a, b) => a + b.filter((v, i) => i && v !== b[i - 1]).length, 0) - 3 * B.filter(b => !b.length).length;
+      if (score > top) { top = score; boxes = B.map(b => b.slice()); sol = path.map(([x, y]) => [y, x]).reverse(); }
+     } }
     out.sort = { k, cap: S.cap, boxes, sol }; out.secs = Math.round((S.sec[0] + S.sec[1] * sol.length) * hard * (1 + perk(main, 'tank')));
     return solo();
   }
@@ -1776,21 +1814,6 @@ function raceLevel(n, main) {
     out.m3 = { len, types, foe: Math.round(secs * hard * (1 + perk(main, 'tank'))) };
     out.vs = out.secs = out.m3.foe;
     return solo();
-  }
-  if (mode === 'eco') {
-    // «Запас ограничен»: цель просит по две-три одинаковые машины (и иногда ещё одну другого уровня); гараж выдаст ровно столько машин,
-    // сколько на них нужно (в первом круге — на одну больше), все одного уровня (base). Слил лишнее — машин не хватит
-    const kmax = Math.max(1, Math.min(3, 8 - base)), k1 = 1 + Math.floor(rnd() * Math.min(kmax, 1 + c)), l1 = line(), parts = [[l1, k1, c >= 2 && rnd() < 0.35 ? 3 : 2]];
-    if (c >= 1 && rnd() < 0.6) { let k2 = 1 + Math.floor(rnd() * kmax); if (k2 === k1) k2 = k2 % kmax + 1; if (k2 !== k1) parts.push([kinds > 1 ? line() : l1, k2, rnd() < 0.4 ? 2 : 1]); }
-    const q = [];
-    parts.forEach(([l, k, cnt]) => { for (let i = cnt * 2 ** k; i > 0; i--) q.push(l); t += cnt * (2 ** k * T.tap + (2 ** k - 1) * T.drag); });
-    if (c < 1) q.push(l1);
-    for (let i = q.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)), x = q[i]; q[i] = q[j]; q[j] = x; }
-    out.waves = [parts.map(([l, k, cnt]) => [l, lvlOf(k), cnt, -1])]; out.items = out.waves[0];
-    out.kinds = Math.max(...parts.map(x => x[0])) + 1; out.tools = out.trims = false;
-    out.eco = { n: q.length, lvl: base, q };
-    out.secs = Math.round((T.base + T.pace * (t + T.give) * (1 + T.kind * (out.kinds - 1))) * hard * (1 + perk(main, 'tank')));
-    return out;
   }
   const items = [];                                  // [вид, уровень, штук, редкость, k — на сколько слияний выше выезда]
   const add = k => { const l = line(), lvl = lvlOf(k), same = items.find(it => it[0] === l && it[1] === lvl && it[3] < 0); if (same) same[2]++; else items.push([l, lvl, 1, -1, k]); };
@@ -1833,25 +1856,20 @@ const raceOrder = (lv, w, now) => ({ id: w, kind: 'race', face: 0, born: now, ac
 // виды машин (опыт не растёт). Случайных сломанных и редких нет: что чинить и какую редкость собрать, задаёт уровень. Мастерская и
 // Ателье — на своих клетках, зарядов Ателье хватает. Улучшения салона (main.rs): ступень гаража (s.gl — с какого уровня выезжают машины),
 // ступени Мастерской и Ателье, машины на старте, удача. Коллекция пустая: что собрал в заезде — отмечается, новые карточки покажет итог
-function newRace(n, now, seed, main) {
-  const lv = raceLevel(n, main), s = newGame(now, seed), P = C.ports[0].cell;
-  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1, seen: {}, gl: garageLvl(main) });
+function newRace(n, now, seed, main, solo) {
+  const lv = raceLevel(n, main, solo), s = newGame(now, seed), P = C.ports[0].cell;
+  // гараж обогнал уровни — машины выезжают не старше младшей цели (иначе цель не собрать: ОТЧЁТ-44, в сборке 41 так ломались уровни)
+  const per = C.race.garage.per, low = Math.min(8, ...lv.waves.flat().map(it => it[1]));
+  Object.assign(s, { raceN: n, level: KINDS[lv.kinds - 1].level || 1, xp: -1e9, fuel: 999, slots: 1, seen: {}, gl: Math.min(garageLvl(main), (low - 1) * per) });
   s.n.spawns = C.tutorialSpawns;                    // без «обучения»: сразу все виды машин уровня
   s.tiers[PARTS] = s.tiers[TRIM] = 0;
   s.cells = s.cells.map((c, i) => i === P ? c : RING[i] <= 2 ? null : { k: 'lock' });
   if (lv.tools) s.cells[portOf(PARTS).cell] = { k: 'port', line: PARTS };
   if (lv.trims) { s.cells[portOf(TRIM).cell] = { k: 'port', line: TRIM }; s.atelier = { n: 999, at: now }; }
   lv.start.forEach(([line, lvl, r = 0, broken]) => { s.cells[nearestFree(s, P)] = { k: 'car', line, lvl, r, ...(broken ? { broken: true, since: now } : {}) }; });
-  if (lv.eco) Object.assign(s, { eco: lv.eco.q, supply: lv.eco.n, ecoLvl: lv.eco.lvl });      // «Запас ограничен»: очередь видов машин; форы нет — счёт точный
-  else for (let k = Math.floor(perk(main, 'head')); k > 0; k--) s.cells[nearestFree(s, P)] = { k: 'car', line: 0, lvl: 2 + Math.floor(s.gl / 3), r: 0 };   // фора: на уровень выше выезда
+  for (let k = Math.floor(perk(main, 'head')); k > 0; k--) s.cells[nearestFree(s, P)] = { k: 'car', line: 0, lvl: Math.min(low, 2 + Math.floor(s.gl / per)), r: 0 };   // фора: на уровень выше выезда, но не старше младшей цели
   s.orders = [raceOrder(lv, 0, now)];
   return s;
-}
-// «Запас ограничен» — тупик: машины в гараже кончились, сдать нечего и нет двух одинаковых машин
-function ecoStuck(s) {
-  if (!s.eco || s.supply > 0 || !s.orders[0] || match(s, s.orders[0]).any) return false;
-  const seen = new Set();
-  return !s.cells.some(c => { if (!isCar(c) || c.line >= PARTS) return false; const k = key(c.line, c.lvl); if (seen.has(k)) return true; seen.add(k); return false; });
 }
 const raceStars = (lv, leftMs) => { const p = leftMs / (lv.secs * 1000); return p >= C.race.stars[0] ? 3 : p >= C.race.stars[1] ? 2 : 1; };
 // Сколько платят за уровень: растёт с номером уровня, у мини-игр свой множитель; улучшения оплаты салона
@@ -1863,12 +1881,26 @@ function raceDone(s, n, stars, left = 0) {
   const pay = racePay(s, lv), tips = Math.round(pay * R.tip * Math.max(0, Math.min(1, left)) * (1 + perk(s, 'tip')));
   const chapter = !was && n % R.per === 0 ? lv.cycle : -1, prize = chapter >= 0 ? Math.round(R.chapter * (chapter + 1) * (1 + perk(s, 'prize'))) : 0;
   const key = R.bonus[lv.mode][0], b0 = perk(s, key), boost = 1 + perk(s, 'chest');
+  const unlock = chapter >= 0 ? R.solo[chapter] : undefined;      // пройден круг — открыта ещё одна игра на выбор
   z.best[n] = Math.max(was, stars);
   z.lvl = Math.max(z.lvl, n + 1);
   let chest = 0, chests = 0;
   while (((z.chests || 0) + 1) * R.chest.every <= raceTotal(s)) { z.chests = (z.chests || 0) + 1; chests++; chest += Math.round((R.chest.coins[0] + R.chest.coins[1] * z.chests) * boost); }
   s.coins += pay + tips + prize + chest;
-  return [{ t: 'raceDone', n, stars, was, pay, tips, prize, chapter, chest, chests, coins: pay + tips + prize + chest, bonus: { mode: lv.mode, key, was: b0, now: perk(s, key) } }];
+  return [{ t: 'raceDone', n, stars, was, pay, tips, prize, chapter, chest, chests, coins: pay + tips + prize + chest, unlock, bonus: { mode: lv.mode, key, was: b0, now: perk(s, key) } }];
+}
+// Игра на выбор (ОТЧЁТ-44, владелец: «постепенно открывать возможность играть только в конкретный вид игр после того, как будет
+// пройдена какая-либо глава»). Пройден круг k (с 1) — открыта k-я игра из C.race.solo. У игры свои уровни: j-й — как её уровень
+// в круге (k + j) основной игры (сложность та же), но со своим раскладом. Платят как за этот уровень основной игры, но не больше,
+// чем за уровень, до которого игрок дошёл; звёзды в репутацию и в бонус игры не идут. s.race.solo[игра] — сколько её уровней пройдено.
+const soloOpen = (s, mode) => { const k = C.race.solo.indexOf(mode); return k >= 0 && (s?.race?.lvl || 1) > (k + 1) * C.race.per; };
+const soloAt = (s, mode) => (s?.race?.solo?.[mode] || 0) + 1;      // номер следующего уровня игры
+const soloLevel = (mode, j, main) => { const lv = raceLevel((C.race.solo.indexOf(mode) + j) * C.race.per + C.race.cycle.indexOf(mode) + 1, main, true); lv.j = j; return lv; };
+function soloDone(s, mode, stars, left = 0) {
+  const R = C.race, z = s.race ||= { lvl: 1, best: {} }, j = soloAt(s, mode), lv = soloLevel(mode, j, s);
+  const pay = racePay(s, { n: Math.min(lv.n, z.lvl), mode }), tips = Math.round(pay * R.tip * Math.max(0, Math.min(1, left)) * (1 + perk(s, 'tip')));
+  (z.solo ||= {})[mode] = j; s.coins += pay + tips;
+  return [{ t: 'raceDone', n: lv.n, solo: mode, j, stars, was: 0, pay, tips, prize: 0, chapter: -1, chest: 0, chests: 0, coins: pay + tips, bonus: null }];
 }
 // Новые карточки по итогам заезда: что собрано в заезде (rs.seen), а в коллекции (s.seen) ещё нет. Отмечает их в коллекции
 function raceCards(s, rs) {
@@ -1975,7 +2007,7 @@ function m3Swap(st, a, b) {
 // ── Мини-игры круга (ОТЧЁТ-43). Правила — здесь, экран — в garazh.html ─────────────────────────────────────────────
 // «Найди пару»: карточки лежат рубашкой вверх, по две каждого вида (вид t — машина PAIR_CARS[t]). Открыл две одинаковые — пара найдена;
 // разные — pairsHide закрывает их обратно
-const PAIR_CARS = [[0, 1], [1, 1], [2, 1], [0, 2], [1, 2], [2, 2], [0, 3], [1, 3], [2, 3], [0, 4], [1, 4], [2, 4], [0, 5], [1, 5], [2, 5]];
+const PAIR_CARS = [[0, 1], [2, 1], [0, 7], [0, 5], [1, 2], [1, 7], [1, 3], [0, 4], [2, 8], [0, 8]];      // только контрастные (ОТЧЁТ-44): красная, жёлтая, чёрная, белая, розовая, коричневая, горчичный джип, бордовая, белый суперкар, шампань
 function pairsNew(lv, seed) {
   const st = { rng: seed | 0, n: lv.pairs.n, cards: [], open: [], found: 0 }, ids = [];
   for (let i = 0; i < st.n; i++) ids.push(i, i);
@@ -2097,27 +2129,66 @@ function parkSolve(cars, cap = 8000) {
   }
   return null;
 }
-const PARKS = new Map();
-function parkGen(n) {
-  if (PARKS.has(n)) return PARKS.get(n);
-  const lv = raceLevel(n), rnd = rng32(n * 31 + 7), ri = k => Math.floor(rnd() * k);
-  let best = null;
-  for (let tries = 0; tries < 60 && !(best && best.sol.length === lv.park.want); tries++) {
-    const cars = [{ x: ri(2), y: 2, len: 2, v: false }];
-    for (let k = 0, t = 0; k < lv.park.cars && t < 200; t++) {
-      const v = rnd() < 0.55, len = rnd() < 0.25 ? 3 : 2, x = ri(v ? 6 : 7 - len), y = ri(v ? 7 - len : 6), g = parkGrid(cars);
-      if (!v && y === 2) continue;                        // горизонтальная машина в своём ряду закрыла бы выезд навсегда
-      let free = true;
-      for (let i = 0; i < len; i++) if (g[(y + (v ? i : 0)) * 6 + x + (v ? 0 : i)] >= 0) free = false;
-      if (free) { cars.push({ x, y, len, v }); k++; }
+// Все расстановки, достижимые из cars, и расстояние каждой до ближайшей решённой (ходы обратимы — перебор от решённых). null — связка
+// больше cap расстановок или решённых в ней нет
+function parkDeep(cars, cap) {
+  const n = cars.length, fix = cars.map(c => c.v ? c.x : c.y), len = cars.map(c => c.len), ver = cars.map(c => c.v);
+  const start = cars.map(c => c.v ? c.y : c.x), id = new Map([[start.join(''), 0]]), all = [start], nb = [], g = new Int8Array(36);
+  for (let h = 0; h < all.length; h++) {
+    if (all.length > cap) return null;
+    const p = all[h], ids = []; g.fill(-1);
+    for (let k = 0; k < n; k++) for (let i = 0; i < len[k]; i++) g[ver[k] ? (p[k] + i) * 6 + fix[k] : fix[k] * 6 + p[k] + i] = k;
+    for (let k = 0; k < n; k++) for (const step of [-1, 1]) for (let d = 1; ; d++) {
+      const c = step > 0 ? p[k] + len[k] - 1 + d : p[k] - d;
+      if (c < 0 || c > 5 || g[ver[k] ? c * 6 + fix[k] : fix[k] * 6 + c] >= 0) break;
+      const q = p.slice(); q[k] = p[k] + step * d;
+      const kk = q.join(''); let i = id.get(kk);
+      if (i === undefined) { i = all.length; id.set(kk, i); all.push(q); }
+      ids.push(i);
     }
-    const sol = parkSolve(cars);
-    if (sol && sol.length >= 2 && sol.length <= lv.park.want + 1 && (!best || Math.abs(sol.length - lv.park.want) < Math.abs(best.sol.length - lv.park.want))) best = { cars, sol };      // не длиннее задуманного: бак считан от want
+    nb[h] = ids;
   }
-  PARKS.set(n, best);
-  return best;
+  const dist = new Int16Array(all.length).fill(-1), q = [];
+  all.forEach((p, i) => { if (p[0] + len[0] === 6) { dist[i] = 0; q.push(i); } });
+  for (let h = 0; h < q.length; h++) for (const j of nb[q[h]]) if (dist[j] < 0) { dist[j] = dist[q[h]] + 1; q.push(j); }
+  return q.length ? { all, dist, max: dist[q[q.length - 1]] } : null;
 }
-const parkNew = n => { const p = parkGen(n); return { cars: p.cars.map(c => ({ ...c })), moves: 0 }; };
+// случайная стоянка: своя машина в третьем ряду, остальные — где свободно (поперёк своего ряда не ставим: закрыли бы выезд навсегда)
+function parkLayout(rnd, others) {
+  const ri = k => Math.floor(rnd() * k), cars = [{ x: ri(2), y: 2, len: 2, v: false }];
+  for (let k = 0, t = 0; k < others && t < 200; t++) {
+    const v = rnd() < 0.55, len = rnd() < 0.25 ? 3 : 2, x = ri(v ? 6 : 7 - len), y = ri(v ? 7 - len : 6), g = parkGrid(cars);
+    if (!v && y === 2) continue;
+    let free = true;
+    for (let i = 0; i < len; i++) if (g[(y + (v ? i : 0)) * 6 + x + (v ? 0 : i)] >= 0) free = false;
+    if (free) { cars.push({ x, y, len, v }); k++; }
+  }
+  return cars;
+}
+// Стоянка уровня n: из случайных стоянок берётся та, в связке которой есть расстановка с решением в want ходов (или самым длинным),
+// и из связки — расстановка ровно с таким решением (ОТЧЁТ-44: раньше бралась сама случайная стоянка — решение выходило в 4–9 ходов)
+const PARKS = new Map();
+function parkGen(n, own) {      // own — уровень игры на выбор: своя расстановка
+  const id = own ? -n : n;
+  if (PARKS.has(id)) return PARKS.get(id);
+  const K = C.race.park, lv = raceLevel(n), want = lv.park.want, rnd = rng32(n * 31 + 7 + (own ? 500009 : 0));
+  let best = null, out = null;
+  // tries годных стоянок (связка перебрана целиком и решается), но не больше tries × 4 попыток всего
+  for (let t = 0, good = 0; good < K.tries && t < K.tries * 4 && !(best && best.max >= want); t++) {
+    const cars = parkLayout(rnd, lv.park.cars), d = parkDeep(cars, K.cap);
+    if (d) { good++; if (d.max > (best ? best.max : 1)) best = { ...d, cars }; }
+  }
+  if (best) {
+    const target = Math.min(want, best.max), pick = [];
+    best.dist.forEach((v, i) => { if (v === target) pick.push(i); });
+    const p = best.all[pick[Math.floor(rnd() * pick.length)]], cars = best.cars.map((c, k) => ({ ...c, ...(c.v ? { y: p[k] } : { x: p[k] }) })), sol = parkSolve(cars, K.cap * 4);
+    if (sol) out = { cars, sol };
+  }
+  for (let t = 0; !out && t < 200; t++) { const cars = parkLayout(rnd, 8), sol = parkSolve(cars); if (sol && sol.length >= 2) out = { cars, sol }; }      // запасной путь: любая решаемая стоянка
+  PARKS.set(id, out);
+  return out;
+}
+const parkNew = (n, own) => { const p = parkGen(n, own); return { cars: p.cars.map(c => ({ ...c })), moves: 0 }; };
 
 // «Стена»: некуда поставить, нечего слить, нечего отдать, не на что потратить
 function stuck(s, now) {
@@ -2141,7 +2212,7 @@ const Core = {
   built, zoneDone, currentZone, buildable, build, isCar, isCert, certAt, tierStats, nextHint, dragHint, stuck,
   orangeLocked, vipLines, vipOrder, hallRate, hallBag, hallCheck, hallCollect, hallPlace, levelChest,
   raceLevel, newRace, raceStars, raceDone, raceCards, racePay, raceBuy, raceTotal, chapterOpen, perk, modeOf, modeStars, nitroTaps,
-  garageLvl, garagePrice, expectG, m3New, m3Swap, m3Hint, m3Matches, ecoStuck,
+  garageLvl, garagePrice, expectG, boostLvl, boostN, boostPrice, boostWhy, m3New, m3Swap, m3Hint, m3Matches, soloOpen, soloAt, soloLevel, soloDone,
   PAIR_CARS, pairsNew, pairsFlip, pairsHide, g48New, g48Move, g48Stuck, sortNew, sortMove, sortDone, roadNew, roadStep, roadLane,
   parkNew, parkGen, parkMove, parkDone, parkSolve, parkGrid,
 };
